@@ -1,0 +1,6 @@
+# Ignore custom cmake directories
+bin/
+
+# Ignore CLion files
+cmake-build*/
+.idea/
