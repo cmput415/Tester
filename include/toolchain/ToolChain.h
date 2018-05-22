@@ -1,7 +1,7 @@
 #ifndef TESTER_TOOL_CHAIN_H
 #define TESTER_TOOL_CHAIN_H
 
-#include "Command.h"
+#include "toolchain/Command.h"
 
 #include "json.hpp"
 
