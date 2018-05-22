@@ -1,6 +1,7 @@
 #ifndef TESTER_TEST_HARNESS_H
 #define TESTER_TEST_HARNESS_H
 
+#include "toolchain/TestPair.h"
 #include "toolchain/ToolChain.h"
 
 #include "json.hpp"
@@ -11,12 +12,10 @@
 
 // Convenience.
 using JSON = nlohmann::json;
-namespace fs = std::experimental::filesystem;
 
 namespace tester {
 
 // Test file typedefs.
-struct TestPair; // Definition below.
 typedef std::vector<TestPair> TestList;
 typedef std::map<std::string, TestList> TestSet;
 
@@ -35,15 +34,6 @@ public:
 private:
   ToolChain toolchain;
   TestSet tests;
-};
-
-// Implement TestPair.
-struct TestPair {
-  TestPair() = delete;
-
-  TestPair(fs::path in, fs::path out) : in(in), out(out) { }
-
-  const fs::path in, out;
 };
 
 } // End namespace tester
