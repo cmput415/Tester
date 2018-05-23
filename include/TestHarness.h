@@ -8,7 +8,6 @@
 
 #include <string>
 #include <vector>
-#include <experimental/filesystem>
 
 // Convenience.
 using JSON = nlohmann::json;
@@ -26,10 +25,14 @@ public:
   TestHarness() = delete;
 
   // Construct the Tester with a parsed JSON file.
-  TestHarness(const JSON &json);
+  explicit TestHarness(const JSON &json);
 
   // Run the found tests.
-  void runTests() { }
+  void runTests();
+
+private:
+  // Runs a single test.
+  void runTest(const TestPair &tp);
 
 private:
   ToolChain toolchain;

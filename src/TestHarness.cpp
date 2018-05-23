@@ -2,10 +2,12 @@
 
 #include <map>
 #include <algorithm>
+#include <iostream>
 #include <experimental/filesystem>
 #include <exception>
 
-#define TESTER_TESTER_DEBUG 1
+// Convenience
+namespace fs = std::experimental::filesystem;
 
 namespace {
 // A vector of paths.
@@ -23,10 +25,12 @@ void gatherDirFiles(fs::path base, fs::path extFilter, PathList &paths) {
       continue;
 
     fs::path f(it.path());
+    std::cout << f.stem() << " found\n";
 
     // Skip bad extensions.
-    if (f.extension() != extFilter)
+    if (f.extension() != extFilter) {
       continue;
+    }
 
     // Save the path.
     paths.push_back(f);
@@ -93,5 +97,17 @@ TestHarness::TestHarness(const JSON &json) : toolchain(json) {
   tests.emplace(".", pairFiles(inDir, outDir));
 }
 
+void TestHarness::runTests() {
+  for (auto &tlEntry : tests) {
+    for (TestPair &tp : tlEntry.second) {
+      runTest(tp);
+    }
+  }
+}
+
+void TestHarness::runTest(const TestPair &tp) {
+  std::cout << "Testing: " << tp.in.stem() << '\n';
+  toolchain.build(tp.in.string());
+}
 
 } // End namespace tester
