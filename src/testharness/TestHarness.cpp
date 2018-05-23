@@ -1,4 +1,4 @@
-#include "TestHarness.h"
+#include "testharness/TestHarness.h"
 
 #include "toolchain/ExecutionState.h"
 

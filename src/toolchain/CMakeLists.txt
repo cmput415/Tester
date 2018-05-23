@@ -7,4 +7,3 @@ set(
 )
 
 add_library(toolchain STATIC ${toolchain_src_files})
-target_link_libraries(toolchain stdc++fs)

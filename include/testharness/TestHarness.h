@@ -1,7 +1,7 @@
 #ifndef TESTER_TEST_HARNESS_H
 #define TESTER_TEST_HARNESS_H
 
-#include "toolchain/TestPair.h"
+#include "testharness/TestPair.h"
 #include "toolchain/ToolChain.h"
 
 #include "json.hpp"
