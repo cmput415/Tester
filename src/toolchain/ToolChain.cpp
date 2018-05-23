@@ -22,8 +22,6 @@ ExecutionOutput ToolChain::build(fs::path inputPath) {
     ei = ExecutionInput(eo.getOutputFile());
   }
 
-  // DEBUG
-  std::cout << eo.getOutputFile() << " generated!\n";
   return eo;
 }
 
