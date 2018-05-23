@@ -21,7 +21,7 @@ public:
   Command() = delete;
 
   // Construct a command from JSON set up.
-  Command(const JSON &json);
+  explicit Command(const JSON &json);
 
   // Execute the command.
   ExecutionOutput execute(const ExecutionInput &ei) const;

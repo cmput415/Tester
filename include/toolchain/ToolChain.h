@@ -20,7 +20,7 @@ public:
   ToolChain() = delete;
 
   // Construct the ToolChain from a json file path.
-  ToolChain(const JSON &json);
+  explicit ToolChain(const JSON &json);
 
   // Runs the toolchain on a specified inputfile.
   ExecutionOutput build(std::string inputFile);

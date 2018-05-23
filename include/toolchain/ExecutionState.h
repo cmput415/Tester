@@ -12,7 +12,7 @@ public:
   ExecutionInput() = delete;
 
   // Creates input to a subprocess execution.
-  ExecutionInput(const std::string inputFile) : inputFile(inputFile) { }
+  explicit ExecutionInput(const std::string inputFile) : inputFile(inputFile) { }
 
   // Gets input file.
   std::string getInputFile() const { return inputFile; }
