@@ -31,8 +31,8 @@ public:
   void runTests();
 
 private:
-  // Runs a single test.
-  void runTest(const TestPair &tp);
+  // Runs a single test. True/false based on test pass.
+  bool runTest(const TestPair &tp);
 
 private:
   ToolChain toolchain;

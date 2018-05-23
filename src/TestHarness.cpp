@@ -1,8 +1,14 @@
 #include "TestHarness.h"
 
+#include "toolchain/ExecutionState.h"
+
+#include "dtl/dtl.hpp"
+
+#include <string>
 #include <map>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <experimental/filesystem>
 #include <exception>
 
@@ -27,7 +33,6 @@ void gatherDirFiles(fs::path base, fs::path extFilter, PathList &paths) {
       continue;
 
     fs::path f(it.path());
-    std::cout << f.stem() << " found\n";
 
     // Skip bad extensions.
     if (f.extension() != extFilter) {
@@ -77,6 +82,13 @@ tester::TestList pairFiles(fs::path in, fs::path out) {
   return matched;
 }
 
+void getFileLines(fs::path fp, std::vector<std::string> &lines) {
+  std::ifstream fs(fp);
+  std::string buf;
+  while (std::getline(fs, buf))
+    lines.push_back(buf);
+}
+
 } // End anonymous namespace
 
 namespace tester {
@@ -107,9 +119,26 @@ void TestHarness::runTests() {
   }
 }
 
-void TestHarness::runTest(const TestPair &tp) {
-  std::cout << "Testing: " << tp.in.stem() << '\n';
-  toolchain.build(tp.in.string());
+bool TestHarness::runTest(const TestPair &tp) {
+  ExecutionOutput eo = toolchain.build(tp.in);
+
+  // Get the lines from the files.
+  std::vector<std::string> expLines;
+  std::vector<std::string> genLines;
+  getFileLines(tp.out, expLines);
+  getFileLines(eo.getOutputFile(), genLines);
+
+  dtl::Diff<std::string> diff(expLines, genLines);
+  diff.compose();
+  diff.composeUnifiedHunks();
+
+  // We failed the test.
+  if (diff.getUniHunks().size() > 0) {
+    diff.printUnifiedFormat();
+    return false;
+  }
+
+  return true;
 }
 
 } // End namespace tester
