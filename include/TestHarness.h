@@ -20,13 +20,13 @@ typedef std::vector<TestPair> TestList;
 typedef std::map<std::string, TestList> TestSet;
 
 // Class that manages finding tests and running them.
-class Tester {
+class TestHarness {
 public:
   // No default constructor.
-  Tester() = delete;
+  TestHarness() = delete;
 
   // Construct the Tester with a parsed JSON file.
-  Tester(const JSON &json);
+  TestHarness(const JSON &json);
 
   // Run the found tests.
   void runTests() { }

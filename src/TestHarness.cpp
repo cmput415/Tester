@@ -76,7 +76,7 @@ tester::TestList pairFiles(fs::path in, fs::path out) {
 namespace tester {
 
 // Builds TestSet during object creation.
-Tester::Tester(const JSON &json) : toolchain(json) {
+TestHarness::TestHarness(const JSON &json) : toolchain(json) {
   std::string inDirStr = json["inDir"];
   std::string outDirStr = json["outDir"];
 

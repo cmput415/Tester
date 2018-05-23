@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
 
   try {
     // Build our tester.
-    tester::Tester t(json);
+    tester::TestHarness t(json);
 
     // Run our tests.
     t.runTests();
