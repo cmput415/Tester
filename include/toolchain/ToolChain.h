@@ -7,9 +7,11 @@
 
 #include <string>
 #include <vector>
+#include <experimental/filesystem>
 
 // Convenience.
 using JSON = nlohmann::json;
+namespace fs = std::experimental::filesystem;
 
 namespace tester {
 
@@ -23,7 +25,7 @@ public:
   explicit ToolChain(const JSON &json);
 
   // Runs the toolchain on a specified inputfile.
-  ExecutionOutput build(std::string inputFile);
+  ExecutionOutput build(fs::path inputPath);
 
   // Ostream operator.
   friend std::ostream &operator<<(std::ostream&, const ToolChain&);

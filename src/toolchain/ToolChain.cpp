@@ -14,14 +14,16 @@ ToolChain::ToolChain(const JSON &json) {
     commands.emplace_back(step);
 }
 
-ExecutionOutput ToolChain::build(std::string inputFile) {
-  ExecutionInput ei(inputFile);
+ExecutionOutput ToolChain::build(fs::path inputPath) {
+  ExecutionInput ei(inputPath);
   ExecutionOutput eo("");
   for (const Command &c : commands) {
     eo = c.execute(ei);
     ei = ExecutionInput(eo.getOutputFile());
   }
 
+  // DEBUG
+  std::cout << eo.getOutputFile() << " generated!\n";
   return eo;
 }
 

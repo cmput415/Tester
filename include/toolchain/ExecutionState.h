@@ -1,7 +1,9 @@
 #ifndef TESTER_EXECUTION_STATE_H
 #define TESTER_EXECUTION_STATE_H
 
-#include <string>
+#include <experimental/filesystem>
+
+namespace fs = std::experimental::filesystem;
 
 namespace tester {
 
@@ -12,13 +14,13 @@ public:
   ExecutionInput() = delete;
 
   // Creates input to a subprocess execution.
-  explicit ExecutionInput(const std::string inputFile) : inputFile(inputFile) { }
+  explicit ExecutionInput(const fs::path inputPath) : inputPath(inputPath) { }
 
   // Gets input file.
-  std::string getInputFile() const { return inputFile; }
+  fs::path getInputFile() const { return inputPath; }
 
 private:
-  std::string inputFile;
+  fs::path inputPath;
 };
 
 // A class meant to share intermediate info when end a toolchain step.
@@ -28,14 +30,14 @@ public:
   ExecutionOutput()  = delete;
 
   // Creates output to a subprocess execution.
-  ExecutionOutput(std::string outputFile) : outputFile(outputFile) { }
+  ExecutionOutput(fs::path outputPath) : outputPath(outputPath) { }
 
   // Gets output file.
-  std::string getOutputFile() const { return outputFile; }
+  fs::path getOutputFile() const { return outputPath; }
 
 
 private:
-  std::string outputFile;
+  fs::path outputPath;
 };
 
 } // End namespace tester
