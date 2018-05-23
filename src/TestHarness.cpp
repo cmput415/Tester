@@ -9,7 +9,9 @@
 // Convenience
 namespace fs = std::experimental::filesystem;
 
+// A private namespace to hold some file operations.
 namespace {
+
 // A vector of paths.
 typedef std::vector<fs::path> PathList;
 
