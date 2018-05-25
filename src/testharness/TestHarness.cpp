@@ -5,6 +5,7 @@
 #include "dtl/dtl.hpp"
 
 #include <string>
+#include <sstream>
 #include <map>
 #include <algorithm>
 #include <utility>
@@ -156,11 +157,29 @@ TestHarness::TestHarness(const JSON &json) : toolchain(json) {
 }
 
 void TestHarness::runTests() const {
+  unsigned int totalCount = 0, totalPasses = 0;
   for (auto &tlEntry : tests) {
+    std::cout << "Entering package: " << tlEntry.first << '\n';
+
+    unsigned int packagePasses = 0;
     for (const TestPair &tp : tlEntry.second) {
-      runTest(tp);
+      TestResult result = runTest(tp);
+      std::cout << "   " << tp.in.stem().string() << ": "
+                << (result.pass ? "PASS" : "FAIL") << '\n';
+
+      if (!result.pass)
+        std::cout << '\n' << result.diff << '\n';
+      else {
+        ++totalPasses;
+        ++packagePasses;
+      }
+      ++totalCount;
     }
+
+    std::cout << "  Package passed " << packagePasses << " / " << tlEntry.second.size() << '\n';
   }
+
+  std::cout << "Total passed " << totalPasses << " / " << totalCount << '\n';
 }
 
 std::string TestHarness::getTestInfo() const {
@@ -171,14 +190,15 @@ std::string TestHarness::getTestInfo() const {
   return rv;
 }
 
-bool TestHarness::runTest(const TestPair &tp) const {
+TestResult TestHarness::runTest(const TestPair &tp) const {
   ExecutionOutput eo = toolchain.build(tp.in);
+  fs::path output = eo.getOutputFile();
 
   // Get the lines from the files.
   std::vector<std::string> expLines;
   std::vector<std::string> genLines;
   getFileLines(tp.out, expLines);
-  getFileLines(eo.getOutputFile(), genLines);
+  getFileLines(output, genLines);
 
   dtl::Diff<std::string> diff(expLines, genLines);
   diff.compose();
@@ -186,11 +206,12 @@ bool TestHarness::runTest(const TestPair &tp) const {
 
   // We failed the test.
   if (!diff.getUniHunks().empty()) {
-    diff.printUnifiedFormat();
-    return false;
+    std::stringstream ss;
+    diff.printUnifiedFormat(ss);
+    return TestResult(tp.in, false, ss.str());
   }
 
-  return true;
+  return TestResult(tp.in, true, "");
 }
 
 } // End namespace tester

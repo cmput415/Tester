@@ -1,5 +1,5 @@
-#ifndef TESTER_RESULTPAIR_H
-#define TESTER_RESULTPAIR_H
+#ifndef TESTER_TEST_RESULT_H
+#define TESTER_TEST_RESULT_H
 
 #include <experimental/filesystem>
 
@@ -8,18 +8,19 @@ namespace fs = std::experimental::filesystem;
 
 namespace tester {
 
-struct ResultPair {
+struct TestResult {
   // No default constructor.
-  ResultPair() = delete;
+  TestResult() = delete;
 
   // Make the result. Extract the test file name from the path.
-  ResultPair(fs::path in, bool pass) : name(in.stem()), pass(pass) { }
+  TestResult(fs::path in, bool pass, std::string diff) : name(in.stem()), pass(pass), diff(diff) { }
 
   // Info about result.
   const fs::path name;
   const bool pass;
+  const std::string diff;
 };
 
 } // End namespace tester
 
-#endif //TESTER_RESULTPAIR_H
+#endif //TESTER_TEST_RESULT_H

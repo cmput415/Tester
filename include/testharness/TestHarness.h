@@ -2,6 +2,7 @@
 #define TESTER_TEST_HARNESS_H
 
 #include "testharness/TestPair.h"
+#include "testharness/TestResult.h"
 #include "toolchain/ToolChain.h"
 
 #include "json.hpp"
@@ -35,7 +36,7 @@ public:
 
 private:
   // Runs a single test. True/false based on test pass.
-  bool runTest(const TestPair &tp) const;
+  TestResult runTest(const TestPair &tp) const;
 
 private:
   ToolChain toolchain;

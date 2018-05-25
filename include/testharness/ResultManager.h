@@ -1,7 +1,7 @@
-#ifndef TESTER_TEST_RESULTS_H
-#define TESTER_TEST_RESULTS_H
+#ifndef TESTER_RESULT_MANAGER_H
+#define TESTER_RESULT_MANAGER_H
 
-#include "ResultPair.h"
+#include "testharness/TestResult.h"
 
 #include <map>
 #include <vector>
@@ -15,10 +15,10 @@ namespace tester {
 
 // TODO: make this a set instead of a vector. Theoretically, the uniqueness of the key + filename
 // passed in is guaranteed by the caller, but we could enforce it here.
-typedef std::vector<ResultPair> ResultList;
+typedef std::vector<TestResult> ResultList;
 typedef std::map<std::string, ResultList> ResultSet;
 
-class TestResults {
+class ResultManager {
 
   // Add a test result.
   void addResult(std::string key, fs::path in, bool pass) { results[key].emplace_back(in, pass); }
@@ -29,4 +29,4 @@ private:
 
 }
 
-#endif //TESTER_TESTRESULTS_H
+#endif //TESTER_RESULT_MANAGER_H
