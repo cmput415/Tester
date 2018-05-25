@@ -185,7 +185,7 @@ bool TestHarness::runTest(const TestPair &tp) const {
   diff.composeUnifiedHunks();
 
   // We failed the test.
-  if (diff.getUniHunks().size() > 0) {
+  if (!diff.getUniHunks().empty()) {
     diff.printUnifiedFormat();
     return false;
   }
