@@ -14,7 +14,7 @@ ToolChain::ToolChain(const JSON &json) {
     commands.emplace_back(step);
 }
 
-ExecutionOutput ToolChain::build(fs::path inputPath) {
+ExecutionOutput ToolChain::build(fs::path inputPath) const {
   ExecutionInput ei(inputPath);
   ExecutionOutput eo("");
   for (const Command &c : commands) {

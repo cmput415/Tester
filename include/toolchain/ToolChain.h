@@ -25,7 +25,7 @@ public:
   explicit ToolChain(const JSON &json);
 
   // Runs the toolchain on a specified inputfile.
-  ExecutionOutput build(fs::path inputPath);
+  ExecutionOutput build(fs::path inputPath) const;
 
   // Ostream operator.
   friend std::ostream &operator<<(std::ostream&, const ToolChain&);
