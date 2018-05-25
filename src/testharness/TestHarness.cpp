@@ -156,24 +156,39 @@ TestHarness::TestHarness(const JSON &json) : toolchain(json) {
   findTests(inDir, outDir, tests);
 }
 
-void TestHarness::runTests() const {
+void TestHarness::runTests() {
+  // Stat tracking for tests.
   unsigned int totalCount = 0, totalPasses = 0;
+
+  // Iterate the packages.
   for (auto &tlEntry : tests) {
+    // Print the package name.
     std::cout << "Entering package: " << tlEntry.first << '\n';
 
+    // Track how many tests we run.
+    totalCount += tlEntry.second.size();
+
+    // Count how many passes we get.
     unsigned int packagePasses = 0;
+
+    // Iterate over the tests.
     for (const TestPair &tp : tlEntry.second) {
+      // Run the test and save the result.
       TestResult result = runTest(tp);
+      results.addResult(tlEntry.first, result);
+
+      // Log the pass/fail.
       std::cout << "   " << tp.in.stem().string() << ": "
                 << (result.pass ? "PASS" : "FAIL") << '\n';
 
+      // If fail, print the diff.
       if (!result.pass)
         std::cout << '\n' << result.diff << '\n';
+      // Otherwise, note the pass.
       else {
         ++totalPasses;
         ++packagePasses;
       }
-      ++totalCount;
     }
 
     std::cout << "  Package passed " << packagePasses << " / " << tlEntry.second.size() << '\n';

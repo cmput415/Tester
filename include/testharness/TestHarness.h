@@ -3,6 +3,7 @@
 
 #include "testharness/TestPair.h"
 #include "testharness/TestResult.h"
+#include "testharness/ResultManager.h"
 #include "toolchain/ToolChain.h"
 
 #include "json.hpp"
@@ -29,7 +30,7 @@ public:
   explicit TestHarness(const JSON &json);
 
   // Run the found tests.
-  void runTests() const;
+  void runTests();
 
   // Get tests info.
   std::string getTestInfo() const;
@@ -41,6 +42,7 @@ private:
 private:
   ToolChain toolchain;
   TestSet tests;
+  ResultManager results;
 };
 
 } // End namespace tester

@@ -19,9 +19,9 @@ typedef std::vector<TestResult> ResultList;
 typedef std::map<std::string, ResultList> ResultSet;
 
 class ResultManager {
-
+public:
   // Add a test result.
-  void addResult(std::string key, fs::path in, bool pass) { results[key].emplace_back(in, pass); }
+  void addResult(std::string key, const TestResult &result) { results[key].push_back(result); }
 
 private:
   ResultSet results;
