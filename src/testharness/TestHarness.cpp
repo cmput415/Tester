@@ -7,6 +7,8 @@
 #include <string>
 #include <map>
 #include <algorithm>
+#include <utility>
+#include <functional>
 #include <iostream>
 #include <fstream>
 #include <experimental/filesystem>
@@ -21,52 +23,56 @@ namespace {
 // A vector of paths.
 typedef std::vector<fs::path> PathList;
 
-// Extensions of files we like.
-const fs::path inExt(".in");
-const fs::path outExt(".out");
+// Extensions of files we like. Declared as char[] so they can be used as template args.
+constexpr char const inExt[] = ".in";
+constexpr char const outExt[] = ".out";
 
-// Gathers all files in a directory with a certain extension.
-void gatherDirFiles(fs::path base, fs::path extFilter, PathList &paths) {
-  for (const auto &it : fs::directory_iterator(base)) {
-    // Skip directories.
-    if (fs::is_directory(it))
-      continue;
-
-    fs::path f(it.path());
-
-    // Skip bad extensions.
-    if (f.extension() != extFilter) {
-      continue;
-    }
-
-    // Save the path.
-    paths.push_back(f);
-  }
+// Filter that returns true if a path is a file the extension matches
+template <const char *ext>
+bool fileFilter(const fs::path &p) {
+if (!fs::is_regular_file(p))
+  return false;
+return p.extension() == fs::path(ext);
 }
 
-tester::TestList pairFiles(fs::path in, fs::path out) {
-  // A place to hold our paths.
-  PathList inFiles;
-  PathList outFiles;
+bool directoryFilter(const fs::path &p) {
+return fs::is_directory(p) && ! fs::is_symlink(p);
+}
 
-  // Get the files out of the directory.
-  gatherDirFiles(in, inExt, inFiles);
-  gatherDirFiles(out, outExt, outFiles);
+// Function that gathers paths from a directory based on a supplied filter function
+template<bool (*filter)(const fs::path &)>
+void gatherFromDir(const fs::path &base, PathList &paths) {
+for (const auto &it : fs::directory_iterator(base)) {
+  fs::path f(it.path());
+  if (filter(f))
+    paths.push_back(f);
+}
+}
+
+// Function that takes paths from two directores
+template <void (*gatherIn)(const fs::path &, PathList &),
+        void (*gatherOut)(const fs::path &, PathList &)>
+void pairPaths(const fs::path &inDir, const fs::path &outDir, tester::TestList &pairs) {
+  // Gather the paths from this directory.
+  PathList in;
+  PathList out;
+  gatherIn(inDir, in);
+  gatherOut(outDir, out);
 
   // Sort so we can do lexicographical comparison.
-  std::sort(inFiles.begin(), inFiles.end());
-  std::sort(outFiles.begin(), outFiles.end());
+  std::sort(in.begin(), in.end());
+  std::sort(out.begin(), out.end());
 
-  // Try to pair up input and output files.
-  tester::TestList matched;
-  auto inIt = inFiles.begin(), inEnd = inFiles.end();
-  auto outIt = outFiles.begin(), outEnd = outFiles.end();
+  // Match the paths and add to the list.
+  auto inIt = in.begin(), inEnd = in.end();
+  auto outIt = out.begin(), outEnd = out.end();
   while (inIt != inEnd && outIt != outEnd) {
-    // We care about the stem, which is the filename without extension.
+    // We care about the stem, which is the filename without extension or the final directory in the
+    // path.
     fs::path inStem = inIt->stem(), outStem = outIt->stem();
     if (inStem == outStem) {
       // Add the match.
-      matched.emplace_back(*inIt, *outIt);
+      pairs.emplace_back(*inIt, *outIt);
 
       // Advance both iterators because we matched.
       ++inIt;
@@ -78,8 +84,47 @@ tester::TestList pairFiles(fs::path in, fs::path out) {
     else
       ++outIt;
   }
+}
 
-  return matched;
+// The templates are getting kind of long, time to shorten them. These are just pointers (aka
+// aliases) to the created template functions for pairPaths. They have the same signature.
+constexpr void(*getTests)(const fs::path &, const fs::path &, tester::TestList &) =
+  &pairPaths<gatherFromDir<fileFilter<inExt>>, gatherFromDir<fileFilter<outExt>>>;
+constexpr void(*getDirs)(const fs::path &, const fs::path &, tester::TestList &) =
+  &pairPaths<gatherFromDir<directoryFilter>, gatherFromDir<directoryFilter>>;
+
+void recurseFindTests(fs::path in, fs::path out, std::string prefix, tester::TestSet &tests) {
+  // What's our current insert key? It's the current deepest directory (identical for in and out)
+  // appended to the prefix.
+  std::string key = prefix + in.stem().string();
+  std::cout << "Got key: " << key << '\n';
+
+  // Now pair them and insert them in the package for our key if there are any.
+  tester::TestList testsHere;
+  getTests(in, out, testsHere);
+  if (!testsHere.empty())
+    tests.insert(std::make_pair(key, testsHere));
+
+  // Now recurse again.
+  tester::TestList dirsHere;
+  getDirs(in, out, testsHere);
+  for (tester::TestPair pair : dirsHere)
+    recurseFindTests(pair.in, pair.out, key, tests);
+}
+
+void findTests(fs::path in, fs::path out, tester::TestSet &tests) {
+  // Get the tests in the base directory. This is a special case because pre-recursion because
+  // there's no real prefix that we can put in.
+  tester::TestList testsHere;
+  getTests(in, out, testsHere);
+  if (!testsHere.empty())
+    tests.insert(std::make_pair(".", testsHere));
+
+  // Now try to recurse on directories.
+  tester::TestList dirsHere;
+  getDirs(in, out, dirsHere);
+  for (tester::TestPair pair : dirsHere)
+    recurseFindTests(pair.in, pair.out, "", tests);
 }
 
 void getFileLines(fs::path fp, std::vector<std::string> &lines) {
@@ -107,8 +152,7 @@ TestHarness::TestHarness(const JSON &json) : toolchain(json) {
   if (!fs::exists(outDir))
     throw std::runtime_error("Output file directory did not exist: " + outDirStr);
 
-  // Get our base directory tests. Ideally this is empty, but you never know.
-  tests.emplace(".", pairFiles(inDir, outDir));
+  findTests(inDir, outDir, tests);
 }
 
 void TestHarness::runTests() {
