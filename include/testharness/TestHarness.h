@@ -28,11 +28,14 @@ public:
   explicit TestHarness(const JSON &json);
 
   // Run the found tests.
-  void runTests();
+  void runTests() const;
+
+  // Get tests info.
+  std::string getTestInfo() const;
 
 private:
   // Runs a single test. True/false based on test pass.
-  bool runTest(const TestPair &tp);
+  bool runTest(const TestPair &tp) const;
 
 private:
   ToolChain toolchain;

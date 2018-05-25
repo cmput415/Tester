@@ -155,15 +155,23 @@ TestHarness::TestHarness(const JSON &json) : toolchain(json) {
   findTests(inDir, outDir, tests);
 }
 
-void TestHarness::runTests() {
+void TestHarness::runTests() const {
   for (auto &tlEntry : tests) {
-    for (TestPair &tp : tlEntry.second) {
+    for (const TestPair &tp : tlEntry.second) {
       runTest(tp);
     }
   }
 }
 
-bool TestHarness::runTest(const TestPair &tp) {
+std::string TestHarness::getTestInfo() const {
+  std::string rv = "Tests:\n";
+  for (auto &tlEntry : tests) {
+    rv += "  " + tlEntry.first + ": " + std::to_string(tlEntry.second.size()) + '\n';
+  }
+  return rv;
+}
+
+bool TestHarness::runTest(const TestPair &tp) const {
   ExecutionOutput eo = toolchain.build(tp.in);
 
   // Get the lines from the files.
