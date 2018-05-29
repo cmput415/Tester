@@ -1,4 +1,3 @@
-
 # Gather our source files in this directory.
 set(
   toolchain_src_files
@@ -6,4 +5,5 @@ set(
   "${CMAKE_CURRENT_SOURCE_DIR}/ToolChain.cpp"
 )
 
+# Build the library from the source files.
 add_library(toolchain STATIC ${toolchain_src_files})
