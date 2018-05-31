@@ -8,7 +8,7 @@ namespace tester {
 // Represents a problem running a command.
 class CommandException : public std::runtime_error {
 public:
-  CommandException(std::string s) : std::runtime_error(s) { }
+  explicit CommandException(std::string s) : std::runtime_error(s) { }
 
 };
 
