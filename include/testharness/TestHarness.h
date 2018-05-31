@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <experimental/filesystem>
 
 // Convenience.
 using JSON = nlohmann::json;
@@ -36,13 +37,16 @@ public:
   // Get tests info.
   std::string getTestInfo() const;
 
-private:
-  // Runs a single test. True/false based on test pass.
-  TestResult runTest(const PathPair &tp) const;
 
 private:
+  void runTestsForToolChain(const ToolChain &toolChain);
+
+private:
+  // The executable to test.
+  fs::path testedExecutable;
+
   // The tool chain to compile something to test.
-  ToolChain toolchain;
+  std::vector<ToolChain> toolchains;
 
   // The list of tests to test.
   PackageSet tests;

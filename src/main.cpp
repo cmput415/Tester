@@ -28,9 +28,9 @@ int main(int argc, char **argv) {
   try {
     // Build our tester.
     tester::TestHarness t(json, quiet);
-
     std::cout << t.getTestInfo() << '\n';
 
+//      return 0;
     // Run our tests.
     t.runTests();
   }

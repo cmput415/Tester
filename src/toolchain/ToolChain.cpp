@@ -8,25 +8,24 @@
 namespace tester {
 
 ToolChain::ToolChain(const JSON &json) {
-#ifdef _WIN32
-  throw std::runtime_error("Don't know how to do validation on Windows yet.");
-#endif
+  // Make sure we've got an array of commands.
+  if (!json.is_array())
+    throw std::runtime_error("Not a toolchain array.");
 
-  // Make sure steps exists before creating the toolchain.
-  ensureContains(json, "steps");
-  for (const JSON &step : json["steps"])
+  // Build our commands from each step.
+  for (const JSON &step : json)
     commands.emplace_back(step);
 }
 
 ExecutionOutput ToolChain::build(fs::path inputPath) const {
   // The current output and input contexts.
-  ExecutionInput ei(inputPath);
+  ExecutionInput ei(inputPath, testedExecutable);
   ExecutionOutput eo("");
 
   // Run the command, updating the contexts as we go.
   for (const Command &c : commands) {
     eo = c.execute(ei);
-    ei = ExecutionInput(eo.getOutputFile());
+    ei = ExecutionInput(eo.getOutputFile(), ei.getTestedExecutable());
   }
 
   // Return the output context of the final command.

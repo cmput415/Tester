@@ -14,13 +14,18 @@ public:
   ExecutionInput() = delete;
 
   // Creates input to a subprocess execution.
-  explicit ExecutionInput(const fs::path inputPath) : inputPath(inputPath) { }
+  ExecutionInput(const fs::path &inputPath, const fs::path &testedExecutable)
+    : inputPath(inputPath), testedExecutable(testedExecutable) { }
 
   // Gets input file.
   fs::path getInputFile() const { return inputPath; }
 
+  // Gets tested executable.
+  fs::path getTestedExecutable() const { return testedExecutable; }
+
 private:
   fs::path inputPath;
+  fs::path testedExecutable;
 };
 
 // A class meant to share intermediate info when end a toolchain step.

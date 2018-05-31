@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <experimental/filesystem>
 
 // Convenience.
 using JSON = nlohmann::json;
@@ -34,14 +35,19 @@ private:
   std::string buildCommand(const ExecutionInput &input, const ExecutionOutput &output) const;
 
   // Resolves magic parameters to values.
-  std::string resolveArg(const ExecutionInput &ei, const ExecutionOutput &eo, std::string arg) const;
+  std::string resolveArg(const ExecutionInput &ei, const ExecutionOutput &eo, std::string arg)
+    const;
+
+  // Resolves magic exe parameters to value.
+  std::string resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo, std::string exe)
+    const;
 
   // Generate an output filename (stdout destination).
   std::string generateOutputName(const ExecutionInput &input) const;
 
 private:
   std::string name;
-  std::string exePath;
+  fs::path exePath;
   std::vector<std::string> args;
   std::string output;
 };

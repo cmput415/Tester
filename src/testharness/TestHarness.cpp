@@ -3,6 +3,8 @@
 #include "toolchain/ExecutionState.h"
 #include "toolchain/CommandException.h"
 
+#include "util.h"
+
 #include "dtl/dtl.hpp"
 
 #include <string>
@@ -141,26 +143,95 @@ void getFileLines(fs::path fp, std::vector<std::string> &lines) {
 
 } // End anonymous namespace
 
+// A private namespace to hold some test operations.
+namespace {
+
+tester::TestResult runTest(const tester::PathPair &tp, const tester::ToolChain &toolChain) {
+  // Try to build the test. If there's a problem running a command, then we assume failure.
+  fs::path output;
+  try {
+    tester::ExecutionOutput eo = toolChain.build(tp.in);
+    output = eo.getOutputFile();
+  }
+  catch (const tester::CommandException &ce) {
+    std::cout << "Command error: " << ce.what() << '\n';
+    return tester::TestResult(tp.in, false, true, "");
+  }
+
+  // Get the lines from the files.
+  std::vector<std::string> expLines;
+  std::vector<std::string> genLines;
+  getFileLines(tp.out, expLines);
+  getFileLines(output, genLines);
+
+  dtl::Diff<std::string> diff(expLines, genLines);
+  diff.compose();
+  diff.composeUnifiedHunks();
+
+  // We failed the test.
+  if (!diff.getUniHunks().empty()) {
+    std::stringstream ss;
+    diff.printUnifiedFormat(ss);
+    return tester::TestResult(tp.in, false, false, ss.str());
+  }
+
+  return tester::TestResult(tp.in, true, false, "");
+}
+
+} // End anonymous namespace
+
 namespace tester {
 
 // Builds TestSet during object creation.
-TestHarness::TestHarness(const JSON &json, bool quiet) : toolchain(json), quiet(quiet) {
+TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
+  // Make sure we have an executable to test then set it. Need to explicitly tell json what type
+  // we're pulling out here because it doesn't like loading into an fs::path.
+  ensureContains(json, "testedExecutablePath");
+  std::string exe = json["testedExecutablePath"];
+  testedExecutable = exe;
+
+  // Make sure toolchains are provided then build the set of toolchains.
+  ensureContains(json, "toolchains");
+  for (const JSON &toolchain : json["toolchains"])
+    toolchains.emplace_back(toolchain);
+
+  // Make sure an in and out dir were provided.
+  ensureContains(json, "inDir");
+  ensureContains(json, "outDir");
+
+  // Get the in and out paths.
   std::string inDirStr = json["inDir"];
   std::string outDirStr = json["outDir"];
-
   fs::path inDir(inDirStr);
   fs::path outDir(outDirStr);
 
-  if (!fs::exists(inDir))
+  // Ensure the paths exist.
+  if (!fs::exists(inDir) || !fs::is_directory(inDir))
     throw std::runtime_error("Input file directory did not exist: " + inDirStr);
-
-  if (!fs::exists(outDir))
+  if (!fs::exists(outDir) || !fs::is_directory(outDir))
     throw std::runtime_error("Output file directory did not exist: " + outDirStr);
 
+  // Build the test set.
   findTests(inDir, outDir, tests);
 }
 
 void TestHarness::runTests() {
+  for (ToolChain &tc : toolchains) {
+    tc.setTestedExecutable(testedExecutable);
+    std::cout << tc << '\n';
+    runTestsForToolChain(tc);
+  }
+}
+
+std::string TestHarness::getTestInfo() const {
+  std::string rv = "Tests:\n";
+  for (auto &tlEntry : tests) {
+    rv += "  " + tlEntry.first + ": " + std::to_string(tlEntry.second.size()) + '\n';
+  }
+  return rv;
+}
+
+void TestHarness::runTestsForToolChain(const ToolChain &toolChain) {
   // Stat tracking for tests.
   unsigned int totalCount = 0, totalPasses = 0;
 
@@ -181,7 +252,7 @@ void TestHarness::runTests() {
       // Iterate over the tests.
       for (const PathPair &tp : testSet.second) {
         // Run the test and save the result.
-        TestResult result = runTest(tp);
+        TestResult result = runTest(tp, toolChain);
         results.addResult(testPackage.first, result);
 
         // Log the pass/fail.
@@ -193,7 +264,7 @@ void TestHarness::runTests() {
           ++totalPasses;
           ++packagePasses;
         }
-        // If we fail, potentially print the diff.
+          // If we fail, potentially print the diff.
         else if (!quiet && !result.error)
           std::cout << '\n' << result.diff << '\n';
       }
@@ -202,48 +273,7 @@ void TestHarness::runTests() {
                 << '\n';
     }
   }
-
   std::cout << "\nTotal passed " << totalPasses << " / " << totalCount << '\n';
-}
-
-std::string TestHarness::getTestInfo() const {
-  std::string rv = "Tests:\n";
-  for (auto &tlEntry : tests) {
-    rv += "  " + tlEntry.first + ": " + std::to_string(tlEntry.second.size()) + '\n';
-  }
-  return rv;
-}
-
-TestResult TestHarness::runTest(const PathPair &tp) const {
-  // Try to build the test. If there's a problem running a command, then we assume failure.
-  fs::path output;
-  try {
-    ExecutionOutput eo = toolchain.build(tp.in);
-    output = eo.getOutputFile();
-  }
-  catch (const CommandException &ce) {
-    std::cout << "Command error: " << ce.what() << '\n';
-    return TestResult(tp.in, false, true, "");
-  }
-
-  // Get the lines from the files.
-  std::vector<std::string> expLines;
-  std::vector<std::string> genLines;
-  getFileLines(tp.out, expLines);
-  getFileLines(output, genLines);
-
-  dtl::Diff<std::string> diff(expLines, genLines);
-  diff.compose();
-  diff.composeUnifiedHunks();
-
-  // We failed the test.
-  if (!diff.getUniHunks().empty()) {
-    std::stringstream ss;
-    diff.printUnifiedFormat(ss);
-    return TestResult(tp.in, false, false, ss.str());
-  }
-
-  return TestResult(tp.in, true, false, "");
 }
 
 } // End namespace tester

@@ -17,10 +17,14 @@ Command::Command(const JSON &step) {
 
   // Build the command.
   name = step["stepName"];
-  exePath = step["executablePath"];
   for (std::string arg : step["arguments"])
     args.push_back(arg);
   output = step["output"];
+
+  // Need to explicitly tell json what type we're pulling out here because it doesn't like loading
+  // into an fs::path.
+  std::string path = step["executablePath"];
+  exePath = path;
 }
 
 ExecutionOutput Command::execute(const ExecutionInput &ei) const {
@@ -62,7 +66,7 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
 std::string Command::buildCommand(const ExecutionInput &ei, const ExecutionOutput &eo) const {
   // We start with the path to the exe.
-  std::string command = exePath;
+  std::string command = resolveExe(ei, eo, exePath);
 
   // Then add new arguments, using the resolver to see if they're "magic" arguments.
   for (std::string arg : args) {
@@ -99,13 +103,27 @@ std::string Command::resolveArg(const ExecutionInput &ei,const ExecutionOutput &
   return arg;
 }
 
+std::string Command::resolveExe(const ExecutionInput &ei,const ExecutionOutput &eo,
+                                std::string exe) const {
+  // Input magic argument. Resolves to the input file for this command.
+  if (exe == "$EXE")
+    return ei.getTestedExecutable();
+
+  // Seem like it was meant to be a magic parameter.
+  if (exe[0] == '$')
+    throw std::runtime_error("Should this be a different magic paramter: " + exe);
+
+  // Wasn't a special arg, we should just return the arg.
+  return exe;
+}
+
 std::string Command::generateOutputName(const ExecutionInput &ei) const {
   return name + "-temp.out";
 }
 
 // Implement the Command ostream operator
 std::ostream &operator<<(std::ostream &os, const Command &c) {
-  ExecutionInput ei("$INPUT");
+  ExecutionInput ei("$INPUT", "$EXE");
   ExecutionOutput eo(c.generateOutputName(ei));
   os << c.buildCommand(ei, eo);
   return os;

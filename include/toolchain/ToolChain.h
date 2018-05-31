@@ -27,11 +27,17 @@ public:
   // Runs the toolchain on a specified inputfile.
   ExecutionOutput build(fs::path inputPath) const;
 
+  // Set the executable to be tested.
+  void setTestedExecutable(fs::path testedExecutable_) { testedExecutable = testedExecutable_; }
+
   // Ostream operator.
   friend std::ostream &operator<<(std::ostream&, const ToolChain&);
 
 private:
+  // The list of commands to execute this toolchain.
   std::vector<Command> commands;
+
+  fs::path testedExecutable;
 };
 
 } // End namespace tester
