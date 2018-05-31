@@ -54,7 +54,7 @@ for (const auto &it : fs::directory_iterator(base)) {
 // Function that takes paths from two directores
 template <void (*gatherIn)(const fs::path &, PathList &),
         void (*gatherOut)(const fs::path &, PathList &)>
-void pairPaths(const fs::path &inDir, const fs::path &outDir, tester::TestList &pairs) {
+void pairPaths(const fs::path &inDir, const fs::path &outDir, tester::PathList &pairs) {
   // Gather the paths from this directory.
   PathList in;
   PathList out;
@@ -90,9 +90,9 @@ void pairPaths(const fs::path &inDir, const fs::path &outDir, tester::TestList &
 
 // The templates are getting kind of long, time to shorten them. These are just pointers (aka
 // aliases) to the created template functions for pairPaths. They have the same signature.
-constexpr void(*getTests)(const fs::path &, const fs::path &, tester::TestList &) =
+constexpr void(*getTests)(const fs::path &, const fs::path &, tester::PathList &) =
   &pairPaths<gatherFromDir<fileFilter<inExt>>, gatherFromDir<fileFilter<outExt>>>;
-constexpr void(*getDirs)(const fs::path &, const fs::path &, tester::TestList &) =
+constexpr void(*getDirs)(const fs::path &, const fs::path &, tester::PathList &) =
   &pairPaths<gatherFromDir<directoryFilter>, gatherFromDir<directoryFilter>>;
 
 void recurseFindTests(fs::path in, fs::path out, std::string prefix, tester::TestSet &tests) {
@@ -102,27 +102,27 @@ void recurseFindTests(fs::path in, fs::path out, std::string prefix, tester::Tes
   std::cout << "Got key: " << key << '\n';
 
   // Now pair them and insert them in the package for our key if there are any.
-  tester::TestList testsHere;
+  tester::PathList testsHere;
   getTests(in, out, testsHere);
   if (!testsHere.empty())
     tests.insert(std::make_pair(key, testsHere));
 
   // Now recurse again.
-  tester::TestList dirsHere;
+  tester::PathList dirsHere;
   getDirs(in, out, dirsHere);
-  for (tester::TestPair pair : dirsHere)
+  for (tester::PathPair pair : dirsHere)
     recurseFindTests(pair.in, pair.out, key + ".", tests);
 }
 
 void findTests(fs::path in, fs::path out, tester::PackageSet &tests) {
   // Grab tests in each of the "packages" of tests.
   // First get the directories. These top level directories are "packages".
-  tester::TestList dirsHere;
+  tester::PathList dirsHere;
   getDirs(in, out, dirsHere);
 
   // Now iterate over the directories and find their matching tests. These become the packages of
   // tests, useful for competitive testing.
-  for (tester::TestPair pair : dirsHere) {
+  for (tester::PathPair pair : dirsHere) {
     // The package name and its TestSet.
     std::string packName = pair.in.stem();
     tester::TestSet &packTests = tests[packName];
@@ -179,7 +179,7 @@ void TestHarness::runTests() {
       unsigned int packagePasses = 0;
 
       // Iterate over the tests.
-      for (const TestPair &tp : testSet.second) {
+      for (const PathPair &tp : testSet.second) {
         // Run the test and save the result.
         TestResult result = runTest(tp);
         results.addResult(testPackage.first, result);
@@ -214,7 +214,7 @@ std::string TestHarness::getTestInfo() const {
   return rv;
 }
 
-TestResult TestHarness::runTest(const TestPair &tp) const {
+TestResult TestHarness::runTest(const PathPair &tp) const {
   // Try to build the test. If there's a problem running a command, then we assume failure.
   fs::path output;
   try {

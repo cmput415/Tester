@@ -1,7 +1,7 @@
 #ifndef TESTER_TEST_HARNESS_H
 #define TESTER_TEST_HARNESS_H
 
-#include "testharness/TestPair.h"
+#include "testharness/PathPair.h"
 #include "testharness/TestResult.h"
 #include "testharness/ResultManager.h"
 #include "toolchain/ToolChain.h"
@@ -17,8 +17,8 @@ using JSON = nlohmann::json;
 namespace tester {
 
 // Test file typedefs.
-typedef std::vector<TestPair> TestList;
-typedef std::map<std::string, TestList> TestSet;
+typedef std::vector<PathPair> PathList;
+typedef std::map<std::string, PathList> TestSet;
 typedef std::map<std::string, TestSet> PackageSet;
 
 // Class that manages finding tests and running them.
@@ -38,7 +38,7 @@ public:
 
 private:
   // Runs a single test. True/false based on test pass.
-  TestResult runTest(const TestPair &tp) const;
+  TestResult runTest(const PathPair &tp) const;
 
 private:
   // The tool chain to compile something to test.

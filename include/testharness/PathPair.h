@@ -9,10 +9,10 @@ namespace fs = std::experimental::filesystem;
 namespace tester{
 
 // Struct that functions as a better named pair for test files matches.
-struct TestPair {
-  TestPair() = delete;
+struct PathPair {
+  PathPair() = delete;
 
-  TestPair(fs::path in, fs::path out) : in(in), out(out) { }
+  PathPair(fs::path in, fs::path out) : in(in), out(out) { }
 
   const fs::path in, out;
 };
