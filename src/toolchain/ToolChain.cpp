@@ -1,5 +1,7 @@
 #include "toolchain/ToolChain.h"
 
+#include "util.h"
+
 #include <iostream>
 #include <exception>
 
@@ -10,21 +12,28 @@ ToolChain::ToolChain(const JSON &json) {
   throw std::runtime_error("Don't know how to do validation on Windows yet.");
 #endif
 
+  // Make sure steps exists before creating the toolchain.
+  ensureContains(json, "steps");
   for (const JSON &step : json["steps"])
     commands.emplace_back(step);
 }
 
 ExecutionOutput ToolChain::build(fs::path inputPath) const {
+  // The current output and input contexts.
   ExecutionInput ei(inputPath);
   ExecutionOutput eo("");
+
+  // Run the command, updating the contexts as we go.
   for (const Command &c : commands) {
     eo = c.execute(ei);
     ei = ExecutionInput(eo.getOutputFile());
   }
 
+  // Return the output context of the final command.
   return eo;
 }
 
+// Implement ostream operator for the toolchain.
 std::ostream &operator<<(std::ostream &os, const ToolChain &tc) {
   os << "Toolchain: \n";
   size_t size = tc.commands.size();

@@ -1,5 +1,7 @@
 #include "toolchain/Command.h"
 
+#include "util.h"
+
 #include "toolchain/CommandException.h"
 
 #include <cstdlib>
@@ -7,6 +9,13 @@
 namespace tester {
 
 Command::Command(const JSON &step) {
+  // Make sure the step has all of the values needed for construction.
+  ensureContains(step, "stepName");
+  ensureContains(step, "executablePath");
+  ensureContains(step, "arguments");
+  ensureContains(step, "output");
+
+  // Build the command.
   name = step["stepName"];
   exePath = step["executablePath"];
   for (std::string arg : step["arguments"])
@@ -17,36 +26,45 @@ Command::Command(const JSON &step) {
 ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   std::string outputPath;
 
+  // We use "-" to represent stdout. If we're capturing stdout we should make up a name to write to.
   if (output == "-") {
 #ifdef _WIN32
     throw std::runtime_error("Don't know how to capture stdout on Windows yet");
 #endif
     outputPath = generateOutputName(ei);
   }
+  // Otherwise use the provided output.
   else
     outputPath = output;
 
+  // Create our output context.
   ExecutionOutput eo(outputPath);
 
+  // Make the actual shell command, using our input and output contexts.
   std::string command = buildCommand(ei, eo);
 
+  // Run the command. If we fail, raise a custom exception.
   int rv = std::system(command.c_str());
   if (rv != 0)
     throw CommandException("Subcommand returned status code " + std::to_string(rv) +
                            ": " + command);
 
+  // Tell the toolchain about our output.
   return eo;
 
 }
 
 std::string Command::buildCommand(const ExecutionInput &ei, const ExecutionOutput &eo) const {
+  // We start with the path to the exe.
   std::string command = exePath;
 
+  // Then add new arguments, using the resolver to see if they're "magic" arguments.
   for (std::string arg : args) {
     command += ' ';
     command += resolveArg(ei, eo, arg);
   }
 
+  // If we were initially writing to stdout, then we add the redirect.
   if (output == "-") {
 #ifdef _WIN32
     throw std::runtime_error("Don't know how to capture stdout on Windows yet");
@@ -59,17 +77,19 @@ std::string Command::buildCommand(const ExecutionInput &ei, const ExecutionOutpu
 
 std::string Command::resolveArg(const ExecutionInput &ei,const ExecutionOutput &eo,
     std::string arg) const {
+  // Input magic argument. Resolves to the input file for this command.
   if (arg == "$INPUT")
     return ei.getInputFile();
 
+  // Output magic argument. Resolves to the output file for this command.
   if (arg == "$OUTPUT")
     return eo.getOutputFile();
 
-  // Seem like it was meant to be a magic parameter
+  // Seem like it was meant to be a magic parameter.
   if (arg[0] == '$')
     throw std::runtime_error("Should this be a different magic paramter: " + arg);
 
-  // Wasn't a special arg, we should just return the arg
+  // Wasn't a special arg, we should just return the arg.
   return arg;
 }
 
