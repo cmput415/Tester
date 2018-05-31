@@ -45,9 +45,15 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
   // Run the command. If we fail, raise a custom exception.
   int rv = std::system(command.c_str());
+
+#if __linux__ || __unix__ || __unix
+  // If we're on a POSIX system then we need to decompose the return value.
+  rv = WEXITSTATUS(rv);
+#endif
+
   if (rv != 0)
     throw CommandException("Subcommand returned status code " + std::to_string(rv) +
-                           ": " + command);
+                           ":\n  " + command);
 
   // Tell the toolchain about our output.
   return eo;

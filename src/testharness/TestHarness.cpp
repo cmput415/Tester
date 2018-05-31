@@ -188,7 +188,7 @@ void TestHarness::runTests() {
         ++packagePasses;
       }
       // If we fail, potentially print the diff.
-      else if (!quiet)
+      else if (!quiet && !result.error)
         std::cout << '\n' << result.diff << '\n';
     }
 
@@ -213,8 +213,9 @@ TestResult TestHarness::runTest(const TestPair &tp) const {
     ExecutionOutput eo = toolchain.build(tp.in);
     output = eo.getOutputFile();
   }
-  catch (const CommandException &) {
-    return TestResult(tp.in, false, "");
+  catch (const CommandException &ce) {
+    std::cout << "Command error: " << ce.what() << '\n';
+    return TestResult(tp.in, false, true, "");
   }
 
   // Get the lines from the files.
@@ -231,10 +232,10 @@ TestResult TestHarness::runTest(const TestPair &tp) const {
   if (!diff.getUniHunks().empty()) {
     std::stringstream ss;
     diff.printUnifiedFormat(ss);
-    return TestResult(tp.in, false, ss.str());
+    return TestResult(tp.in, false, false, ss.str());
   }
 
-  return TestResult(tp.in, true, "");
+  return TestResult(tp.in, true, false, "");
 }
 
 } // End namespace tester
