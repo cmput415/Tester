@@ -19,6 +19,7 @@ namespace tester {
 // Test file typedefs.
 typedef std::vector<TestPair> TestList;
 typedef std::map<std::string, TestList> TestSet;
+typedef std::map<std::string, TestSet> PackageSet;
 
 // Class that manages finding tests and running them.
 class TestHarness {
@@ -44,7 +45,7 @@ private:
   ToolChain toolchain;
 
   // The list of tests to test.
-  TestSet tests;
+  PackageSet tests;
 
   // The results of the tests.
   ResultManager results;

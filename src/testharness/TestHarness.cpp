@@ -32,13 +32,13 @@ constexpr char const outExt[] = ".out";
 // Filter that returns true if a path is a file the extension matches
 template <const char *ext>
 bool fileFilter(const fs::path &p) {
-if (!fs::is_regular_file(p))
-  return false;
-return p.extension() == fs::path(ext);
+  if (!fs::is_regular_file(p))
+    return false;
+  return p.extension() == fs::path(ext);
 }
 
 bool directoryFilter(const fs::path &p) {
-return fs::is_directory(p) && ! fs::is_symlink(p);
+  return fs::is_directory(p) && ! fs::is_symlink(p);
 }
 
 // Function that gathers paths from a directory based on a supplied filter function
@@ -109,24 +109,27 @@ void recurseFindTests(fs::path in, fs::path out, std::string prefix, tester::Tes
 
   // Now recurse again.
   tester::TestList dirsHere;
-  getDirs(in, out, testsHere);
-  for (tester::TestPair pair : dirsHere)
-    recurseFindTests(pair.in, pair.out, key, tests);
-}
-
-void findTests(fs::path in, fs::path out, tester::TestSet &tests) {
-  // Get the tests in the base directory. This is a special case because pre-recursion because
-  // there's no real prefix that we can put in.
-  tester::TestList testsHere;
-  getTests(in, out, testsHere);
-  if (!testsHere.empty())
-    tests.insert(std::make_pair(".", testsHere));
-
-  // Now try to recurse on directories.
-  tester::TestList dirsHere;
   getDirs(in, out, dirsHere);
   for (tester::TestPair pair : dirsHere)
-    recurseFindTests(pair.in, pair.out, "", tests);
+    recurseFindTests(pair.in, pair.out, key + ".", tests);
+}
+
+void findTests(fs::path in, fs::path out, tester::PackageSet &tests) {
+  // Grab tests in each of the "packages" of tests.
+  // First get the directories. These top level directories are "packages".
+  tester::TestList dirsHere;
+  getDirs(in, out, dirsHere);
+
+  // Now iterate over the directories and find their matching tests. These become the packages of
+  // tests, useful for competitive testing.
+  for (tester::TestPair pair : dirsHere) {
+    // The package name and its TestSet.
+    std::string packName = pair.in.stem();
+    tester::TestSet &packTests = tests[packName];
+
+    // Find the tests.
+    recurseFindTests(pair.in, pair.out, "", packTests);
+  }
 }
 
 void getFileLines(fs::path fp, std::vector<std::string> &lines) {
@@ -162,37 +165,42 @@ void TestHarness::runTests() {
   unsigned int totalCount = 0, totalPasses = 0;
 
   // Iterate the packages.
-  for (auto &tlEntry : tests) {
+  for (const auto &testPackage : tests) {
     // Print the package name.
-    std::cout << "Entering package: " << tlEntry.first << '\n';
+    std::cout << "Entering package: " << testPackage.first << '\n';
 
-    // Track how many tests we run.
-    totalCount += tlEntry.second.size();
+    for (const auto &testSet : testPackage.second) {
+      std::cout << "  Entering subpackage: " << testSet.first << '\n';
 
-    // Count how many passes we get.
-    unsigned int packagePasses = 0;
+      // Track how many tests we run.
+      totalCount += testSet.second.size();
 
-    // Iterate over the tests.
-    for (const TestPair &tp : tlEntry.second) {
-      // Run the test and save the result.
-      TestResult result = runTest(tp);
-      results.addResult(tlEntry.first, result);
+      // Count how many passes we get.
+      unsigned int packagePasses = 0;
 
-      // Log the pass/fail.
-      std::cout << "   " << tp.in.stem().string() << ": "
-                << (result.pass ? "PASS" : "FAIL") << '\n';
+      // Iterate over the tests.
+      for (const TestPair &tp : testSet.second) {
+        // Run the test and save the result.
+        TestResult result = runTest(tp);
+        results.addResult(testPackage.first, result);
 
-      // If we pass, note the pass.
-      if (result.pass) {
-        ++totalPasses;
-        ++packagePasses;
+        // Log the pass/fail.
+        std::cout << "    " << tp.in.stem().string() << ": "
+                  << (result.pass ? "PASS" : "FAIL") << '\n';
+
+        // If we pass, note the pass.
+        if (result.pass) {
+          ++totalPasses;
+          ++packagePasses;
+        }
+        // If we fail, potentially print the diff.
+        else if (!quiet && !result.error)
+          std::cout << '\n' << result.diff << '\n';
       }
-      // If we fail, potentially print the diff.
-      else if (!quiet && !result.error)
-        std::cout << '\n' << result.diff << '\n';
-    }
 
-    std::cout << "\n  Package passed " << packagePasses << " / " << tlEntry.second.size() << '\n';
+      std::cout << "\n  Subpackage passed " << packagePasses << " / " << testSet.second.size()
+                << '\n';
+    }
   }
 
   std::cout << "\nTotal passed " << totalPasses << " / " << totalCount << '\n';
