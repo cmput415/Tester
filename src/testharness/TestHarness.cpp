@@ -141,7 +141,7 @@ void getFileLines(fs::path fp, std::vector<std::string> &lines) {
 namespace tester {
 
 // Builds TestSet during object creation.
-TestHarness::TestHarness(const JSON &json) : toolchain(json) {
+TestHarness::TestHarness(const JSON &json, bool quiet) : toolchain(json), quiet(quiet) {
   std::string inDirStr = json["inDir"];
   std::string outDirStr = json["outDir"];
 
@@ -182,20 +182,20 @@ void TestHarness::runTests() {
       std::cout << "   " << tp.in.stem().string() << ": "
                 << (result.pass ? "PASS" : "FAIL") << '\n';
 
-      // If fail, print the diff.
-      if (!result.pass)
-        std::cout << '\n' << result.diff << '\n';
-      // Otherwise, note the pass.
-      else {
+      // If we pass, note the pass.
+      if (result.pass) {
         ++totalPasses;
         ++packagePasses;
       }
+      // If we fail, potentially print the diff.
+      else if (!quiet)
+        std::cout << '\n' << result.diff << '\n';
     }
 
-    std::cout << "  Package passed " << packagePasses << " / " << tlEntry.second.size() << '\n';
+    std::cout << "\n  Package passed " << packagePasses << " / " << tlEntry.second.size() << '\n';
   }
 
-  std::cout << "Total passed " << totalPasses << " / " << totalCount << '\n';
+  std::cout << "\nTotal passed " << totalPasses << " / " << totalCount << '\n';
 }
 
 std::string TestHarness::getTestInfo() const {

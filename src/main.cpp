@@ -14,6 +14,9 @@ int main(int argc, char **argv) {
   app.add_option("configFile", configFilePath, "Path to the tester JSON configuration file.")
     ->required()->check(CLI::ExistingFile);
 
+  bool quiet;
+  app.add_flag("-q,--quiet", quiet, "Quiet mode, don't print fail diffs");
+
   // Parse our command line options.
   CLI11_PARSE(app, argc, argv);
 
@@ -24,7 +27,7 @@ int main(int argc, char **argv) {
 
   try {
     // Build our tester.
-    tester::TestHarness t(json);
+    tester::TestHarness t(json, quiet);
 
     std::cout << t.getTestInfo() << '\n';
 

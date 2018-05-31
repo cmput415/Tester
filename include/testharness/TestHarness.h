@@ -27,7 +27,7 @@ public:
   TestHarness() = delete;
 
   // Construct the Tester with a parsed JSON file.
-  explicit TestHarness(const JSON &json);
+  TestHarness(const JSON &json, bool quiet);
 
   // Run the found tests.
   void runTests();
@@ -40,9 +40,17 @@ private:
   TestResult runTest(const TestPair &tp) const;
 
 private:
+  // The tool chain to compile something to test.
   ToolChain toolchain;
+
+  // The list of tests to test.
   TestSet tests;
+
+  // The results of the tests.
   ResultManager results;
+
+  // Should we print diffs?
+  bool quiet;
 };
 
 } // End namespace tester
