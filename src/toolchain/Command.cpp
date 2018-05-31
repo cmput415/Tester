@@ -1,6 +1,7 @@
 #include "toolchain/Command.h"
 
-#include <exception>
+#include "toolchain/CommandException.h"
+
 #include <cstdlib>
 
 namespace tester {
@@ -31,8 +32,8 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
   int rv = std::system(command.c_str());
   if (rv != 0)
-    throw std::runtime_error("Subcommand returned status code " + std::to_string(rv) +
-                             ": " + command);
+    throw CommandException("Subcommand returned status code " + std::to_string(rv) +
+                           ": " + command);
 
   return eo;
 

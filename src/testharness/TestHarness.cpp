@@ -1,6 +1,7 @@
 #include "testharness/TestHarness.h"
 
 #include "toolchain/ExecutionState.h"
+#include "toolchain/CommandException.h"
 
 #include "dtl/dtl.hpp"
 
@@ -206,8 +207,15 @@ std::string TestHarness::getTestInfo() const {
 }
 
 TestResult TestHarness::runTest(const TestPair &tp) const {
-  ExecutionOutput eo = toolchain.build(tp.in);
-  fs::path output = eo.getOutputFile();
+  // Try to build the test. If there's a problem running a command, then we assume failure.
+  fs::path output;
+  try {
+    ExecutionOutput eo = toolchain.build(tp.in);
+    output = eo.getOutputFile();
+  }
+  catch (const CommandException &) {
+    return TestResult(tp.in, false, "");
+  }
 
   // Get the lines from the files.
   std::vector<std::string> expLines;
