@@ -17,14 +17,17 @@ namespace tester {
 // passed in is guaranteed by the caller, but we could enforce it here.
 typedef std::vector<TestResult> ResultList;
 typedef std::map<std::string, ResultList> ResultSet;
+typedef std::map<fs::path, ResultSet> ExecutableMap;
 
 class ResultManager {
 public:
   // Add a test result.
-  void addResult(std::string key, const TestResult &result) { results[key].push_back(result); }
+  void addResult(fs::path exe, std::string key, const TestResult &result) {
+    results[exe][key].push_back(result);
+  }
 
 private:
-  ResultSet results;
+  ExecutableMap results;
 };
 
 }

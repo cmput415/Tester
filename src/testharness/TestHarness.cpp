@@ -186,9 +186,17 @@ namespace tester {
 TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
   // Make sure we have an executable to test then set it. Need to explicitly tell json what type
   // we're pulling out here because it doesn't like loading into an fs::path.
-  ensureContains(json, "testedExecutablePath");
-  std::string exe = json["testedExecutablePath"];
-  testedExecutable = exe;
+  ensureContains(json, "testedExecutablePaths");
+  if (!json["testedExecutablePaths"].is_array())
+    throw std::runtime_error("Tested executable paths was not an array.");
+
+  for (const JSON &path : json["testedExecutablePaths"]) {
+    if (!path.is_string())
+      throw std::runtime_error("Executable path was not string.");
+
+    std::string exe = path;
+    testedExecutables.emplace_back(exe);
+  }
 
   // Make sure toolchains are provided then build the set of toolchains.
   ensureContains(json, "toolchains");
@@ -216,9 +224,13 @@ TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
 }
 
 void TestHarness::runTests() {
-  for (ToolChain &tc : toolchains) {
-    tc.setTestedExecutable(testedExecutable);
-    runTestsForToolChain(tc);
+  for (fs::path exe : testedExecutables) {
+    std::cout << "\nTesting executable: " << exe << '\n';
+    for (ToolChain &tc : toolchains) {
+      std::cout << "Running toolchain: " <<  tc.getBriefDescription() << '\n';
+      tc.setTestedExecutable(exe);
+      runTestsForToolChain(tc);
+    }
   }
 }
 
@@ -231,28 +243,31 @@ std::string TestHarness::getTestInfo() const {
 }
 
 void TestHarness::runTestsForToolChain(const ToolChain &toolChain) {
-  // Stat tracking for tests.
-  unsigned int totalCount = 0, totalPasses = 0;
+  // Stat tracking for toolchain tests.
+  unsigned int toolChainCount = 0, toolChainPasses = 0;
 
   // Iterate the packages.
   for (const auto &testPackage : tests) {
     // Print the package name.
     std::cout << "Entering package: " << testPackage.first << '\n';
 
+    // Stat tracking for package tests.
+    unsigned int packageCount = 0, packagePasses = 0;
+
     for (const auto &testSet : testPackage.second) {
       std::cout << "  Entering subpackage: " << testSet.first << '\n';
 
       // Track how many tests we run.
-      totalCount += testSet.second.size();
+      packageCount += testSet.second.size();
 
       // Count how many passes we get.
-      unsigned int packagePasses = 0;
+      unsigned int subPackagePasses = 0;
 
       // Iterate over the tests.
       for (const PathPair &tp : testSet.second) {
         // Run the test and save the result.
         TestResult result = runTest(tp, toolChain);
-        results.addResult(testPackage.first, result);
+        results.addResult(toolChain.getTestedExecutable(), testPackage.first, result);
 
         // Log the pass/fail.
         std::cout << "    " << tp.in.stem().string() << ": "
@@ -260,19 +275,26 @@ void TestHarness::runTestsForToolChain(const ToolChain &toolChain) {
 
         // If we pass, note the pass.
         if (result.pass) {
-          ++totalPasses;
           ++packagePasses;
+          ++subPackagePasses;
         }
-          // If we fail, potentially print the diff.
+        // If we fail, potentially print the diff.
         else if (!quiet && !result.error)
           std::cout << '\n' << result.diff << '\n';
       }
 
-      std::cout << "\n  Subpackage passed " << packagePasses << " / " << testSet.second.size()
+      std::cout << "  Subpackage passed " << subPackagePasses << " / " << testSet.second.size()
                 << '\n';
     }
+
+    // Update the toolchain stats from the package stats.
+    toolChainPasses += packagePasses;
+    toolChainCount += packageCount;
+
+    std::cout << " Package passed " << packagePasses<< " / " << packageCount << '\n';
   }
-  std::cout << "\nTotal passed " << totalPasses << " / " << totalCount << '\n';
+
+  std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount << "\n\n";
 }
 
 } // End namespace tester

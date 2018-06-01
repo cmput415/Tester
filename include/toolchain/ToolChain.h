@@ -27,8 +27,12 @@ public:
   // Runs the toolchain on a specified inputfile.
   ExecutionOutput build(fs::path inputPath) const;
 
-  // Set the executable to be tested.
+  // Manipulate the executable to be tested.
   void setTestedExecutable(fs::path testedExecutable_) { testedExecutable = testedExecutable_; }
+  fs::path getTestedExecutable() const { return testedExecutable; }
+
+  // Gets a brief description of the toolchain.
+  std::string getBriefDescription() const;
 
   // Ostream operator.
   friend std::ostream &operator<<(std::ostream&, const ToolChain&);

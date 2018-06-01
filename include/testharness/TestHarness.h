@@ -43,7 +43,7 @@ private:
 
 private:
   // The executable to test.
-  fs::path testedExecutable;
+  std::vector<fs::path> testedExecutables;
 
   // The tool chain to compile something to test.
   std::vector<ToolChain> toolchains;

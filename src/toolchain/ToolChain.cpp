@@ -32,6 +32,18 @@ ExecutionOutput ToolChain::build(fs::path inputPath) const {
   return eo;
 }
 
+std::string ToolChain::getBriefDescription() const {
+  std::string names = "";
+
+  for (const Command &c : commands) {
+    if (names != "")
+      names += ", ";
+    names += c.getName();
+  }
+
+  return "[" + names + "]";
+}
+
 // Implement ostream operator for the toolchain.
 std::ostream &operator<<(std::ostream &os, const ToolChain &tc) {
   os << "Toolchain: \n";

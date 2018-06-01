@@ -27,6 +27,9 @@ public:
   // Execute the command.
   ExecutionOutput execute(const ExecutionInput &ei) const;
 
+  // Get the command name.
+  std::string getName() const { return name; }
+
   // Ostream operator.
   friend std::ostream &operator<<(std::ostream&, const Command&);
 
