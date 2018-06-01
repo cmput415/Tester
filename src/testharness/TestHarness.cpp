@@ -9,7 +9,6 @@
 
 #include <string>
 #include <sstream>
-#include <map>
 #include <algorithm>
 #include <utility>
 #include <functional>
@@ -184,21 +183,26 @@ TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
   // Make sure we have an executable to test then set it. Need to explicitly tell json what type
   // we're pulling out here because it doesn't like loading into an fs::path.
   ensureContains(json, "testedExecutablePaths");
-  if (!json["testedExecutablePaths"].is_array())
-    throw std::runtime_error("Tested executable paths was not an array.");
+  const JSON &tepJson = json["testedExecutablePaths"];
+  if (!tepJson.is_object())
+    throw std::runtime_error("Tested executable paths was not an object.");
 
-  for (const JSON &path : json["testedExecutablePaths"]) {
-    if (!path.is_string())
-      throw std::runtime_error("Executable path was not string.");
 
-    std::string exe = path;
-    testedExecutables.emplace_back(exe);
+  for (auto it = tepJson.begin(); it != tepJson.end(); ++it) {
+    std::string path = it.value();
+    testedExecutables.emplace(it.key(), path);
   }
 
   // Make sure toolchains are provided then build the set of toolchains.
   ensureContains(json, "toolchains");
-  for (const JSON &toolchain : json["toolchains"])
-    toolchains.emplace_back(toolchain);
+  const JSON &tcJson = json["toolchains"];
+  if (!tcJson.is_object())
+    throw std::runtime_error("Toolchains is not an object.");
+
+  for (auto it = tcJson.begin(); it != tcJson.end(); ++it) {
+    std::cout << it.key() << '\n';
+    toolchains.emplace(it.key(), it.value());
+  }
 
   // Make sure an in and out dir were provided.
   ensureContains(json, "inDir");
@@ -221,11 +225,11 @@ TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
 }
 
 void TestHarness::runTests() {
-  for (fs::path exe : testedExecutables) {
-    std::cout << "\nTesting executable: " << exe << '\n';
+  for (auto exePair : testedExecutables) {
+    std::cout << "\nTesting executable: " << exePair.first << " -> " << exePair.second << '\n';
 
-    for (size_t i = 0; i < toolchains.size(); ++i) {
-      runTestsForToolChain(i, exe);
+    for (auto &tcPair : toolchains) {
+      runTestsForToolChain(exePair.first, tcPair.first);
     }
   }
 }
@@ -238,13 +242,13 @@ std::string TestHarness::getTestInfo() const {
   return rv;
 }
 
-void TestHarness::runTestsForToolChain(size_t tcId, fs::path exe) {
+void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
   // Get the toolchain to use.
-  ToolChain &toolChain = toolchains[tcId];
-  std::cout << "Running toolchain: " <<  toolChain.getBriefDescription() << '\n';
+  ToolChain &toolChain = toolchains.at(tcName);
+  std::cout << "Running toolchain: " << tcName << " -> " <<  toolChain.getBriefDescription() << '\n';
 
   // Set the toolchain's exe to be tested.
-  toolChain.setTestedExecutable(exe);
+  toolChain.setTestedExecutable(testedExecutables.at(exeName));
 
   // Stat tracking for toolchain tests.
   unsigned int toolChainCount = 0, toolChainPasses = 0;
@@ -270,7 +274,7 @@ void TestHarness::runTestsForToolChain(size_t tcId, fs::path exe) {
       for (const PathPair &tp : testSet.second) {
         // Run the test and save the result.
         TestResult result = runTest(tp, toolChain);
-        results.addResult(toolChain.getTestedExecutable(), tcId, testPackage.first, result);
+        results.addResult(exeName, tcName, testPackage.first, result);
 
         // Log the pass/fail.
         std::cout << "    " << tp.in.stem().string() << ": "

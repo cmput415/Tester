@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <experimental/filesystem>
 
 // Convenience.
@@ -38,17 +39,16 @@ public:
   // Get tests info.
   std::string getTestInfo() const;
 
-
 private:
   // Runs the accumulated tests against a specific exe and toolchain.
-  void runTestsForToolChain(size_t tcId, fs::path exe);
+  void runTestsForToolChain(std::string tcId, std::string exeName);
 
 private:
   // The executable to test.
-  std::vector<fs::path> testedExecutables;
+  std::map<std::string, fs::path> testedExecutables;
 
   // The tool chain to compile something to test.
-  std::vector<ToolChain> toolchains;
+  std::map<std::string, ToolChain> toolchains;
 
   // The list of tests to test.
   PackageSet tests;
