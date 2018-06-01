@@ -218,7 +218,6 @@ TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
 void TestHarness::runTests() {
   for (ToolChain &tc : toolchains) {
     tc.setTestedExecutable(testedExecutable);
-    std::cout << tc << '\n';
     runTestsForToolChain(tc);
   }
 }
