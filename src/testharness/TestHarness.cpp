@@ -131,17 +131,17 @@ void findTests(fs::path in, fs::path out, tester::PackageSet &tests) {
   }
 }
 
+} // End anonymous namespace
+
+// A private namespace to hold some test operations.
+namespace {
+
 void getFileLines(fs::path fp, std::vector<std::string> &lines) {
   std::ifstream fs(fp);
   std::string buf;
   while (std::getline(fs, buf))
     lines.push_back(buf);
 }
-
-} // End anonymous namespace
-
-// A private namespace to hold some test operations.
-namespace {
 
 tester::TestResult runTest(const tester::PathPair &tp, const tester::ToolChain &toolChain) {
   // Try to build the test. If there's a problem running a command, then we assume failure.
