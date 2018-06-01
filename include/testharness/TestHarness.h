@@ -14,6 +14,7 @@
 
 // Convenience.
 using JSON = nlohmann::json;
+namespace fs = std::experimental::filesystem;
 
 namespace tester {
 
@@ -39,7 +40,8 @@ public:
 
 
 private:
-  void runTestsForToolChain(const ToolChain &toolChain);
+  // Runs the accumulated tests against a specific exe and toolchain.
+  void runTestsForToolChain(size_t tcId, fs::path exe);
 
 private:
   // The executable to test.

@@ -18,9 +18,6 @@
 #include <experimental/filesystem>
 #include <exception>
 
-// Convenience
-namespace fs = std::experimental::filesystem;
-
 // A private namespace to hold some file operations.
 namespace {
 
@@ -226,10 +223,9 @@ TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
 void TestHarness::runTests() {
   for (fs::path exe : testedExecutables) {
     std::cout << "\nTesting executable: " << exe << '\n';
-    for (ToolChain &tc : toolchains) {
-      std::cout << "Running toolchain: " <<  tc.getBriefDescription() << '\n';
-      tc.setTestedExecutable(exe);
-      runTestsForToolChain(tc);
+
+    for (size_t i = 0; i < toolchains.size(); ++i) {
+      runTestsForToolChain(i, exe);
     }
   }
 }
@@ -242,7 +238,14 @@ std::string TestHarness::getTestInfo() const {
   return rv;
 }
 
-void TestHarness::runTestsForToolChain(const ToolChain &toolChain) {
+void TestHarness::runTestsForToolChain(size_t tcId, fs::path exe) {
+  // Get the toolchain to use.
+  ToolChain &toolChain = toolchains[tcId];
+  std::cout << "Running toolchain: " <<  toolChain.getBriefDescription() << '\n';
+
+  // Set the toolchain's exe to be tested.
+  toolChain.setTestedExecutable(exe);
+
   // Stat tracking for toolchain tests.
   unsigned int toolChainCount = 0, toolChainPasses = 0;
 
@@ -267,7 +270,7 @@ void TestHarness::runTestsForToolChain(const ToolChain &toolChain) {
       for (const PathPair &tp : testSet.second) {
         // Run the test and save the result.
         TestResult result = runTest(tp, toolChain);
-        results.addResult(toolChain.getTestedExecutable(), testPackage.first, result);
+        results.addResult(toolChain.getTestedExecutable(), tcId, testPackage.first, result);
 
         // Log the pass/fail.
         std::cout << "    " << tp.in.stem().string() << ": "
