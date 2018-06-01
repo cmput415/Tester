@@ -79,7 +79,7 @@ std::string Command::buildCommand(const ExecutionInput &ei, const ExecutionOutpu
 #ifdef _WIN32
     throw std::runtime_error("Don't know how to capture stdout on Windows yet");
 #endif
-    command += " > " + eo.getOutputFile().string();
+    command += " > \"" + eo.getOutputFile().string() + "\"";
   }
 
   return command;
