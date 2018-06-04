@@ -39,6 +39,9 @@ public:
   // Get tests info.
   std::string getTestInfo() const;
 
+  // Get test summary.
+  std::string getTestSummary() const;
+
 private:
   // Runs the accumulated tests against a specific exe and toolchain.
   void runTestsForToolChain(std::string tcId, std::string exeName);

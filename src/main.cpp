@@ -33,6 +33,8 @@ int main(int argc, char **argv) {
 //      return 0;
     // Run our tests.
     t.runTests();
+
+    std::cout << t.getTestSummary();
   }
   catch (const std::runtime_error &e) {
     std::cout << "Test harness error: " << e.what() << '\n';
