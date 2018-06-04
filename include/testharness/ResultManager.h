@@ -6,10 +6,6 @@
 #include <map>
 #include <vector>
 #include <string>
-#include <experimental/filesystem>
-
-// Convenience.
-namespace fs = std::experimental::filesystem;
 
 namespace tester {
 
@@ -18,12 +14,12 @@ namespace tester {
 typedef std::vector<TestResult> ResultList;
 typedef std::map<std::string, ResultList> ResultSet;
 typedef std::map<std::string, ResultSet> ToolChainMap;
-typedef std::map<fs::path, ToolChainMap> ExecutableMap;
+typedef std::map<std::string, ToolChainMap> ExecutableMap;
 
 class ResultManager {
 public:
   // Add a test result.
-  void addResult(fs::path exe, std::string toolchain, std::string key, const TestResult &result) {
+  void addResult(std::string exe, std::string toolchain, std::string key, const TestResult &result) {
     results[exe][toolchain][key].push_back(result);
   }
 
