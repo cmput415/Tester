@@ -225,9 +225,9 @@ TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
 }
 
 void TestHarness::runTests() {
+  // Iterate over executables.
   for (auto exePair : testedExecutables) {
-    std::cout << "\nTesting executable: " << exePair.first << " -> " << exePair.second << '\n';
-
+    // Iterate over toolchains.
     for (auto &tcPair : toolchains) {
       runTestsForToolChain(exePair.first, tcPair.first);
     }
@@ -245,10 +245,14 @@ std::string TestHarness::getTestInfo() const {
 void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
   // Get the toolchain to use.
   ToolChain &toolChain = toolchains.at(tcName);
-  std::cout << "Running toolchain: " << tcName << " -> " <<  toolChain.getBriefDescription() << '\n';
 
   // Set the toolchain's exe to be tested.
-  toolChain.setTestedExecutable(testedExecutables.at(exeName));
+  const fs::path &exe = testedExecutables.at(exeName);
+  std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
+  toolChain.setTestedExecutable(exe);
+
+  // Say which toolchain.
+  std::cout << "With toolchain: " << tcName << " -> " <<  toolChain.getBriefDescription() << '\n';
 
   // Stat tracking for toolchain tests.
   unsigned int toolChainCount = 0, toolChainPasses = 0;
