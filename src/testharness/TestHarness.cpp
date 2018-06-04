@@ -151,7 +151,7 @@ tester::TestResult runTest(const tester::PathPair &tp, const tester::ToolChain &
   }
   catch (const tester::CommandException &ce) {
     std::cout << "Command error: " << ce.what() << '\n';
-    return std::move(tester::TestResult(tp.in, false, true, ""));
+    return tester::TestResult(tp.in, false, true, "");
   }
 
   // Get the lines from the files.
@@ -168,10 +168,10 @@ tester::TestResult runTest(const tester::PathPair &tp, const tester::ToolChain &
   if (!diff.getUniHunks().empty()) {
     std::stringstream ss;
     diff.printUnifiedFormat(ss);
-    return std::move(tester::TestResult(tp.in, false, false, ss.str()));
+    return tester::TestResult(tp.in, false, false, ss.str());
   }
 
-  return std::move(tester::TestResult(tp.in, true, false, ""));
+  return tester::TestResult(tp.in, true, false, "");
 }
 
 } // End anonymous namespace
@@ -239,7 +239,7 @@ std::string TestHarness::getTestInfo() const {
   for (auto &tlEntry : tests) {
     rv += "  " + tlEntry.first + ": " + std::to_string(tlEntry.second.size()) + '\n';
   }
-  return std::move(rv);
+  return rv;
 }
 
 void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
