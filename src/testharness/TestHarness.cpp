@@ -29,13 +29,13 @@ constexpr char const outExt[] = ".out";
 
 // Filter that returns true if a path is a file the extension matches
 template <const char *ext>
-bool fileFilter(const fs::path &p) {
+inline bool fileFilter(const fs::path &p) {
   if (!fs::is_regular_file(p))
     return false;
   return p.extension() == fs::path(ext);
 }
 
-bool directoryFilter(const fs::path &p) {
+inline bool directoryFilter(const fs::path &p) {
   return fs::is_directory(p) && ! fs::is_symlink(p);
 }
 
