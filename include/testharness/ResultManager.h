@@ -24,6 +24,11 @@ public:
     results[exe][toolchain][key].push_back(result);
   }
 
+  // Get test results.
+  const ResultSet &getResults(const std::string &exe, const std::string &toolchain) const {
+    return results.at(exe).at(toolchain);
+  }
+
 private:
   ExecutableMap results;
 };
