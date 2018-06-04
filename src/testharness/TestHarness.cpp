@@ -244,7 +244,6 @@ std::string TestHarness::getTestInfo() const {
 
 std::string TestHarness::getTestSummary() const {
   std::stringstream allInfo;
-  allInfo << "Summary:\n";
 
   // Iterate over executables.
   for (const auto &exePair : executables) {
