@@ -45,7 +45,7 @@ private:
 
 private:
   // The executable to test.
-  std::map<std::string, fs::path> testedExecutables;
+  std::map<std::string, fs::path> executables;
 
   // The tool chain to compile something to test.
   std::map<std::string, ToolChain> toolchains;

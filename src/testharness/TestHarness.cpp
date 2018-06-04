@@ -190,7 +190,7 @@ TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
 
   for (auto it = tepJson.begin(); it != tepJson.end(); ++it) {
     std::string path = it.value();
-    testedExecutables.emplace(it.key(), path);
+    executables.emplace(it.key(), path);
   }
 
   // Make sure toolchains are provided then build the set of toolchains.
@@ -226,7 +226,7 @@ TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
 
 void TestHarness::runTests() {
   // Iterate over executables.
-  for (auto exePair : testedExecutables) {
+  for (auto exePair : executables) {
     // Iterate over toolchains.
     for (auto &tcPair : toolchains) {
       runTestsForToolChain(exePair.first, tcPair.first);
@@ -247,7 +247,7 @@ void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
   ToolChain &toolChain = toolchains.at(tcName);
 
   // Set the toolchain's exe to be tested.
-  const fs::path &exe = testedExecutables.at(exeName);
+  const fs::path &exe = executables.at(exeName);
   std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
   toolChain.setTestedExecutable(exe);
 
