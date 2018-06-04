@@ -19,7 +19,8 @@ typedef std::map<std::string, ToolChainMap> ExecutableMap;
 class ResultManager {
 public:
   // Add a test result.
-  void addResult(std::string exe, std::string toolchain, std::string key, const TestResult &result) {
+  void addResult(const std::string &exe, const std::string &toolchain, const std::string &key,
+                 const TestResult &result) {
     results[exe][toolchain][key].push_back(result);
   }
 
