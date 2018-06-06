@@ -19,7 +19,34 @@ Command::Command(const JSON &step) {
   name = step["stepName"];
   for (std::string arg : step["arguments"])
     args.push_back(arg);
-  output = step["output"];
+
+  // Build the output.
+  std::string outName = step["output"];
+
+  // "-" represents stdout.
+  if (outName == "-") {
+#ifdef _WIN32
+    throw std::runtime_error("Don't know how to capture stdout on Windows yet.");
+#endif
+    isStdOut = true;
+
+    // Build a path in this directory for the standard output.
+    fs::path fileName(name + "-temp.out");
+    output = fs::current_path();
+    output /= fileName;
+  }
+  // We've got a file name.
+  else {
+    isStdOut = false;
+
+    // Make sure the output path is absolute.
+    fs::path outPath(outName);
+    if (outPath.is_absolute())
+      output = outPath;
+    else
+      output = fs::absolute(outPath);
+  }
+  std::cout << "Using output file: " << output << '\n';
 
   // Need to explicitly tell json what type we're pulling out here because it doesn't like loading
   // into an fs::path.
@@ -28,21 +55,8 @@ Command::Command(const JSON &step) {
 }
 
 ExecutionOutput Command::execute(const ExecutionInput &ei) const {
-  std::string outputPath;
-
-  // We use "-" to represent stdout. If we're capturing stdout we should make up a name to write to.
-  if (output == "-") {
-#ifdef _WIN32
-    throw std::runtime_error("Don't know how to capture stdout on Windows yet");
-#endif
-    outputPath = generateOutputName(ei);
-  }
-  // Otherwise use the provided output.
-  else
-    outputPath = output;
-
   // Create our output context.
-  ExecutionOutput eo(outputPath);
+  ExecutionOutput eo(output);
 
   // Make the actual shell command, using our input and output contexts.
   std::string command = buildCommand(ei, eo);
@@ -75,7 +89,7 @@ std::string Command::buildCommand(const ExecutionInput &ei, const ExecutionOutpu
   }
 
   // If we were initially writing to stdout, then we add the redirect.
-  if (output == "-") {
+  if (isStdOut) {
 #ifdef _WIN32
     throw std::runtime_error("Don't know how to capture stdout on Windows yet");
 #endif
@@ -122,17 +136,10 @@ std::string Command::resolveExe(const ExecutionInput &ei,const ExecutionOutput &
   return exe;
 }
 
-fs::path Command::generateOutputName(const ExecutionInput &ei) const {
-  fs::path base = fs::current_path();
-  fs::path fileName(name + "-temp.out");
-  base /= fileName; // Concat with os separator.
-  return base;
-}
-
 // Implement the Command ostream operator
 std::ostream &operator<<(std::ostream &os, const Command &c) {
   ExecutionInput ei("$INPUT", "$EXE");
-  ExecutionOutput eo(c.generateOutputName(ei));
+  ExecutionOutput eo(c.output);
   os << c.buildCommand(ei, eo);
   return os;
 }

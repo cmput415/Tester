@@ -45,14 +45,14 @@ private:
   std::string resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo, std::string exe)
     const;
 
-  // Generate an output filename (stdout destination).
-  fs::path generateOutputName(const ExecutionInput &input) const;
-
 private:
   std::string name;
   fs::path exePath;
   std::vector<std::string> args;
-  std::string output;
+
+  // Output info.
+  bool isStdOut;
+  fs::path output;
 };
 
 } // End namespace tester
