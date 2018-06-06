@@ -105,9 +105,14 @@ std::string Command::resolveArg(const ExecutionInput &ei,const ExecutionOutput &
 
 std::string Command::resolveExe(const ExecutionInput &ei,const ExecutionOutput &eo,
                                 std::string exe) const {
-  // Input magic argument. Resolves to the input file for this command.
+  // Exe magic argument. Resolves to the current "tested executable" (probably your compiler).
   if (exe == "$EXE")
     return ei.getTestedExecutable();
+
+  // Input magic argument. Resolves to the input file for this command. Use for when a step
+  // prodouces a runnable executable (your compiled executable).
+  if (exe == "$INPUT")
+    return ei.getInputFile();
 
   // Seem like it was meant to be a magic parameter.
   if (exe[0] == '$')
