@@ -46,7 +46,7 @@ private:
     const;
 
   // Generate an output filename (stdout destination).
-  std::string generateOutputName(const ExecutionInput &input) const;
+  fs::path generateOutputName(const ExecutionInput &input) const;
 
 private:
   std::string name;

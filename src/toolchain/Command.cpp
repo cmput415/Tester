@@ -122,8 +122,11 @@ std::string Command::resolveExe(const ExecutionInput &ei,const ExecutionOutput &
   return exe;
 }
 
-std::string Command::generateOutputName(const ExecutionInput &ei) const {
-  return name + "-temp.out";
+fs::path Command::generateOutputName(const ExecutionInput &ei) const {
+  fs::path base = fs::current_path();
+  fs::path fileName(name + "-temp.out");
+  base /= fileName; // Concat with os separator.
+  return base;
 }
 
 // Implement the Command ostream operator
