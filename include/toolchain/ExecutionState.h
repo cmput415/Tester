@@ -40,7 +40,6 @@ public:
   // Gets output file.
   fs::path getOutputFile() const { return outputPath; }
 
-
 private:
   fs::path outputPath;
 };
