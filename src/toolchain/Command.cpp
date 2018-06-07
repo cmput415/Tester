@@ -46,7 +46,6 @@ Command::Command(const JSON &step) {
     else
       output = fs::absolute(outPath);
   }
-  std::cout << "Using output file: " << output << '\n';
 
   // Need to explicitly tell json what type we're pulling out here because it doesn't like loading
   // into an fs::path.
@@ -75,7 +74,6 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
   // Tell the toolchain about our output.
   return eo;
-
 }
 
 std::string Command::buildCommand(const ExecutionInput &ei, const ExecutionOutput &eo) const {
