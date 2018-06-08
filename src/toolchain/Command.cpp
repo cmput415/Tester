@@ -50,7 +50,7 @@ Command::Command(const JSON &step) {
   // Need to explicitly tell json what type we're pulling out here because it doesn't like loading
   // into an fs::path.
   std::string path = step["executablePath"];
-  exePath = path;
+  exePath = fs::path(path);
 }
 
 ExecutionOutput Command::execute(const ExecutionInput &ei) const {
@@ -78,12 +78,12 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
 std::string Command::buildCommand(const ExecutionInput &ei, const ExecutionOutput &eo) const {
   // We start with the path to the exe.
-  std::string command = resolveExe(ei, eo, exePath);
+  std::string command = resolveExe(ei, eo, exePath).string();
 
   // Then add new arguments, using the resolver to see if they're "magic" arguments.
   for (std::string arg : args) {
     command += ' ';
-    command += resolveArg(ei, eo, arg);
+    command += resolveArg(ei, eo, arg).string();
   }
 
   // If we were initially writing to stdout, then we add the redirect.
@@ -97,7 +97,7 @@ std::string Command::buildCommand(const ExecutionInput &ei, const ExecutionOutpu
   return command;
 }
 
-std::string Command::resolveArg(const ExecutionInput &ei,const ExecutionOutput &eo,
+fs::path Command::resolveArg(const ExecutionInput &ei,const ExecutionOutput &eo,
     std::string arg) const {
   // Input magic argument. Resolves to the input file for this command.
   if (arg == "$INPUT")
@@ -112,10 +112,10 @@ std::string Command::resolveArg(const ExecutionInput &ei,const ExecutionOutput &
     throw std::runtime_error("Should this be a different magic paramter: " + arg);
 
   // Wasn't a special arg, we should just return the arg.
-  return arg;
+  return fs::path(arg);
 }
 
-std::string Command::resolveExe(const ExecutionInput &ei,const ExecutionOutput &eo,
+fs::path Command::resolveExe(const ExecutionInput &ei,const ExecutionOutput &eo,
                                 std::string exe) const {
   // Exe magic argument. Resolves to the current "tested executable" (probably your compiler).
   if (exe == "$EXE")
@@ -131,7 +131,7 @@ std::string Command::resolveExe(const ExecutionInput &ei,const ExecutionOutput &
     throw std::runtime_error("Should this be a different magic paramter: " + exe);
 
   // Wasn't a special arg, we should just return the arg.
-  return exe;
+  return fs::path(exe);
 }
 
 // Implement the Command ostream operator

@@ -12,6 +12,7 @@
 
 // Convenience.
 using JSON = nlohmann::json;
+namespace fs = std::experimental::filesystem;
 
 namespace tester {
 
@@ -38,11 +39,11 @@ private:
   std::string buildCommand(const ExecutionInput &input, const ExecutionOutput &output) const;
 
   // Resolves magic parameters to values.
-  std::string resolveArg(const ExecutionInput &ei, const ExecutionOutput &eo, std::string arg)
+  fs::path resolveArg(const ExecutionInput &ei, const ExecutionOutput &eo, std::string arg)
     const;
 
   // Resolves magic exe parameters to value.
-  std::string resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo, std::string exe)
+  fs::path resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo, std::string exe)
     const;
 
 private:
