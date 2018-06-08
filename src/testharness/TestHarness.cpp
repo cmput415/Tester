@@ -122,7 +122,7 @@ void findTests(fs::path in, fs::path out, tester::PackageSet &tests) {
   // tests, useful for competitive testing.
   for (tester::PathPair pair : dirsHere) {
     // The package name and its TestSet.
-    std::string packName = pair.in.stem();
+    std::string packName = pair.in.stem().string();
     tester::TestSet &packTests = tests[packName];
 
     // Find the tests.
