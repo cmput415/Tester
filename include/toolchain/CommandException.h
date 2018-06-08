@@ -9,7 +9,6 @@ namespace tester {
 class CommandException : public std::runtime_error {
 public:
   explicit CommandException(std::string s) : std::runtime_error(s) { }
-
 };
 
 } // End namespace tester
