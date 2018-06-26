@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
   app.add_flag("-q,--quiet", quiet, "Quiet mode, don't print fail diffs");
 
   std::string summaryFilePath;
-  app.add_option("--summary", summaryFilePath, "Write the test summary to this file instead of"
+  app.add_option("--summary", summaryFilePath, "Write the test summary to this file instead of "
                                                "stdout");
 
   // Parse our command line options.
