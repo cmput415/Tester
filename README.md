@@ -4,6 +4,7 @@ assignments. It can test multiple solutions with multiple toolchains against
 a multitude of tests.
 
  1. [Usage](#usage)
+    1. [Running](#running)
     1. [Configuration](#configuration)
        1. [Preparing Tests](#preparing-tests)
        1. [Preparing a Configuration File](#preparing-a-configuration-file)
@@ -12,6 +13,21 @@ a multitude of tests.
        1. [MacOS](#macos)
 
 ## Usage
+### Running
+Much of the setup is done in the [configuration file](#configuration), so the
+command line is quite simple. All that's required to run is the configuration
+file:
+```
+tester [options] <path_to_config_file>
+```
+Currently there are a few options available.
+  * `-q`, `--quiet`: Quiet mode, don't print diffs, only shows failures/
+    successes
+  * `--summary <path_to_file>`: Writes the final summary to the file rather than
+    stdout
+
+If you forget this, you can always use `-h` or `--help` to see info.
+
 ### Configuration
 The configuration file drives the testing process by specifying which
 executables to test, how to run a test, and what files to test with. Currently,
