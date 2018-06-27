@@ -104,11 +104,11 @@ The two top level properties `inDir` and `outDir` point to the input and output
 directories containing your test files.
 
 The `testedExecutablePaths` property is a named list of executable paths that
-should be tested using the toolchains and the all of the tests. If you're
-testing your own solution there should only be one entry in this list: your own
-solution. Make sure `ccid_or_groupid` matches your test package name: this is
-used to match your solution with your tests. You need to be able to pass all of
-your own tests!
+should be tested using the toolchains and tests. If you're testing your own
+solution there should only be one entry in this list: your own solution. Make
+sure `ccid_or_groupid` matches your test package name: this is used to match
+your solution with your tests. You need to be able to pass all of your own
+tests!
 
 The `toolchains` property is a named list of toolchains. A toolchain defines how
 to take an input file and turn it into the expected output file, assuming the
