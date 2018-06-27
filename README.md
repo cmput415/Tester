@@ -3,6 +3,14 @@ This tool is meant to be a generic utility for testing solutions to CMPUT 415's
 assignments. It can test multiple solutions with multiple toolchains against
 a multitude of tests.
 
+ 1. [Usage](#usage)
+    1. [Configuration](#configuration)
+       1. [Preparing Tests](#preparing-tests)
+       1. [Preparing a Configuration File](#preparing-a-configuration-file)
+    1. [Building](#building)
+       1. [Linux](#linux)
+       1. [MacOS](#macos)
+
 ## Usage
 ### Configuration
 The configuration file drives the testing process by specifying which
