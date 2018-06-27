@@ -134,6 +134,10 @@ to fuel the current step.
     stdout will be captured as output and saved into a temporary file to be
     passed to the next step.
 
+For the first step, `$INPUT` will be resolved to the `.in` file. For the final
+step `$OUTPUT` will be compared against the expected output to determine
+success.
+
 An example setup for running the SCalc mips toolchain with my solution:
 ```json
 {
