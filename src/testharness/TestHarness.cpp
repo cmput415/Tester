@@ -97,7 +97,6 @@ void recurseFindTests(fs::path in, fs::path out, std::string prefix, tester::Tes
   // What's our current insert key? It's the current deepest directory (identical for in and out)
   // appended to the prefix.
   std::string key = prefix + in.stem().string();
-  std::cout << "Got key: " << key << '\n';
 
   // Now pair them and insert them in the package for our key if there are any.
   tester::PathList testsHere;
@@ -200,7 +199,6 @@ TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
     throw std::runtime_error("Toolchains is not an object.");
 
   for (auto it = tcJson.begin(); it != tcJson.end(); ++it) {
-    std::cout << it.key() << '\n';
     toolchains.emplace(it.key(), it.value());
   }
 
