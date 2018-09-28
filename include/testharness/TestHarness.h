@@ -46,9 +46,6 @@ private:
 
   // The results of the tests.
   ResultManager results;
-
-  // Should we print diffs?
-  bool quiet;
 };
 
 } // End namespace tester

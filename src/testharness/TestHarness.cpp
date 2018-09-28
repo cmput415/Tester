@@ -12,7 +12,7 @@
 namespace tester {
 
 // Builds TestSet during object creation.
-TestHarness::TestHarness(const Config &cfg) : cfg(cfg) {
+TestHarness::TestHarness(const Config &cfg) : cfg(cfg), tests(), results() {
   // Build the test set.
   findTests(cfg.getInDirPath(), cfg.getOutDirPath(), tests);
 }
@@ -152,7 +152,7 @@ void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
           ++subPackagePasses;
         }
         // If we fail, potentially print the diff.
-        else if (!quiet && !result.error)
+        else if (!cfg.isQuiet() && !result.error)
           std::cout << '\n' << result.diff << '\n';
       }
 
