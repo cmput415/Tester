@@ -25,6 +25,9 @@ public:
   // Construct a command from JSON set up.
   explicit Command(const JSON &json);
 
+  // Copy constructor is default copy.
+  Command(const Command &command) = default;
+
   // Execute the command.
   ExecutionOutput execute(const ExecutionInput &ei) const;
 

@@ -12,55 +12,16 @@
 namespace tester {
 
 // Builds TestSet during object creation.
-TestHarness::TestHarness(const JSON &json, bool quiet) : quiet(quiet) {
-  // Make sure we have an executable to test then set it. Need to explicitly tell json what type
-  // we're pulling out here because it doesn't like loading into an fs::path.
-  ensureContains(json, "testedExecutablePaths");
-  const JSON &tepJson = json["testedExecutablePaths"];
-  if (!tepJson.is_object())
-    throw std::runtime_error("Tested executable paths was not an object.");
-
-
-  for (auto it = tepJson.begin(); it != tepJson.end(); ++it) {
-    std::string path = it.value();
-    executables.emplace(it.key(), path);
-  }
-
-  // Make sure toolchains are provided then build the set of toolchains.
-  ensureContains(json, "toolchains");
-  const JSON &tcJson = json["toolchains"];
-  if (!tcJson.is_object())
-    throw std::runtime_error("Toolchains is not an object.");
-
-  for (auto it = tcJson.begin(); it != tcJson.end(); ++it) {
-    toolchains.emplace(it.key(), it.value());
-  }
-
-  // Make sure an in and out dir were provided.
-  ensureContains(json, "inDir");
-  ensureContains(json, "outDir");
-
-  // Get the in and out paths.
-  std::string inDirStr = json["inDir"];
-  std::string outDirStr = json["outDir"];
-  fs::path inDir(inDirStr);
-  fs::path outDir(outDirStr);
-
-  // Ensure the paths exist.
-  if (!fs::exists(inDir) || !fs::is_directory(inDir))
-    throw std::runtime_error("Input file directory did not exist: " + inDirStr);
-  if (!fs::exists(outDir) || !fs::is_directory(outDir))
-    throw std::runtime_error("Output file directory did not exist: " + outDirStr);
-
+TestHarness::TestHarness(const Config &cfg) : cfg(cfg) {
   // Build the test set.
-  findTests(inDir, outDir, tests);
+  findTests(cfg.getInDirPath(), cfg.getOutDirPath(), tests);
 }
 
 void TestHarness::runTests() {
   // Iterate over executables.
-  for (auto exePair : executables) {
+  for (auto exePair : cfg.getExecutables()) {
     // Iterate over toolchains.
-    for (auto &tcPair : toolchains) {
+    for (auto &tcPair : cfg.getToolChains()) {
       runTestsForToolChain(exePair.first, tcPair.first);
     }
   }
@@ -78,7 +39,7 @@ std::string TestHarness::getTestSummary() const {
   std::stringstream allInfo;
 
   // Iterate over executables.
-  for (const auto &exePair : executables) {
+  for (const auto &exePair : cfg.getExecutables()) {
     // Write out this executables header.
     allInfo << exePair.first << ":\n";
 
@@ -98,7 +59,7 @@ std::string TestHarness::getTestSummary() const {
       unsigned int passes = 0, count = 0;
 
       // Iterate over toolchains.
-      for (const auto &tcPair : toolchains) {
+      for (const auto &tcPair : cfg.getToolChains()) {
         // Get the list of results for this exe, toolchain, and package.
         const ResultList &packageResults =
           results.getResults(exePair.first, tcPair.first).at(testPair.first);
@@ -145,10 +106,10 @@ std::string TestHarness::getTestSummary() const {
 
 void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
   // Get the toolchain to use.
-  ToolChain &toolChain = toolchains.at(tcName);
+  ToolChain toolChain = cfg.getToolChain(tcName);
 
   // Set the toolchain's exe to be tested.
-  const fs::path &exe = executables.at(exeName);
+  const fs::path &exe = cfg.getExecutablePath(exeName);
   std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
   toolChain.setTestedExecutable(exe);
 

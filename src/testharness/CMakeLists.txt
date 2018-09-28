@@ -4,6 +4,14 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/TestHarness.cpp"
 )
 
+set(
+  testharness_libs
+    config
+    toolchain
+    tests
+    stdc++fs
+)
+
 # Build the library from the source files.
 add_library(testharness STATIC ${testharness_src_files})
-target_link_libraries(testharness toolchain tests stdc++fs)
+target_link_libraries(testharness ${testharness_libs})

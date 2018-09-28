@@ -1,18 +1,16 @@
 #ifndef TESTER_TEST_HARNESS_H
 #define TESTER_TEST_HARNESS_H
 
+#include "config/Config.h"
 #include "tests/testUtil.h"
 #include "testharness/ResultManager.h"
 #include "toolchain/ToolChain.h"
-
-#include "json.hpp"
 
 #include <string>
 #include <map>
 #include <experimental/filesystem>
 
 // Convenience.
-using JSON = nlohmann::json;
 namespace fs = std::experimental::filesystem;
 
 namespace tester {
@@ -24,7 +22,7 @@ public:
   TestHarness() = delete;
 
   // Construct the Tester with a parsed JSON file.
-  TestHarness(const JSON &json, bool quiet);
+  TestHarness(const Config &cfg);
 
   // Run the found tests.
   void runTests();
@@ -40,11 +38,8 @@ private:
   void runTestsForToolChain(std::string tcId, std::string exeName);
 
 private:
-  // The executable to test.
-  std::map<std::string, fs::path> executables;
-
-  // The tool chain to compile something to test.
-  std::map<std::string, ToolChain> toolchains;
+  // Our input config.
+  const Config &cfg;
 
   // The list of tests to test.
   PackageSet tests;

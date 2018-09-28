@@ -1,38 +1,15 @@
+#include "config/Config.h"
 #include "testharness/TestHarness.h"
-
-#include "CLI11.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <exception>
 
 int main(int argc, char **argv) {
-  CLI::App app{"CMPUT 415 testing utility"};
-
-  // Add the internal config file path option.
-  std::string configFilePath;
-  app.add_option("configFile", configFilePath, "Path to the tester JSON configuration file.")
-    ->required()->check(CLI::ExistingFile);
-
-  // Add quiet flag to not print out diffs.
-  bool quiet;
-  app.add_flag("-q,--quiet", quiet, "Quiet mode, don't print fail diffs");
-
-  std::string summaryFilePath;
-  app.add_option("--summary", summaryFilePath, "Write the test summary to this file instead of "
-                                               "stdout");
-
-  // Parse our command line options.
-  CLI11_PARSE(app, argc, argv);
-
-  // Open and read our json config file.
-  std::ifstream jsonFile(configFilePath);
-  JSON json;
-  jsonFile >> json;
-
+  tester::Config cfg(argc, argv);
   try {
     // Build our tester.
-    tester::TestHarness t(json, quiet);
+    tester::TestHarness t(cfg);
     std::cout << t.getTestInfo() << '\n';
 
     // Run our tests.
@@ -40,10 +17,10 @@ int main(int argc, char **argv) {
 
     // Save or print the summary.
     std::string summary = t.getTestSummary();
-    if (!summaryFilePath.empty()) {
-      std::ofstream sumFile(summaryFilePath);
+    if (cfg.hasSummaryPath()) {
+      std::ofstream sumFile(cfg.getSummaryPath());
       sumFile << summary;
-      std::cout << "Summary saved to file: " << summaryFilePath << '\n';
+      std::cout << "Summary saved to file: " << cfg.getSummaryPath() << '\n';
     }
     else {
       std::cout << "Summary:\n" << summary;

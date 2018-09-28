@@ -24,6 +24,9 @@ public:
   // Construct the ToolChain from a json file path.
   explicit ToolChain(const JSON &json);
 
+  // Copy constructor is default copy.
+  ToolChain(const ToolChain &tc) = default;
+
   // Runs the toolchain on a specified inputfile.
   ExecutionOutput build(fs::path inputPath) const;
 
