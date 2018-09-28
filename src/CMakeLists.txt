@@ -1,5 +1,6 @@
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/toolchain")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/testharness")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tests")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/toolchain")
 
 # Gather our source files in this directory.
 set(
@@ -10,7 +11,8 @@ set(
 # Gather the libraries we create for the tester.
 set(
   tester_libs
-    testharness
+  testharness
+  tests
 )
 
 # Build our executable from the source files.

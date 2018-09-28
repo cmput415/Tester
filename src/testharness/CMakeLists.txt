@@ -6,4 +6,4 @@ set(
 
 # Build the library from the source files.
 add_library(testharness STATIC ${testharness_src_files})
-target_link_libraries(testharness toolchain stdc++fs)
+target_link_libraries(testharness toolchain tests stdc++fs)

@@ -1,15 +1,13 @@
 #ifndef TESTER_TEST_HARNESS_H
 #define TESTER_TEST_HARNESS_H
 
-#include "testharness/PathPair.h"
-#include "testharness/TestResult.h"
+#include "tests/testUtil.h"
 #include "testharness/ResultManager.h"
 #include "toolchain/ToolChain.h"
 
 #include "json.hpp"
 
 #include <string>
-#include <vector>
 #include <map>
 #include <experimental/filesystem>
 
@@ -18,11 +16,6 @@ using JSON = nlohmann::json;
 namespace fs = std::experimental::filesystem;
 
 namespace tester {
-
-// Test file typedefs.
-typedef std::vector<PathPair> PathList;
-typedef std::map<std::string, PathList> TestSet;
-typedef std::map<std::string, TestSet> PackageSet;
 
 // Class that manages finding tests and running them.
 class TestHarness {

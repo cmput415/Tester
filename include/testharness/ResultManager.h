@@ -1,7 +1,7 @@
 #ifndef TESTER_RESULT_MANAGER_H
 #define TESTER_RESULT_MANAGER_H
 
-#include "testharness/TestResult.h"
+#include "tests/TestResult.h"
 
 #include <map>
 #include <vector>
