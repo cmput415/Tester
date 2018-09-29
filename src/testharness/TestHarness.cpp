@@ -48,7 +48,7 @@ std::string TestHarness::getTestSummary() const {
     std::stringstream selfPackageInfo;
     std::stringstream otherPackageInfo;
 
-    // We leave the above streams blank because their might not be tests in that category. These
+    // We leave the above streams blank because there might not be tests in that category. These
     // bools track if we've written to them. If they're false and you're about to write to it then
     // you should add an appropriate header.
     bool toSelf = false, toOther = false;
