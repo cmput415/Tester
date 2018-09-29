@@ -23,16 +23,22 @@ Config::Config(int argc, char **argv) {
       ->required()->check(CLI::ExistingFile);
 
   // Add quiet flag to not print out diffs.
-  app.add_flag("-q,--quiet", quiet, "Quiet mode, don't print fail diffs");
+  CLI::Option *quietFlag = app.add_flag("-q,--quiet", quiet, "Quiet mode, don't print fail diffs");
 
-  app.add_option("--summary", summaryFilePath, "Write the test summary to this file instead of "
-                                               "stdout");
+  // Set file to dump summary to instead of stdout.
+  CLI::Option *summaryOpt = app.add_option("--summary", summaryFilePath,
+      "Write the test summary to this file instead of stdout");
 
-  app.add_option("--grade", gradeFilePath, "Perform grading analysis and output to this file");
+  // Set file to put grading output into.
+  CLI::Option *gradeOpt = app.add_option("--grade", gradeFilePath,
+      "Perform grading analysis and output to this file");
+
+  // If we're doing grading then it doesn't make sense to specify quiet or summary.
+  gradeOpt->excludes(quietFlag)->excludes(summaryOpt);
 
   // Parse our command line options. This has the potential to throw CLI::ParseError, but we want it
   // to continue up the tree.
-  app.parse((argc), (argv));
+  app.parse(argc, argv);
 
   // Get our json file.
   std::ifstream jsonFile(configFilePath);
