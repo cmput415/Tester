@@ -4,6 +4,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/TestHarness.cpp"
 )
 
+# Gather the libs we use for the testharness lib.
 set(
   testharness_libs
     config
