@@ -1,4 +1,6 @@
+# Add sublibraries.
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/config")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/analysis")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/testharness")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tests")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/toolchain")
@@ -12,6 +14,7 @@ set(
 # Gather the libraries we create for the tester.
 set(
   tester_libs
+    analysis
     config
     testharness
     tests
