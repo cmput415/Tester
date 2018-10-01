@@ -25,15 +25,17 @@ public:
 
   // Config path getters and checkers.
   const fs::path &getGradePath() const { return gradeFilePath; }
-  const bool hasGradePath() const { return !gradeFilePath.empty(); }
+  bool hasGradePath() const { return !gradeFilePath.empty(); }
   const fs::path &getSummaryPath() const { return summaryFilePath; }
-  const bool hasSummaryPath() const { return !summaryFilePath.empty(); }
+  bool hasSummaryPath() const { return !summaryFilePath.empty(); }
   const fs::path &getInDirPath() const {return inDirPath; }
   const fs::path &getOutDirPath() const {return outDirPath; }
 
   // Config map getters and convenience indiviual getters.
   const Executables getExecutables() const { return executables; }
   const fs::path &getExecutablePath(const std::string &name) const { return executables.at(name); }
+  bool hasExecutable(const std::string &name) const { return executables.count(name) != 0; }
+
   const ToolChains &getToolChains() const { return toolchains; }
   const ToolChain &getToolChain(const std::string &name) const { return toolchains.at(name); }
 
