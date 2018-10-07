@@ -67,6 +67,9 @@ public:
   const Cell &getCrossCell(const std::string &defender, const std::string &attacker);
 
 protected:
+  void addCrossCell(const std::string &defender, const std::string &attacker, CellPtr cell);
+
+protected:
   // Is this already reserved.
   bool isReserved;
 

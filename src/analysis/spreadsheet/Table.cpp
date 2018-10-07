@@ -54,6 +54,7 @@ void CrossTable::reserve(const std::vector<std::string> &students) {
 
 const Cell &CrossTable::getCrossCell(const std::string &defender, const std::string &attacker) {
   // Sanity check.
+  assert(isReserved && "Getting cell from unreserved cross table.");
   CellPtr &cell = cells[idxByName[defender]][idxByName[attacker]];
   assert(cell && "Accessing cross cell that isn't yet filled.");
 
@@ -61,29 +62,29 @@ const Cell &CrossTable::getCrossCell(const std::string &defender, const std::str
   return *cell;
 }
 
+void CrossTable::addCrossCell(const std::string &defender, const std::string &attacker,
+                              tester::CellPtr toAdd) {
+  // Sanity checks.
+  assert(isReserved && "Adding cell to unreserved cross table.");
+  CellPtr &cell = cells[idxByName[defender]][idxByName[attacker]];
+  assert(!cell && "Filling cross table cell that is already filled.");
+
+  // The actual add.
+  cell = std::move(toAdd);
+};
+
 void TestCountTable::addTestCount(std::string name, size_t count) {
   addCell(name, CellPtr(new IntCell<size_t>(count)));
 }
 
 void TestPassRateTable::addPassRate(const std::string &defender, const std::string &attacker,
                                     size_t passCount, const tester::Cell &maxCount) {
-  // Sanity checks.
-  assert(isReserved && "Adding value to unreserved pass rate table.");
-  CellPtr &cell = cells[idxByName[defender]][idxByName[attacker]];
-  assert(!cell && "Filling pass rate cell that is already filled.");
-
-  // Make the rate cell and replace the empty one with it.
-  cell.reset(new RateCell(passCount, maxCount));
+  addCrossCell(defender, attacker, CellPtr(new RateCell(passCount, maxCount)));
 }
 
 void TestSummaryTable::addSummary(const std::string &defender, const std::string &attacker,
                                   const std::vector<tester::CellRef> &addends) {
-  // Sanity checks.
-  assert(isReserved && "Adding value to unreserved summary table.");
-  CellPtr &cell = cells[idxByName[defender]][idxByName[attacker]];
-  assert(!cell && "Filling summary cell that is already filled.");
+  addCrossCell(defender, attacker, CellPtr(new AverageCell(addends)));
+}
 
-  // Make the average cell and replace the empty one with it.
-  cell.reset(new AverageCell(addends));
-}
-}
+} // End namespace tester
