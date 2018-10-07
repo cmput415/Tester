@@ -77,6 +77,18 @@ void TestCountTable::addTestCount(std::string name, size_t count) {
   addCell(name, CellPtr(new IntCell<size_t>(count)));
 }
 
+void OffensivePointsTable::addAttacker(std::string name, const tester::Cell &pointRangeMin,
+                                       const tester::Cell &pointRangeMax,
+                                       const tester::Cell &nameRangeMin,
+                                       const tester::Cell &nameRangeMax) {
+  // Create the cell and add conditions to it.
+  CountIfsCell *cell = new CountIfsCell();
+  cell->addCondition(pointRangeMin, pointRangeMax, "\"1\"");
+  cell->addCondition(nameRangeMin, nameRangeMax, "<>" + name);
+
+  addCell(name, CellPtr(cell));
+};
+
 void TestPassRateTable::addPassRate(const std::string &defender, const std::string &attacker,
                                     size_t passCount, const tester::Cell &maxCount) {
   addCrossCell(defender, attacker, CellPtr(new RateCell(passCount, maxCount)));

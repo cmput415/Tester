@@ -16,6 +16,8 @@ typedef std::unique_ptr<Table> TablePtr;
 
 typedef std::vector<std::vector<CellPtr>> Cells;
 
+typedef std::pair<const Cell &, const Cell &> Range;
+
 // A class that manages a single table in a sheet.
 class Table {
 public:
@@ -90,6 +92,11 @@ public:
   const Cell &getTestCount(const std::string &name) { return getCellByName(name); }
 };
 
+class OffensivePointsTable : public MapTable {
+public:
+  void addAttacker(std::string name, const Cell &pointRangeMin, const Cell &pointRangeMax,
+                   const Cell &nameRangeMin, const Cell &nameRangeMax);
+};
 // ------------
 // Cross tables
 // ------------
