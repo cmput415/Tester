@@ -16,6 +16,18 @@ class Cell;
 typedef std::unique_ptr<Cell> CellPtr;
 typedef std::reference_wrapper<const Cell> CellRef;
 
+// Utility class for working with cells.
+struct CellRange {
+  // No default constructor.
+  CellRange() = delete;
+
+  // Construct with min and max.
+  CellRange(const Cell &min, const Cell &max) : min(min), max(max) { }
+
+  // The cell boundaries.
+  const Cell &min, &max;
+};
+
 // A class that manages a single cell in a table.
 class Cell {
 public:
@@ -138,8 +150,8 @@ public:
   void dump(std::ostream &os) override;
 
   // Add a condition to a the if.
-  void addCondition(const Cell &rMin, const Cell &rMax, std::string cond) {
-    conds.emplace_back(rMin, rMax, std::move(cond));
+  void addCondition(CellRange range, std::string cond) {
+    conds.emplace_back(range, std::move(cond));
   }
 
   // Essentially a named tuple for a condition.
@@ -148,13 +160,13 @@ public:
     Condition() = delete;
 
     // Construct with range cells and condition.
-    Condition(const Cell &rMin, const Cell &rMax, std::string cond) :
-        rMin(rMin), rMax(rMax),cond(std::move(cond)) { }
+    Condition(CellRange range, std::string cond) :
+        range(range), cond(std::move(cond)) { }
 
     // Cell range.
-    const Cell &rMin, &rMax;
+    const CellRange range;
 
-    // The condition strint.
+    // The condition string.
     const std::string cond;
   };
 

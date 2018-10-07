@@ -63,7 +63,7 @@ void CountIfsCell::dump(std::ostream &os) {
 
   // Iterate over conditions.
   for (auto it = conds.begin(); it != conds.end(); ++it) {
-    const Cell &rMin = it->rMin, &rMax = it->rMax;
+    const Cell &rMin = it->range.min, &rMax = it->range.max;
     os << posToCellName(rMin.getCol(), rMin.getRow()) << ':'
        << posToCellName(rMax.getCol(), rMax.getRow()) << ','
        << it->cond;

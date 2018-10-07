@@ -83,8 +83,8 @@ void OffensivePointsTable::addAttacker(std::string name, const tester::Cell &poi
                                        const tester::Cell &nameRangeMax) {
   // Create the cell and add conditions to it.
   CountIfsCell *cell = new CountIfsCell();
-  cell->addCondition(pointRangeMin, pointRangeMax, "\"1\"");
-  cell->addCondition(nameRangeMin, nameRangeMax, "<>" + name);
+  cell->addCondition(CellRange(pointRangeMin, pointRangeMax), "\"1\"");
+  cell->addCondition(CellRange(nameRangeMin, nameRangeMax), "<>" + name);
 
   addCell(name, CellPtr(cell));
 };
