@@ -17,10 +17,6 @@ void MapTable::addCell(const std::string &name, tester::CellPtr cell) {
   cells[1].emplace_back(std::move(cell));
 }
 
-void TestCountTable::addTestCount(std::string name, size_t count) {
-  addCell(name, CellPtr(new IntCell<size_t>(count)));
-}
-
 void CrossTable::reserve(const std::vector<std::string> &students) {
   // Sanity check.
   assert(!isReserved && "Reserving a cross table twice.");
@@ -63,6 +59,10 @@ const Cell &CrossTable::getCrossCell(const std::string &defender, const std::str
 
   // Return the cell.
   return *cell;
+}
+
+void TestCountTable::addTestCount(std::string name, size_t count) {
+  addCell(name, CellPtr(new IntCell<size_t>(count)));
 }
 
 void TestPassRateTable::addPassRate(const std::string &defender, const std::string &attacker,
