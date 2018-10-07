@@ -99,8 +99,7 @@ public:
 
 class OffensivePointsTable : public MapTable {
 public:
-  void addAttacker(std::string name, const Cell &pointRangeMin, const Cell &pointRangeMax,
-                   const Cell &nameRangeMin, const Cell &nameRangeMax);
+  void addAttacker(std::string name, CellRange pointRange, CellRange nameRange);
 };
 // ------------
 // Cross tables

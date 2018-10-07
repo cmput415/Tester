@@ -103,14 +103,12 @@ void TestCountTable::addTestCount(std::string name, size_t count) {
   addCell(name, CellPtr(new IntCell<size_t>(count)));
 }
 
-void OffensivePointsTable::addAttacker(std::string name, const tester::Cell &pointRangeMin,
-                                       const tester::Cell &pointRangeMax,
-                                       const tester::Cell &nameRangeMin,
-                                       const tester::Cell &nameRangeMax) {
+void OffensivePointsTable::addAttacker(std::string name, CellRange pointRange,
+                                       CellRange nameRange) {
   // Create the cell and add conditions to it.
   CountIfsCell *cell = new CountIfsCell();
-  cell->addCondition(CellRange(pointRangeMin, pointRangeMax), "\"1\"");
-  cell->addCondition(CellRange(nameRangeMin, nameRangeMax), "<>" + name);
+  cell->addCondition(pointRange, "\"<>1\"");
+  cell->addCondition(nameRange, "\"<>" + name + '"');
 
   addCell(name, CellPtr(cell));
 };
