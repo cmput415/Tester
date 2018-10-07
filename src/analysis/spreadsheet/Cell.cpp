@@ -57,4 +57,22 @@ void AverageCell::dump(std::ostream &os) {
   os << ") / " << cells.size();
 }
 
+void CountIfsCell::dump(std::ostream &os) {
+  // Put out begining of countifs.
+  os << "=COUNTIFS(";
+
+  // Iterate over conditions.
+  for (auto it = conds.begin(); it != conds.end(); ++it) {
+    const Cell &rMin = it->rMin, &rMax = it->rMax;
+    os << posToCellName(rMin.getCol(), rMin.getRow()) << ':'
+       << posToCellName(rMax.getCol(), rMax.getRow()) << ','
+       << it->cond;
+
+    if ((it + 1) != conds.end())
+      os << ',';
+  }
+
+  os << ')';
+}
+
 } // End namespace tester

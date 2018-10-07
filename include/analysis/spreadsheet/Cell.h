@@ -129,6 +129,40 @@ private:
 
 };
 
+class CountIfsCell : public Cell {
+public:
+  // Only default constructor. Add conditions after.
+  CountIfsCell() = default;
+
+  // Dump the cell contents to a stream.
+  void dump(std::ostream &os) override;
+
+  // Add a condition to a the if.
+  void addCondition(const Cell &rMin, const Cell &rMax, std::string cond) {
+    conds.emplace_back(rMin, rMax, std::move(cond));
+  }
+
+  // Essentially a named tuple for a condition.
+  struct Condition {
+    // No default constructor.
+    Condition() = delete;
+
+    // Construct with range cells and condition.
+    Condition(const Cell &rMin, const Cell &rMax, std::string cond) :
+        rMin(rMin), rMax(rMax),cond(std::move(cond)) { }
+
+    // Cell range.
+    const Cell &rMin, &rMax;
+
+    // The condition strint.
+    const std::string cond;
+  };
+
+private:
+  // Our conditions.
+  std::vector<Condition> conds;
+};
+
 } // End namespace tester
 
 
