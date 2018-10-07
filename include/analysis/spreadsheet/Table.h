@@ -3,6 +3,7 @@
 
 #include "analysis/spreadsheet/Cell.h"
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -32,20 +33,31 @@ protected:
   Cells cells;
 };
 
-// A class managing the count of tests in this analysis.
-class TestCountTable : public Table {
+// A class that represents a table with one cell for each of the student names.
+class MapTable : public Table {
 public:
   // Construct the cells with two empty vectors.
-  TestCountTable() { for (int i = 0; i < 2; ++i) cells.emplace_back(); }
+  MapTable() { for (int i = 0; i < 2; ++i) cells.emplace_back(); }
 
+  // Get a cell by its name.
+  const Cell &getCellByName(const std::string &name) { return *cells[1][colByName.at(name)]; }
+
+protected:
+  // Add a cell by name. This is protected because subclasses manage what type of cell to add.
+  void addCell(const std::string &name, CellPtr cell);
+
+protected:
+  std::unordered_map<std::string, size_t> colByName;
+};
+
+// A class managing the count of tests in this analysis.
+class TestCountTable : public MapTable {
+public:
   // Add a test count.
   void addTestCount(std::string name, size_t count);
 
   // Get the test count cell for a name.
-  const Cell &getTestCount(const std::string &name) { return *cells[1][colByName.at(name)]; }
-
-private:
-  std::unordered_map<std::string, size_t> colByName;
+  const Cell &getTestCount(const std::string &name) { return getCellByName(name); }
 };
 
 // An (n+1)x(n+1) table where the first row and column are named as students and the rest are left

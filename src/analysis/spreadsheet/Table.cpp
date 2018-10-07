@@ -1,22 +1,24 @@
 #include "analysis/spreadsheet/Table.h"
 
 #include <cassert>
-#include <iostream> // DEBUG
-#include <memory>
 
 namespace tester {
 
-void TestCountTable::addTestCount(std::string name, size_t count) {
+void MapTable::addCell(const std::string &name, tester::CellPtr cell) {
   // Sanity checks.
-  assert(cells.size() == 2 && "More than two rows in test table count.");
-  assert(colByName.count(name) == 0 && "Adding col that exists already in test table count.");
+  assert(cells.size() == 2 && "More than two rows in map table.");
+  assert(colByName.count(name) == 0 && "Adding col that exists already in map table.");
 
   // Add this column to the name register.
   colByName.emplace(name, cells[0].size());
 
   // Add the name and the count.
   cells[0].emplace_back(new StringCell(name));
-  cells[1].emplace_back(new IntCell<size_t>(count));
+  cells[1].emplace_back(std::move(cell));
+}
+
+void TestCountTable::addTestCount(std::string name, size_t count) {
+  addCell(name, CellPtr(new IntCell<size_t>(count)));
 }
 
 void CrossTable::reserve(const std::vector<std::string> &students) {
