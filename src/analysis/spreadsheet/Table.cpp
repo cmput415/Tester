@@ -55,7 +55,7 @@ void CrossTable::reserve(const std::vector<std::string> &students) {
 const Cell &CrossTable::getCrossCell(const std::string &defender, const std::string &attacker) {
   // Sanity check.
   assert(isReserved && "Getting cell from unreserved cross table.");
-  CellPtr &cell = cells[idxByName[defender]][idxByName[attacker]];
+  CellPtr &cell = cells[idxByName.at(defender)][idxByName.at(attacker)];
   assert(cell && "Accessing cross cell that isn't yet filled.");
 
   // Return the cell.
@@ -66,7 +66,7 @@ void CrossTable::addCrossCell(const std::string &defender, const std::string &at
                               tester::CellPtr toAdd) {
   // Sanity checks.
   assert(isReserved && "Adding cell to unreserved cross table.");
-  CellPtr &cell = cells[idxByName[defender]][idxByName[attacker]];
+  CellPtr &cell = cells[idxByName.at(defender)][idxByName.at(attacker)];
   assert(!cell && "Filling cross table cell that is already filled.");
 
   // The actual add.
