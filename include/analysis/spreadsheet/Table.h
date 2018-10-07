@@ -16,14 +16,13 @@ typedef std::unique_ptr<Table> TablePtr;
 
 typedef std::vector<std::vector<CellPtr>> Cells;
 
-typedef std::pair<const Cell &, const Cell &> Range;
-
 // A class that manages a single table in a sheet.
 class Table {
 public:
   // Make class virtual with virtual default destructor.
   virtual ~Table() = default;
 
+  // Get all cells.
   const Cells &getCells() const { return cells; }
 
 protected:
@@ -67,6 +66,12 @@ public:
 
   // Gets the cell crossing between a defender and an attacker.
   const Cell &getCrossCell(const std::string &defender, const std::string &attacker);
+
+  // Getting ranges.
+  CellRange getDefenderNameRange();
+  CellRange getAttackerNameRange();
+  CellRange getDefenderRange(const std::string &name);
+  CellRange getAttackerRange(const std::string &name);
 
 protected:
   void addCrossCell(const std::string &defender, const std::string &attacker, CellPtr cell);

@@ -73,6 +73,32 @@ void CrossTable::addCrossCell(const std::string &defender, const std::string &at
   cell = std::move(toAdd);
 };
 
+CellRange CrossTable::getDefenderNameRange() {
+  CellPtr &min = cells[1][0];
+  CellPtr &max = cells[idxByName.size()][0];
+  return {*min, *max};
+}
+
+CellRange CrossTable::getAttackerNameRange() {
+  CellPtr &min = cells[0][1];
+  CellPtr &max = cells[0][idxByName.size()];
+  return {*min, *max};
+}
+
+CellRange CrossTable::getDefenderRange(const std::string &name) {
+  size_t idx = idxByName.at(name);
+  CellPtr &min = cells[idx][1];
+  CellPtr &max = cells[idx][idxByName.size()];
+  return {*min, *max};
+}
+
+CellRange CrossTable::getAttackerRange(const std::string &name) {
+  size_t idx = idxByName.at(name);
+  CellPtr &min = cells[1][idx];
+  CellPtr &max = cells[idxByName.size()][idx];
+  return {*min, *max};
+}
+
 void TestCountTable::addTestCount(std::string name, size_t count) {
   addCell(name, CellPtr(new IntCell<size_t>(count)));
 }
