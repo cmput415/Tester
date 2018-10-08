@@ -180,6 +180,27 @@ private:
   const int multiplier;
 };
 
+// A cell that takes one value or another based on a condition (a ternary).
+class IfCell : public Cell {
+public:
+  // No default constructor.
+  IfCell() = delete;
+
+  // Construct with condition and two values.
+  IfCell(ConditionPtr cond, int trueVal, int falseVal)
+      : cond(std::move(cond)), trueVal(trueVal), falseVal(falseVal);
+
+  // Dump the cell contents to a stream.
+  void dump(std::ostream &os) override;
+
+private:
+  // The condition.
+  ConditionPtr cond;
+
+  // The true and false values.
+  int trueVal, falseVal;
+};
+
 class CountIfsCell : public Cell {
 public:
   // Only default constructor. Add conditions after.

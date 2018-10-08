@@ -45,6 +45,17 @@ void MultCell::dump(std::ostream &os) {
   os << '=' << posToCellName(cell.getCol(), cell.getRow()) << " * " << multiplier;
 }
 
+void IfCell::dump(std::ostream &os) {
+  // Beginning of the if.
+  os << "=IF(";
+
+  // The condition.
+  cond->dump(os);
+
+  // The values and the end bracket.
+  os << ", " << trueVal << ", " << falseVal << ')';
+}
+
 void CountIfsCell::dump(std::ostream &os) {
   // Put out begining of countifs.
   os << "=COUNTIFS(";
