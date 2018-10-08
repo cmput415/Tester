@@ -84,8 +84,8 @@ void Grader::buildResults() {
 
 void Grader::analyseResults() {
   // Make the summary table.
-  auto &summary = analysis.addTable<TestSummaryTable>("summary", "Pass Rate Summary");
-  summary.reserve(names);
+  auto &passSummary = analysis.addTable<TestSummaryTable>("summary", "Pass Rate Summary");
+  passSummary.reserve(names);
 
   // Average over all toolchains. If there's only one then this table is slightly redundant, but
   // it's the thought that counts.
@@ -100,7 +100,7 @@ void Grader::analyseResults() {
       }
 
       // Add to the summary.
-      summary.addSummary(defender, attacker, cells);
+      passSummary.addSummary(defender, attacker, cells);
     }
   }
 
@@ -108,21 +108,28 @@ void Grader::analyseResults() {
   auto &offense = analysis.addTable<OffensivePointsTable>("offensive","Offensive Points Summary");
   for (const std::string &attacker : names)
     // We're comparing against the defender's names.
-    offense.addAttacker(attacker, summary.getAttackerRange(attacker),
-                        summary.getDefenderNameRange());
+    offense.addAttacker(attacker, passSummary.getAttackerRange(attacker),
+                        passSummary.getDefenderNameRange());
 
   // Build defense table.
   auto &defense = analysis.addTable<DefensivePointsTable>("defensive", "Defensive Points Summary");
   for (const std::string &defender : names)
     // We're comparing against the attackers's names.
-    defense.addDefender(defender, summary.getDefenderRange(defender),
-                        summary.getAttackerNameRange());
+    defense.addDefender(defender, passSummary.getDefenderRange(defender),
+                        passSummary.getAttackerNameRange());
 
   // Mock up the base coverage table.
-  auto &coverage = analysis.addTable<TestCoverageTable>("coverage", "Solution Coverage Summary");
+//  auto &coverage = analysis.addTable<TestCoverageTable>("coverage", "Solution Coverage Summary");
+//  for (const std::string &solution : names)
+//    // This is just a dummy thing. These values will be filled in by the marker.
+//    coverage.addName(solution);
+
+  // Build the summary table.
+  std::vector<std::pair<std::string, std::string>> categories ;
+  auto &pointSum = analysis.addTable<PointSummaryTable>("points", "Points Summary");
   for (const std::string &solution : names)
-    // This is just a dummy thing. These values will be filled in by the marker.
-    coverage.addName(solution);
+    pointSum.addSummary(solution, offense.getCellByName(solution), defense.getCellByName(solution),
+                        passSummary.getCrossCell(solution, solution));
 }
 
 } // End namespace tester
