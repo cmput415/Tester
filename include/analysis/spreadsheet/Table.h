@@ -111,6 +111,13 @@ public:
   const Cell &getDefensePoints(const std::string &name) { return getCellByName(name); }
 };
 
+// A dummy table for the marker to fill with test coverage.
+class TestCoverageTable : public MapTable {
+public:
+  void addName(std::string name) { addCell(name, CellPtr(new IntCell<size_t>(0))); }
+  const Cell &getCoverage(const std::string &name) { return getCellByName(name); }
+};
+
 // ------------
 // Cross tables
 // ------------

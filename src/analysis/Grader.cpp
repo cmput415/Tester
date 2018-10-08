@@ -114,9 +114,15 @@ void Grader::analyseResults() {
   // Build defense table.
   auto &defense = analysis.addTable<DefensivePointsTable>("defensive", "Defensive Points Summary");
   for (const std::string &defender : names)
-    // We're comparing against the defender's names.
+    // We're comparing against the attackers's names.
     defense.addDefender(defender, summary.getDefenderRange(defender),
                         summary.getAttackerNameRange());
+
+  // Mock up the base coverage table.
+  auto &coverage = analysis.addTable<TestCoverageTable>("coverage", "Solution Coverage Summary");
+  for (const std::string &solution : names)
+    // This is just a dummy thing. These values will be filled in by the marker.
+    coverage.addName(solution);
 }
 
 } // End namespace tester
