@@ -101,12 +101,14 @@ public:
 class OffensivePointsTable : public MapTable {
 public:
   void addAttacker(std::string name, CellRange pointRange, CellRange nameRange);
+  const Cell &getAttackPoints(const std::string &name) { return getCellByName(name); }
 };
 
 // Manages a defenders defensive points.
 class DefensivePointsTable : public MapTable {
 public:
   void addDefender(std::string name, CellRange pointRange, CellRange nameRange);
+  const Cell &getDefensePoints(const std::string &name) { return getCellByName(name); }
 };
 
 // ------------
