@@ -1,6 +1,7 @@
 #ifndef TESTER_UTILITY_H
 #define TESTER_UTILITY_H
 
+#include <memory>
 #include <ostream>
 #include <string>
 
@@ -9,11 +10,15 @@ namespace tester {
 // Forward declare cell so there's no circular import.
 class Cell;
 
+// Easy point to Condition.
+class Condition;
+typedef std::unique_ptr<Condition> ConditionPtr;
+
 // Base class for conditions.
 class Condition {
 public:
   // Construct with an operator.
-  Condition(std::string op) : op(std::move(op)) { }
+  explicit Condition(std::string op) : op(std::move(op)) { }
 
   // Dump the condition.
   virtual void dump(std::ostream &os) = 0;
