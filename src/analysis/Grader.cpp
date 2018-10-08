@@ -103,6 +103,20 @@ void Grader::analyseResults() {
       summary.addSummary(defender, attacker, cells);
     }
   }
+
+  // Build attack table.
+  auto &offense = analysis.addTable<OffensivePointsTable>("offensive","Offensive Points Summary");
+  for (const std::string &attacker : names)
+    // We're comparing against the defender's names.
+    offense.addAttacker(attacker, summary.getAttackerRange(attacker),
+                        summary.getDefenderNameRange());
+
+  // Build defense table.
+  auto &defense = analysis.addTable<DefensivePointsTable>("defensive", "Defensive Points Summary");
+  for (const std::string &defender : names)
+    // We're comparing against the defender's names.
+    defense.addDefender(defender, summary.getDefenderRange(defender),
+                        summary.getAttackerNameRange());
 }
 
 } // End namespace tester
