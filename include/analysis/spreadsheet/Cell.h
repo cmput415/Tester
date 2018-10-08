@@ -205,7 +205,7 @@ public:
 
   // Construct with condition and two values.
   IfCell(ConditionPtr cond, int trueVal, int falseVal)
-      : cond(std::move(cond)), trueVal(trueVal), falseVal(falseVal);
+      : cond(std::move(cond)), trueVal(trueVal), falseVal(falseVal) { }
 
   // Dump the cell contents to a stream.
   void dump(std::ostream &os) override;
