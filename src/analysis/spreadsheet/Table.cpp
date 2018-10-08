@@ -1,5 +1,7 @@
 #include "analysis/spreadsheet/Table.h"
 
+#include "analysis/spreadsheet/Utility.h"
+
 #include <cassert>
 
 namespace tester {
@@ -107,8 +109,8 @@ void OffensivePointsTable::addAttacker(const std::string &name, CellRange pointR
                                        CellRange nameRange) {
   // Create the cell and add conditions to it.
   auto *cell = new CountIfsCell();
-  cell->addCondition(pointRange, "\"<>1\"");
-  cell->addCondition(nameRange, "\"<>" + name + '"');
+  cell->addCondition(pointRange, ConditionPtr(new LiteralCondition<int>("<>", 1)));
+  cell->addCondition(nameRange, ConditionPtr(new LiteralCondition<std::string>("<>", name)));
 
   addCell(name, CellPtr(cell));
 };
@@ -117,8 +119,8 @@ void DefensivePointsTable::addDefender(const std::string &name, tester::CellRang
                                        tester::CellRange nameRange){
   // Create the cell and add conditions to it.
   auto *cell = new CountIfsCell();
-  cell->addCondition(pointRange, "\"1\"");
-  cell->addCondition(nameRange, "\"<>" + name + '"');
+  cell->addCondition(pointRange, ConditionPtr(new LiteralCondition<int>("=", 1)));
+  cell->addCondition(nameRange, ConditionPtr(new LiteralCondition<std::string>("<>", name)));
 
   addCell(name, CellPtr(cell));
 };

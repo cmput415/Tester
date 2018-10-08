@@ -4,10 +4,6 @@
 
 namespace tester {
 
-void IntLiteralCondition::dump(std::ostream &os) {
-  os << '"' << op << value << '"';
-}
-
 void CellCondition::dump(std::ostream &os) {
   os << posToCellName(cell.getCol(), cell.getRow()) << '"' << op << value << '"';
 }

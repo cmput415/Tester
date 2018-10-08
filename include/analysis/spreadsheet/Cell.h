@@ -1,6 +1,8 @@
 #ifndef TESTER_CELL_H
 #define TESTER_CELL_H
 
+#include "analysis/spreadsheet/Utility.h"
+
 #include <cassert>
 #include <ostream>
 #include <memory>
@@ -187,7 +189,7 @@ public:
   void dump(std::ostream &os) override;
 
   // Add a condition to a the if.
-  void addCondition(CellRange range, std::string cond) {
+  void addCondition(CellRange range, ConditionPtr cond) {
     conds.emplace_back(range, std::move(cond));
   }
 
@@ -197,14 +199,14 @@ public:
     RangeCondition() = delete;
 
     // Construct with range cells and condition.
-    RangeCondition(CellRange range, std::string cond) :
+    RangeCondition(CellRange range, ConditionPtr cond) :
         range(range), cond(std::move(cond)) { }
 
     // Cell range.
     const CellRange range;
 
     // The condition string.
-    const std::string cond;
+    ConditionPtr cond;
   };
 
 private:

@@ -29,16 +29,17 @@ protected:
 };
 
 // Comparing against a constant int.
-class IntLiteralCondition : public Condition {
+template <typename T>
+class LiteralCondition : public Condition {
 public:
   // Construct with operator and value.
-  IntLiteralCondition(std::string op, int value) : Condition(std::move(op)), value(value) { }
+  LiteralCondition(std::string op, T value) : Condition(std::move(op)), value(value) { }
 
   void dump(std::ostream &os) override;
 
 private:
   // The value to compare against.
-  const int value;
+  const T value;
 };
 
 // Comparing a constant against a cell's value.
@@ -63,5 +64,10 @@ std::string idxToColName(size_t idx);
 std::string posToCellName(size_t col, size_t row);
 
 } // End namespace tester
+
+template <typename T>
+void tester::LiteralCondition<T>::dump(std::ostream &os) {
+  os << '"' << op << value << '"';
+}
 
 #endif //TESTER_UTILITY_H
