@@ -97,10 +97,18 @@ public:
   const Cell &getTestCount(const std::string &name) { return getCellByName(name); }
 };
 
+// Manages an attackers offensive points.
 class OffensivePointsTable : public MapTable {
 public:
   void addAttacker(std::string name, CellRange pointRange, CellRange nameRange);
 };
+
+// Manages a defenders defensive points.
+class DefensivePointsTable : public MapTable {
+public:
+  void addDefender(std::string name, CellRange pointRange, CellRange nameRange);
+};
+
 // ------------
 // Cross tables
 // ------------

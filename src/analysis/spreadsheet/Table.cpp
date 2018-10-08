@@ -113,6 +113,16 @@ void OffensivePointsTable::addAttacker(std::string name, CellRange pointRange,
   addCell(name, CellPtr(cell));
 };
 
+void DefensivePointsTable::addDefender(std::string name, tester::CellRange pointRange,
+                                       tester::CellRange nameRange){
+  // Create the cell and add conditions to it.
+  CountIfsCell *cell = new CountIfsCell();
+  cell->addCondition(pointRange, "\"1\"");
+  cell->addCondition(nameRange, "\"<>" + name + '"');
+
+  addCell(name, CellPtr(cell));
+};
+
 void TestPassRateTable::addPassRate(const std::string &defender, const std::string &attacker,
                                     size_t passCount, const tester::Cell &maxCount) {
   addCrossCell(defender, attacker, CellPtr(new RateCell(passCount, maxCount)));
