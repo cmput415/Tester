@@ -136,6 +136,7 @@ void OffensivePointsTable::addAttacker(const std::string &name, CellRange pointR
   auto *cell = new CountIfsCell();
   cell->addCondition(pointRange, ConditionPtr(new LiteralCondition<int>("<>", 1)));
   cell->addCondition(nameRange, ConditionPtr(new LiteralCondition<std::string>("<>", name)));
+  // Note that there's no guard against solution here. You get bonus points for breaking solution.
 
   addCell(name, CellPtr(cell));
 };
@@ -146,6 +147,7 @@ void DefensivePointsTable::addDefender(const std::string &name, tester::CellRang
   auto *cell = new CountIfsCell();
   cell->addCondition(pointRange, ConditionPtr(new LiteralCondition<int>("=", 1)));
   cell->addCondition(nameRange, ConditionPtr(new LiteralCondition<std::string>("<>", name)));
+  cell->addCondition(nameRange, ConditionPtr(new LiteralCondition<std::string>("<>", "solution")));
 
   addCell(name, CellPtr(cell));
 };

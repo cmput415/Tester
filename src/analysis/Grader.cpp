@@ -128,8 +128,11 @@ void Grader::analyseResults() {
   std::vector<std::pair<std::string, std::string>> categories ;
   auto &pointSum = analysis.addTable<PointSummaryTable>("points", "Points Summary");
   for (const std::string &solution : names)
-    pointSum.addSummary(solution, offense.getCellByName(solution), defense.getCellByName(solution),
-                        passSummary.getCrossCell(solution, solution));
+    // Don't put the solution into the point summary. That would be unfair.
+    if (solution != "solution")
+      pointSum.addSummary(solution, offense.getCellByName(solution),
+                          defense.getCellByName(solution),
+                          passSummary.getCrossCell(solution, solution));
 }
 
 } // End namespace tester
