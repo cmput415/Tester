@@ -5,7 +5,7 @@
 namespace tester {
 
 void CellCondition::dump(std::ostream &os) {
-  os << posToCellName(cell.getCol(), cell.getRow()) << '"' << op << value << '"';
+  os << posToCellName(cell.getCol(), cell.getRow()) << op << value;
 }
 
 std::string idxToColName(size_t idx) {
