@@ -22,6 +22,10 @@ std::string posToCellName(size_t col, size_t row) {
 
 namespace tester {
 
+void RefCell::dump(std::ostream &os) {
+  os << '=' << posToCellName(cell.getCol(), cell.getRow());
+}
+
 void StringCell::dump(std::ostream &os) {
   os << str;
 }

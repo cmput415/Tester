@@ -66,6 +66,22 @@ private:
   size_t col, row;
 };
 
+// A cell that takes the value of another cell.
+class RefCell : public Cell {
+public:
+  // No default constructor.
+  RefCell() = delete;
+
+  // Construct with the cell to reference.
+  RefCell(const Cell &cell) : cell(cell) { }
+
+  // Dump the cell contents to a stream.
+  void dump(std::ostream &os) override;
+
+private:
+  const Cell &cell;
+};
+
 // A class that represents a string in a cell.
 class StringCell : public Cell {
 public:
