@@ -20,12 +20,29 @@ void IntCell<unsigned char>::dump(std::ostream &os) {
   os << static_cast<unsigned int>(value);
 }
 
+void SumCell::dump(std::ostream &os) {
+  // Begining of the sum.
+  os << "=SUM(";
+
+  // Iterate over cells to put in.
+  for (auto it = cells.begin(); it != cells.end(); ++it) {
+    const Cell &cell = it->get();
+    os << posToCellName(cell.getCol(), cell.getRow());
+
+    if ((it + 1) != cells.end())
+      os << ',';
+  }
+
+  // Print end of sum.
+  os << ')';
+}
+
 void RateCell::dump(std::ostream &os){
   os << '=' << value << " / " << posToCellName(maxCell.getCol(), maxCell.getRow());
 }
 
 void AverageCell::dump(std::ostream &os) {
-  // Put beginning of sum.
+  // Begining of the sum.
   os << "=SUM(";
 
   // Iterate over cells to put in.

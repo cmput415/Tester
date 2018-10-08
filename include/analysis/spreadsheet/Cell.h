@@ -122,6 +122,23 @@ private:
   T value;
 };
 
+// A class that represents a sum of other cells.
+class SumCell : public Cell {
+public:
+  // No default constructor.
+  SumCell() = delete;
+
+  // Construct with internal value.
+  SumCell(std::vector<CellRef> cells) : Cell(), cells(std::move(cells)) { }
+
+  // Dump the cell contents to a stream.
+  void dump(std::ostream &os) override;
+
+private:
+  // Cells to sum.
+  const std::vector<CellRef> cells;
+};
+
 // A class that represents a "rate" in a cell. That is an integral divided by the value in another
 // cell.
 class RateCell : public Cell {
@@ -150,13 +167,13 @@ public:
   AverageCell() = delete;
 
   // Construct with cells to average over.
-  explicit AverageCell(std::vector<CellRef> cells_) : Cell(), cells(std::move(cells_)) { }
+  explicit AverageCell(std::vector<CellRef> cells) : Cell(), cells(std::move(cells)) { }
 
   // Dump the cell contents to a stream.
   void dump(std::ostream &os) override;
 
 private:
-  // Cells to average over.s
+  // Cells to average over.
   const std::vector<CellRef> cells;
 };
 
