@@ -61,6 +61,10 @@ void AverageCell::dump(std::ostream &os) {
   os << ") / " << cells.size();
 }
 
+void MultCell::dump(std::ostream &os) {
+  os << '=' << posToCellName(cell.getCol(), cell.getRow()) << " * " << multiplier;
+}
+
 void CountIfsCell::dump(std::ostream &os) {
   // Put out begining of countifs.
   os << "=COUNTIFS(";

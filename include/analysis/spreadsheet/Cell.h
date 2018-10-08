@@ -79,6 +79,7 @@ public:
   void dump(std::ostream &os) override;
 
 private:
+  // The cell to reference.
   const Cell &cell;
 };
 
@@ -153,8 +154,28 @@ public:
   void dump(std::ostream &os) override;
 
 private:
+  // Cells to average over.s
   const std::vector<CellRef> cells;
+};
 
+// A cell that mulitplies the value of another cell by a constant.
+class MultCell : public Cell {
+public:
+  // No default constructor.
+  MultCell() = delete;
+
+  // Construct with the cell to reference.
+  MultCell(const Cell &cell, int multiplier) : cell(cell), multiplier(multiplier) { }
+
+  // Dump the cell contents to a stream.
+  void dump(std::ostream &os) override;
+
+private:
+  // Cell to multiply.
+  const Cell &cell;
+
+  // Multiplier
+  const int multiplier;
 };
 
 class CountIfsCell : public Cell {
