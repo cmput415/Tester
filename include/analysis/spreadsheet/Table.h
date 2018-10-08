@@ -91,7 +91,7 @@ protected:
 class TestCountTable : public MapTable {
 public:
   // Add a test count.
-  void addTestCount(std::string name, size_t count);
+  void addTestCount(const std::string &name, size_t count);
 
   // Get the test count cell for a name.
   const Cell &getTestCount(const std::string &name) { return getCellByName(name); }
@@ -100,14 +100,14 @@ public:
 // Manages an attackers offensive points.
 class OffensivePointsTable : public MapTable {
 public:
-  void addAttacker(std::string name, CellRange pointRange, CellRange nameRange);
+  void addAttacker(const std::string &name, CellRange pointRange, CellRange nameRange);
   const Cell &getAttackPoints(const std::string &name) { return getCellByName(name); }
 };
 
 // Manages a defenders defensive points.
 class DefensivePointsTable : public MapTable {
 public:
-  void addDefender(std::string name, CellRange pointRange, CellRange nameRange);
+  void addDefender(const std::string &name, CellRange pointRange, CellRange nameRange);
   const Cell &getDefensePoints(const std::string &name) { return getCellByName(name); }
 };
 

@@ -99,24 +99,24 @@ CellRange CrossTable::getAttackerRange(const std::string &name) {
   return {*min, *max};
 }
 
-void TestCountTable::addTestCount(std::string name, size_t count) {
+void TestCountTable::addTestCount(const std::string &name, size_t count) {
   addCell(name, CellPtr(new IntCell<size_t>(count)));
 }
 
-void OffensivePointsTable::addAttacker(std::string name, CellRange pointRange,
+void OffensivePointsTable::addAttacker(const std::string &name, CellRange pointRange,
                                        CellRange nameRange) {
   // Create the cell and add conditions to it.
-  CountIfsCell *cell = new CountIfsCell();
+  auto *cell = new CountIfsCell();
   cell->addCondition(pointRange, "\"<>1\"");
   cell->addCondition(nameRange, "\"<>" + name + '"');
 
   addCell(name, CellPtr(cell));
 };
 
-void DefensivePointsTable::addDefender(std::string name, tester::CellRange pointRange,
+void DefensivePointsTable::addDefender(const std::string &name, tester::CellRange pointRange,
                                        tester::CellRange nameRange){
   // Create the cell and add conditions to it.
-  CountIfsCell *cell = new CountIfsCell();
+  auto *cell = new CountIfsCell();
   cell->addCondition(pointRange, "\"1\"");
   cell->addCondition(nameRange, "\"<>" + name + '"');
 
