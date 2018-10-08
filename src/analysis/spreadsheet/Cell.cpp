@@ -51,7 +51,7 @@ void AverageCell::dump(std::ostream &os) {
     os << posToCellName(cell.getCol(), cell.getRow());
 
     if ((it + 1) != cells.end())
-      os << ',';
+      os << ", ";
   }
 
   // Print end of sum and then the division.
@@ -89,7 +89,7 @@ void CountIfsCell::dump(std::ostream &os) {
 
     // Add a comma if necessary.
     if ((it + 1) != conds.end())
-      os << ',';
+      os << ", ";
   }
 
   // Final bracket.
