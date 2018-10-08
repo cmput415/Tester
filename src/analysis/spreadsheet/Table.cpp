@@ -101,6 +101,31 @@ CellRange CrossTable::getAttackerRange(const std::string &name) {
   return {*min, *max};
 }
 
+SummaryTable::SummaryTable(std::vector<std::pair<std::string, std::string>> categories) : Table() {
+  cells.reserve(categories.size() + 2ul);
+
+  // Add names row.
+  CellVec names;
+  names.emplace_back(new StringCell("Names"));
+  cells.emplace_back(std::move(names));
+
+  // Add row for each category.
+  for (const auto &category : categories) {
+    // Track row number.
+    rowByName.emplace(category.first, cells.size());
+
+    // Add row.
+    CellVec catVec;
+    catVec.emplace_back(new StringCell(category.second));
+    cells.emplace_back(std::move(catVec));
+  }
+
+  // Add the summary row.
+  CellVec summary;
+  summary.emplace_back(new StringCell("Summary"));
+  cells.emplace_back(std::move(summary));
+}
+
 void TestCountTable::addTestCount(const std::string &name, size_t count) {
   addCell(name, CellPtr(new IntCell<size_t>(count)));
 }
@@ -133,6 +158,37 @@ void TestPassRateTable::addPassRate(const std::string &defender, const std::stri
 void TestSummaryTable::addSummary(const std::string &defender, const std::string &attacker,
                                   const std::vector<tester::CellRef> &addends) {
   addCrossCell(defender, attacker, CellPtr(new AverageCell(addends)));
+}
+
+PointSummaryTable::PointSummaryTable()
+    : SummaryTable({{"offense", "Offense"}, {"defense", "Defense"}, //{"method", "Test Methodology"},
+                    {"self", "Self Testing"}}) { }
+
+void PointSummaryTable::addSummary(const std::string &name, const tester::Cell &offense,
+                                   const tester::Cell &defense, const tester::Cell &self) {
+  // Sanity check.
+  size_t size = cells[0].size();
+  for (const auto &row : cells)
+    assert(row.size() == size && "Summary table row length unequal.");
+
+  // Track index.
+  colByName.emplace(name, size);
+  cells[0].emplace_back(new StringCell(name));
+
+  // Add sections for offense and defense. Hold onto the pointer so we can make the summary cell.
+  Cell *offenseCell = new RefCell(offense);
+  Cell *defenseCell = new MultCell(defense, 2);
+  cells[rowByName.at("offense")].emplace_back(offenseCell);
+  cells[rowByName.at("defense")].emplace_back(defenseCell);
+
+  // Add section for self testing.
+  ConditionPtr cond(new CellCondition("=", self, 1));
+  Cell *selfCell = new IfCell(std::move(cond), 1, 0);
+  cells[rowByName.at("self")].emplace_back(selfCell);
+
+  // Add summary cell.
+  std::vector<CellRef> sumCells{*offenseCell, *defenseCell, *selfCell};
+  cells[cells.size() - 1].emplace_back(new SumCell(std::move(sumCells)));
 }
 
 } // End namespace tester

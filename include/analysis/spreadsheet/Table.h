@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace tester {
@@ -14,7 +15,8 @@ namespace tester {
 class Table;
 typedef std::unique_ptr<Table> TablePtr;
 
-typedef std::vector<std::vector<CellPtr>> Cells;
+typedef std::vector<CellPtr> CellVec;
+typedef std::vector<CellVec> Cells;
 
 // A class that manages a single table in a sheet.
 class Table {
@@ -41,7 +43,7 @@ protected:
 class MapTable : public Table {
 public:
   // Construct the cells with two empty vectors.
-  MapTable() { for (int i = 0; i < 2; ++i) cells.emplace_back(); }
+  MapTable() : Table() { for (int i = 0; i < 2; ++i) cells.emplace_back(); }
 
   // Get a cell by its name.
   const Cell &getCellByName(const std::string &name) { return *cells[1][colByName.at(name)]; }
@@ -82,6 +84,20 @@ protected:
 
   // Identify a cell by a student name.
   std::unordered_map<std::string, size_t> idxByName;
+};
+
+// Manages a summary table.
+class SummaryTable : public Table {
+  // No default constructor.
+  SummaryTable() = delete;
+
+  // Construct with a vector of strings for categories.
+protected:
+  SummaryTable(std::vector<std::pair<std::string, std::string>> categories);
+
+protected:
+  std::unordered_map<std::string, size_t> rowByName;
+  std::unordered_map<std::string, size_t> colByName;
 };
 
 // ----------
@@ -135,6 +151,20 @@ public:
   // Add a pass rate to the table.
   void addSummary(const std::string &defender, const std::string &attacker,
                   const std::vector<CellRef> &cells);
+};
+
+// --------------
+// Summary tables
+// --------------
+// Uses a summary table for a summary of points.
+class PointSummaryTable : public SummaryTable {
+public:
+  // Default constructor constructs parent.
+  PointSummaryTable();
+
+  // Add to the summary.
+  void addSummary(const std::string &name, const Cell &offense, const Cell &defense,
+                  const Cell &self);
 };
 
 } // End namespace tester
