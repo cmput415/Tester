@@ -4,6 +4,7 @@ set(
   "${CMAKE_CURRENT_SOURCE_DIR}/Cell.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Sheet.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Utility.cpp"
 )
 
 # Build the library from the source files.

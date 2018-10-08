@@ -192,12 +192,12 @@ public:
   }
 
   // Essentially a named tuple for a condition.
-  struct Condition {
+  struct RangeCondition {
     // No default constructor.
-    Condition() = delete;
+    RangeCondition() = delete;
 
     // Construct with range cells and condition.
-    Condition(CellRange range, std::string cond) :
+    RangeCondition(CellRange range, std::string cond) :
         range(range), cond(std::move(cond)) { }
 
     // Cell range.
@@ -209,7 +209,7 @@ public:
 
 private:
   // Our conditions.
-  std::vector<Condition> conds;
+  std::vector<RangeCondition> conds;
 };
 
 } // End namespace tester
