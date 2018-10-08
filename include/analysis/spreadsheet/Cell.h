@@ -178,13 +178,16 @@ private:
 };
 
 // A cell that mulitplies the value of another cell by a constant.
+template <typename T>
 class MultCell : public Cell {
 public:
   // No default constructor.
   MultCell() = delete;
 
   // Construct with the cell to reference.
-  MultCell(const Cell &cell, int multiplier) : cell(cell), multiplier(multiplier) { }
+  MultCell(const Cell &cell, T multiplier) : cell(cell), multiplier(multiplier) {
+    static_assert(std::is_arithmetic<T>::value && "Mult cell not using a number type.");
+  }
 
   // Dump the cell contents to a stream.
   void dump(std::ostream &os) override;
@@ -194,7 +197,7 @@ private:
   const Cell &cell;
 
   // Multiplier
-  const int multiplier;
+  const T multiplier;
 };
 
 // A cell that takes one value or another based on a condition (a ternary).
@@ -266,6 +269,11 @@ void tester::IntCell<unsigned char>::dump(std::ostream &os);
 template <typename T>
 void tester::IntCell<T>::dump(std::ostream &os) {
   os << value;
+}
+
+template <typename T>
+void tester::MultCell<T>::dump(std::ostream &os) {
+  os << '=' << tester::posToCellName(cell.getCol(), cell.getRow()) << " * " << multiplier;
 }
 
 #endif //TESTER_CELL_H

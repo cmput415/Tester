@@ -58,10 +58,6 @@ void AverageCell::dump(std::ostream &os) {
   os << ") / " << cells.size();
 }
 
-void MultCell::dump(std::ostream &os) {
-  os << '=' << posToCellName(cell.getCol(), cell.getRow()) << " * " << multiplier;
-}
-
 void IfCell::dump(std::ostream &os) {
   // Beginning of the if.
   os << "=IF(";
