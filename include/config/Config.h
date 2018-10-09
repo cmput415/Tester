@@ -42,6 +42,10 @@ public:
   // Config bool getters.
   bool isQuiet() const { return quiet; }
 
+  // Initialisation verification.
+  bool isInitialised() const { return initialised; }
+  int getErrorCode() const { return errorCode; }
+
 private:
   // Option file paths.
   fs::path gradeFilePath;
@@ -55,6 +59,12 @@ private:
 
   // Option flags.
   bool quiet;
+
+  // Is the config initialised or not and an appropriate error code. This could be due to asking for
+  // help or a missing config file.
+  bool initialised;
+  int errorCode;
+
 };
 
 } // End namespace tester

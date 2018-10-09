@@ -38,7 +38,16 @@ Config::Config(int argc, char **argv) {
 
   // Parse our command line options. This has the potential to throw CLI::ParseError, but we want it
   // to continue up the tree.
-  app.parse(argc, argv);
+  try {
+    app.parse(argc, argv);
+    initialised = true;
+    errorCode = 0;
+  }
+  catch(const CLI::Error &e) {
+    initialised = false;
+    errorCode = app.exit(e);
+    return;
+  }
 
   // Get our json file.
   std::ifstream jsonFile(configFilePath);

@@ -7,7 +7,10 @@
 #include <exception>
 
 int main(int argc, char **argv) {
+  // Build the config and exit if it fails.
   tester::Config cfg(argc, argv);
+  if (!cfg.isInitialised())
+    return cfg.getErrorCode();
 
   // Grading means we don't run the tests like normal. Break early.
   if (cfg.hasGradePath()) {
