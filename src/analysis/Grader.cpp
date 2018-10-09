@@ -125,7 +125,6 @@ void Grader::analyseResults() {
 //    coverage.addName(solution);
 
   // Build the summary table.
-  std::vector<std::pair<std::string, std::string>> categories ;
   auto &pointSum = analysis.addTable<PointSummaryTable>("points", "Points Summary");
   for (const std::string &solution : names)
     // Don't put the solution into the point summary. That would be unfair.
@@ -133,6 +132,14 @@ void Grader::analyseResults() {
       pointSum.addSummary(solution, offense.getCellByName(solution),
                           defense.getCellByName(solution),
                           passSummary.getCrossCell(solution, solution));
+
+  // Build the final summary table.
+  auto &finalSum = analysis.addTable<FinalSummaryTable>("final", "Final Summary");
+  for (const std::string &solution : names)
+    // Don't put the solution into the final summary. It's impossible.
+    if (solution != "solution")
+      finalSum.addSummary(solution, pointSum.getSummary(solution), pointSum.getSummaryRange(),
+                          passSummary.getCrossCell(solution, "solution"));
 }
 
 } // End namespace tester
