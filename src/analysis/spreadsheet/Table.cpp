@@ -198,4 +198,41 @@ void PointSummaryTable::addSummary(const std::string &name, const tester::Cell &
   cells[cells.size() - 1].emplace_back(new SumCell(std::move(sumCells)));
 }
 
+FinalSummaryTable::FinalSummaryTable()
+    : SummaryTable({{"style", "Grammar and Code Style (15%)"},
+                    {"abide","Functionality + Guideline Abiding (15%)"},
+                    {"passRate", "Teaching-Team Tests (50%)"},
+                    {"tournament", "Competitive Testing tournament (20%)"}}) { }
+
+void FinalSummaryTable::addSummary(const std::string &name, const tester::Cell &points,
+                                   const tester::CellRange &pointsRange,
+                                   const tester::Cell &passRate) {
+  // Sanity check.
+  size_t size = cells[0].size();
+  for (const auto &row : cells)
+    assert(row.size() == size && "Summary table row length unequal.");
+
+  // Track index.
+  colByName.emplace(name, size);
+  cells[0].emplace_back(new StringCell(name));
+
+  // Add style and abide sections. Hold onto the pointer so we can make the summary cell.
+  Cell *styleCell = new StringCell("FILL ME (MAX .15)");
+  Cell *abideCell = new StringCell("FILL ME (MAX .15)");
+  cells[rowByName.at("style")].emplace_back(styleCell);
+  cells[rowByName.at("abide")].emplace_back(abideCell);
+
+  // Add teaching team pass rate section.
+  Cell *passRateCell = new MultCell<float>(passRate, .5f);
+  cells[rowByName.at("passRate")].emplace_back(passRateCell);
+
+  // Add tournament score cell.
+  Cell *tournamentCell = new TournamentResultsCell(pointsRange, points, .2f);
+  cells[rowByName.at("tournament")].emplace_back(tournamentCell);
+
+  // Add summary cell.
+  std::vector<CellRef> sumCells{*styleCell, *abideCell, *passRateCell, *tournamentCell};
+  cells[cells.size() - 1].emplace_back(new SumCell(std::move(sumCells)));
+}
+
 } // End namespace tester

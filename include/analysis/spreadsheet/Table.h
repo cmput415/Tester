@@ -171,6 +171,17 @@ public:
                   const Cell &self);
 };
 
+// Uses a summary table to generate the final percentages.
+class FinalSummaryTable : public SummaryTable {
+public:
+  // Default constructor constructs parent.
+  FinalSummaryTable();
+
+  // Add to the summary.
+  void addSummary(const std::string &name, const Cell &points, const CellRange &pointsRange,
+                  const Cell &passRate);
+};
+
 } // End namespace tester
 
 #endif //TESTER_TABLE_H
