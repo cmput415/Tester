@@ -111,7 +111,7 @@ public:
 
   // Construct with internal value.
   explicit IntCell(T value) : Cell(), value(value) {
-    static_assert(std::is_integral<T>::value && "IntCell type is not integral.");
+    static_assert(std::is_integral<T>::value, "IntCell type is not integral.");
   }
 
   // Dump the cell contents to a stream.
@@ -186,7 +186,7 @@ public:
 
   // Construct with the cell to reference.
   MultCell(const Cell &cell, T multiplier) : cell(cell), multiplier(multiplier) {
-    static_assert(std::is_arithmetic<T>::value && "Mult cell not using a number type.");
+    static_assert(std::is_arithmetic<T>::value, "Mult cell not using a number type.");
   }
 
   // Dump the cell contents to a stream.

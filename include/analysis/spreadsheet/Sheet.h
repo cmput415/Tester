@@ -46,7 +46,7 @@ private:
 template <typename T>
 T &tester::Sheet::addTable(const std::string &name, const std::string &title) {
   // Make sure that T is a subclass of Table.
-  static_assert(std::is_base_of<Table, T>::value && "Added table not inheritor of Table.");
+  static_assert(std::is_base_of<Table, T>::value, "Added table not inheritor of Table.");
 
   // Allocate the table. Hold the pointer here so we don't have to look up the table for its
   // reference when we put it in the map. We won't pass it away so the unique_ptr still owns it.
