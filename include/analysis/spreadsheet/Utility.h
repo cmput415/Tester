@@ -20,6 +20,9 @@ public:
   // Construct with an operator.
   explicit Condition(std::string op) : op(std::move(op)) { }
 
+  // Default virtual destructor.
+  virtual ~Condition() = default;
+
   // Dump the condition.
   virtual void dump(std::ostream &os) = 0;
 
