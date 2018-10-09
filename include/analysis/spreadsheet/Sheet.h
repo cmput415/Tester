@@ -51,7 +51,7 @@ T &tester::Sheet::addTable(const std::string &name, const std::string &title) {
   // Allocate the table. Hold the pointer here so we don't have to look up the table for its
   // reference when we put it in the map. We won't pass it away so the unique_ptr still owns it.
   auto *t = new T();
-  tablesByName.emplace(std::make_pair(name, t));
+  tablesByName.emplace(std::make_pair(name, TablePtr(t)));
 
   // Put the name in the ordered list.
   orderedTables.push_back(name);
