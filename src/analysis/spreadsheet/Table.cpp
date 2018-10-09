@@ -12,7 +12,7 @@ void MapTable::addCell(const std::string &name, tester::CellPtr cell) {
   assert(colByName.count(name) == 0 && "Adding col that exists already in map table.");
 
   // Add this column to the name register.
-  colByName.emplace(name, cells[0].size());
+  colByName.emplace(std::make_pair(name, cells[0].size()));
 
   // Add the name and the count.
   cells[0].emplace_back(new StringCell(name));
@@ -39,7 +39,7 @@ void CrossTable::reserve(const std::vector<std::string> &students) {
 
     // Save the name and index in the map.
     const std::string &name = students[i];
-    idxByName.emplace(name, idx);
+    idxByName.emplace(std::make_pair(name, idx));
 
     // Put the name in the defender row and attacker column. Using reset to replace what's there
     // already.
@@ -112,7 +112,7 @@ SummaryTable::SummaryTable(std::vector<std::pair<std::string, std::string>> cate
   // Add row for each category.
   for (const auto &category : categories) {
     // Track row number.
-    rowByName.emplace(category.first, cells.size());
+    rowByName.emplace(std::make_pair(category.first, cells.size()));
 
     // Add row.
     CellVec catVec;
@@ -183,7 +183,7 @@ void PointSummaryTable::addSummary(const std::string &name, const tester::Cell &
     assert(row.size() == size && "Summary table row length unequal.");
 
   // Track index.
-  colByName.emplace(name, size);
+  colByName.emplace(std::make_pair(name, size));
   cells[0].emplace_back(new StringCell(name));
 
   // Add sections for offense and defense. Hold onto the pointer so we can make the summary cell.
@@ -217,7 +217,7 @@ void FinalSummaryTable::addSummary(const std::string &name, const tester::Cell &
     assert(row.size() == size && "Summary table row length unequal.");
 
   // Track index.
-  colByName.emplace(name, size);
+  colByName.emplace(std::make_pair(name, size));
   cells[0].emplace_back(new StringCell(name));
 
   // Add style and abide sections. Hold onto the pointer so we can make the summary cell.
