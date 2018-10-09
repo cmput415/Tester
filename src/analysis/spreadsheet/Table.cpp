@@ -126,6 +126,11 @@ SummaryTable::SummaryTable(std::vector<std::pair<std::string, std::string>> cate
   cells.emplace_back(std::move(summary));
 }
 
+CellRange SummaryTable::getSummaryRange() {
+  const CellVec &lastRow = cells[cells.size() - 1];
+  return {*lastRow[1], *lastRow[lastRow.size() - 1]};
+}
+
 void TestCountTable::addTestCount(const std::string &name, size_t count) {
   addCell(name, CellPtr(new IntCell<size_t>(count)));
 }
@@ -179,7 +184,7 @@ void PointSummaryTable::addSummary(const std::string &name, const tester::Cell &
 
   // Add sections for offense and defense. Hold onto the pointer so we can make the summary cell.
   Cell *offenseCell = new RefCell(offense);
-  Cell *defenseCell = new MultCell(defense, 2);
+  Cell *defenseCell = new MultCell<int>(defense, 2);
   cells[rowByName.at("offense")].emplace_back(offenseCell);
   cells[rowByName.at("defense")].emplace_back(defenseCell);
 

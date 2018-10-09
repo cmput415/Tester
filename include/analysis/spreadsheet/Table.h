@@ -88,12 +88,16 @@ protected:
 
 // Manages a summary table.
 class SummaryTable : public Table {
+public:
   // No default constructor.
   SummaryTable() = delete;
 
-  // Construct with a vector of strings for categories.
+  // Get summary range.
+  CellRange getSummaryRange();
+
 protected:
-  SummaryTable(std::vector<std::pair<std::string, std::string>> categories);
+  // Construct with a vector of strings for categories.
+  explicit SummaryTable(std::vector<std::pair<std::string, std::string>> categories);
 
 protected:
   std::unordered_map<std::string, size_t> rowByName;
@@ -130,7 +134,7 @@ public:
 // A dummy table for the marker to fill with test coverage.
 class TestCoverageTable : public MapTable {
 public:
-  void addName(std::string name) { addCell(name, CellPtr(new IntCell<size_t>(0))); }
+  void addName(const std::string &name) { addCell(name, CellPtr(new IntCell<size_t>(0))); }
   const Cell &getCoverage(const std::string &name) { return getCellByName(name); }
 };
 
