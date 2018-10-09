@@ -255,9 +255,32 @@ private:
   std::vector<RangeCondition> conds;
 };
 
+// A specialised cell for calculating tournament results.
+class TournamentResultsCell : public Cell {
+public:
+  // No default constructor.
+  TournamentResultsCell() = delete;
+
+  // Construct with range of tournament results, a specific tournament result, and a scaling factor
+  // (how much it's worth).
+  TournamentResultsCell(CellRange results, const Cell &cell, float scale)
+      : results(results), cell(cell), scale(scale) { }
+
+  // Dump the cell contents to a stream.
+  void dump(std::ostream &os) override;
+
+private:
+  // The tournament results.
+  CellRange results;
+
+  // The specific results.
+  const Cell &cell;
+
+  // The scaling factor.
+  float scale;
+};
+
 } // End namespace tester
-
-
 
 // Template implementation needs to be in header file.
 // Specialise on char.

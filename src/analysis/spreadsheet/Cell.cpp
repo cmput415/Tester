@@ -92,4 +92,13 @@ void CountIfsCell::dump(std::ostream &os) {
   os << ')';
 }
 
+void TournamentResultsCell::dump(std::ostream &os) {
+  // We want to print (cell / max(results)) * scale.
+  os << '(' << posToCellName(cell.getCol(), cell.getRow()) << " / "
+     << "MAX("
+     << posToCellName(results.min.getCol(), results.min.getRow()) << ':'
+     << posToCellName(results.max.getCol(), results.max.getRow())
+     << ")) * " << scale;
+}
+
 } // End namespace tester
