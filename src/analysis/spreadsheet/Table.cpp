@@ -126,6 +126,10 @@ SummaryTable::SummaryTable(std::vector<std::pair<std::string, std::string>> cate
   cells.emplace_back(std::move(summary));
 }
 
+const Cell& SummaryTable::getSummary(const std::string &name)  {
+  return *cells[cells.size() - 1][colByName.at(name)];
+}
+
 CellRange SummaryTable::getSummaryRange() {
   const CellVec &lastRow = cells[cells.size() - 1];
   return {*lastRow[1], *lastRow[lastRow.size() - 1]};

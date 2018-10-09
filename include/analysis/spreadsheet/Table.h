@@ -92,6 +92,9 @@ public:
   // No default constructor.
   SummaryTable() = delete;
 
+  // Get specific summary.
+  const Cell &getSummary(const std::string &name);
+
   // Get summary range.
   CellRange getSummaryRange();
 
