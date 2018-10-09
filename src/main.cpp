@@ -1,4 +1,5 @@
 #include "config/Config.h"
+#include "analysis/Grader.h"
 #include "testharness/TestHarness.h"
 
 #include <iostream>
@@ -7,6 +8,15 @@
 
 int main(int argc, char **argv) {
   tester::Config cfg(argc, argv);
+
+  // Grading means we don't run the tests like normal. Break early.
+  if (cfg.hasGradePath()) {
+    tester::Grader grader(cfg);
+    std::ofstream svFile(cfg.getGradePath());
+    grader.dump(svFile);
+    return 0;
+  }
+
   try {
     // Build our tester.
     tester::TestHarness t(cfg);
