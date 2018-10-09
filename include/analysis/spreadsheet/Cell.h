@@ -110,7 +110,7 @@ public:
   IntCell() = delete;
 
   // Construct with internal value.
-  IntCell(T value) : Cell(), value(value) {
+  explicit IntCell(T value) : Cell(), value(value) {
     static_assert(std::is_integral<T>::value && "IntCell type is not integral.");
   }
 
@@ -129,7 +129,7 @@ public:
   SumCell() = delete;
 
   // Construct with internal value.
-  SumCell(std::vector<CellRef> cells) : Cell(), cells(std::move(cells)) { }
+  explicit SumCell(std::vector<CellRef> cells) : Cell(), cells(std::move(cells)) { }
 
   // Dump the cell contents to a stream.
   void dump(std::ostream &os) override;
