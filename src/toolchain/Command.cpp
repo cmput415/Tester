@@ -20,8 +20,9 @@ namespace {
 // This get a bit complicated. We want easy command running which is available in a cross platform
 // manner via std::system but there's no way for us to kill a long running subprocess (i.e. there's
 // and infinite loop in a test). This means we need to fall back on forking/execing, unfortunately.
-void runCommand(std::promise<unsigned int> &promise, const std::string &exe,
-                const std::vector<std::string> &trueArgs, const std::string &output) {
+void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
+                const std::string &exe, const std::vector<std::string> &trueArgs,
+                const std::string &output) {
   // Build a list of true arguments.
   const char *args[trueArgs.size() + 2];
 
@@ -69,7 +70,7 @@ void runCommand(std::promise<unsigned int> &promise, const std::string &exe,
   closing = waitpid(childId, &status, WNOHANG);
 
   // Our busy loop, continually asking about the status of the child.
-  while (closing == 0) {
+  while (closing == 0 && !killVar.load()) {
     // Sleep for a bit then ask again.
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     closing = waitpid(childId, &status, WNOHANG);
@@ -79,6 +80,12 @@ void runCommand(std::promise<unsigned int> &promise, const std::string &exe,
   if (closing < 0) {
     std::cout << childId << '\n';
     throw std::runtime_error("Problem monitoring subthread.");
+  }
+
+  // We timed out, need to kill the subprocess.
+  if (killVar.load()) {
+    kill(childId, SIGKILL);
+    closing = waitpid(childId, &status, 0);
   }
 
   // Set our return value and let the thread end.
@@ -150,18 +157,34 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   std::promise<unsigned int> promise;
   std::future<unsigned int> future = promise.get_future();
 
+  // Create the kill condition.
+  std::atomic_bool kill(false);
+
   // Run the command in another thread.
   std::thread thread = std::thread(
-     runCommand, std::ref(promise), std::ref(exe), std::ref(trueArgs), std::ref(stdOutFile)
+     runCommand,
+     std::ref(promise), std::ref(kill), std::ref(exe), std::ref(trueArgs),std::ref(stdOutFile)
   );
-
-  // Before detaching, get a reference to the native handle so we can kill this aggressively if
-  // necessary.
-  std::thread::native_handle_type handle = thread.native_handle();
 
   // Detach the thread to allow it to run in the background.
   thread.detach();
 
+  // Wait to time out on the future. If we do, ask the thread to die.
+  if (future.wait_for(std::chrono::seconds(timeout)) == std::future_status::timeout) {
+    // Notify the thread we want it to die.
+    kill.store(true);
+
+    // Wait another timeout length on it to set the future. If it does then that means the thread
+    // isn't dying probably because the subprocess isn't dying for some reason despite SIGKILL.
+    // This return should be nearly instantaneous.
+    if (future.wait_for(std::chrono::seconds(timeout)) != std::future_status::ready)
+      throw std::runtime_error("Couldn't kill subprocess.");
+
+    // We know we timed out, time to notify the higher-ups.
+    throw TimeoutException("Subcommand timed out:\n  " + buildCommand(ei, eo));
+  }
+
+  // Finally get the result of the thread.
   int rv = future.get();
 
 // If we're on a POSIX system then we need to decompose the return value appropriately.
