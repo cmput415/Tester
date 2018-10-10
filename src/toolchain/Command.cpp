@@ -8,7 +8,12 @@
 #include <fcntl.h>
 #include <iostream>
 #include <unistd.h>
+
+#if __linux__
 #include <wait.h>
+#elif __APPLE__
+#include <sys/wait.h>
+#endif
 
 namespace {
 
