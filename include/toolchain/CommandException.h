@@ -11,6 +11,16 @@ public:
   explicit CommandException(std::string s) : std::runtime_error(s) { }
 };
 
+class FailException : public CommandException {
+public:
+  explicit FailException(std::string s) : CommandException(s) { }
+};
+
+class TimeoutException : public CommandException {
+public:
+  explicit TimeoutException(std::string s) : CommandException(s) { }
+};
+
 } // End namespace tester
 
 #endif //TESTER_COMMAND EXCEPTION_H
