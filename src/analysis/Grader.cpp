@@ -64,7 +64,7 @@ void Grader::buildResults() {
         size_t passCount = 0;
         for (const auto &subpackages : tests[attacker]) {
           for (const auto &test : subpackages.second) {
-            if (runTest(test, tc).pass)
+            if (runTest(test, tc, true).pass)
               ++passCount;
 
             // Status showing. Flushing every iteration isn't "ideal" but 1) I like seeing progress

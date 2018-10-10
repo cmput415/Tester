@@ -22,7 +22,7 @@ typedef std::map<std::string, TestSet> PackageSet;
 void findTests(fs::path in, fs::path out, tester::PackageSet &tests);
 
 // Run a test.
-TestResult runTest(const PathPair &tp, const ToolChain &toolChain);
+TestResult runTest(const PathPair &tp, const ToolChain &toolChain, bool quiet);
 
 } // End namespace tester
 

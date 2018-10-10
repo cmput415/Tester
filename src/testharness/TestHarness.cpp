@@ -139,7 +139,7 @@ void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
       // Iterate over the tests.
       for (const PathPair &tp : testSet.second) {
         // Run the test and save the result.
-        TestResult result = runTest(tp, toolChain);
+        TestResult result = runTest(tp, toolChain, cfg.isQuiet());
         results.addResult(exeName, tcName, testPackage.first, result);
 
         // Log the pass/fail.
