@@ -12,7 +12,7 @@
 #if __linux__
 #include <wait.h>
 #elif __APPLE__
-#incude <signal.h>
+#include <signal.h>
 #include <sys/wait.h>
 #endif
 
