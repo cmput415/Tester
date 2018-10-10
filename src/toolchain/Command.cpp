@@ -6,7 +6,6 @@
 
 #include <chrono>
 #include <fcntl.h>
-#include <iostream>
 #include <unistd.h>
 
 #if __linux__
@@ -59,7 +58,7 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
     execv(exe.c_str(), const_cast<char * const *>(args));
 
     // Because execv replaces the current process, we only ever get here if it fails.
-    perror("waitpid");
+    perror("execv");
     throw std::runtime_error("Child process didn't start.");
   }
 
@@ -79,7 +78,6 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
 
   // We had an error instead of actually exiting succesfully.
   if (closing < 0) {
-    std::cout << childId << '\n';
     throw std::runtime_error("Problem monitoring subthread.");
   }
 

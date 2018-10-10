@@ -99,9 +99,6 @@ Config::Config(int argc, char **argv) : timeout(2l) {
     throw std::runtime_error("Input file directory did not exist: " + inDirStr);
   if (!fs::exists(outDirPath) || !fs::is_directory(outDirPath))
     throw std::runtime_error("Output file directory did not exist: " + outDirStr);
-
-  std::cout << "PATHS: " << inDirPath << " " << outDirPath << '\n';
-//  std::cout << "TESTE:"
 }
 
 }
