@@ -31,7 +31,7 @@ TestResult runTest(const PathPair &tp, const ToolChain &toolChain, bool quiet) {
     output = eo.getOutputFile();
   }
   catch (const CommandException &ce) {
-    if (quiet)
+    if (!quiet)
       std::cout << "Command error: " << ce.what() << '\n';
     return TestResult(tp.in, false, true, "");
   }
