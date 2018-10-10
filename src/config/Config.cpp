@@ -14,24 +14,32 @@ using JSON = nlohmann::json;
 
 namespace tester {
 
-Config::Config(int argc, char **argv) {
+Config::Config(int argc, char **argv) : timeout(2l) {
   CLI::App app{"CMPUT 415 testing utility"};
 
+  // ---- These flags are necessary always.
   // Add the internal config file path option.
   std::string configFilePath;
   app.add_option("configFile", configFilePath, "Path to the tester JSON configuration file.")
       ->required()->check(CLI::ExistingFile);
 
-  // Add quiet flag to not print out diffs.
-  CLI::Option *quietFlag = app.add_flag("-q,--quiet", quiet, "Quiet mode, don't print fail diffs");
-
+  // ---- These flags are for regular testing.
   // Set file to dump summary to instead of stdout.
   CLI::Option *summaryOpt = app.add_option("--summary", summaryFilePath,
       "Write the test summary to this file instead of stdout");
 
+  // Add quiet flag to not print out diffs.
+  CLI::Option *quietFlag = app.add_flag("-q,--quiet", quiet, "Quiet mode, don't print fail diffs");
+
+  // ---- These flags are for grading.
   // Set file to put grading output into.
   CLI::Option *gradeOpt = app.add_option("--grade", gradeFilePath,
       "Perform grading analysis and output to this file");
+
+  // ---- These flags are optional always.
+  // Add a timeout flag that defaults to 2 seconds (see initialiser list).
+  CLI::Option *timeoutOpt = app.add_option("--timeout", timeout,
+      "Specify timeout length for EACH command in a toolchain.");
 
   // If we're doing grading then it doesn't make sense to specify quiet or summary.
   gradeOpt->excludes(quietFlag)->excludes(summaryOpt);
@@ -74,7 +82,7 @@ Config::Config(int argc, char **argv) {
     throw std::runtime_error("Toolchains is not an object.");
 
   for (auto it = tcJson.begin(); it != tcJson.end(); ++it) {
-    toolchains.emplace(it.key(), it.value());
+    toolchains.emplace(it.key(), ToolChain(it.value(), timeout));
   }
 
   // Make sure an in and out dir were provided.

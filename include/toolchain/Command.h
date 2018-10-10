@@ -4,11 +4,13 @@
 #include "json.hpp"
 
 #include "toolchain/ExecutionState.h"
+#include "ExecutionState.h"
 
+#include <experimental/filesystem>
+#include <future>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <experimental/filesystem>
 
 // Convenience.
 using JSON = nlohmann::json;
@@ -23,7 +25,7 @@ public:
   Command() = delete;
 
   // Construct a command from JSON set up.
-  explicit Command(const JSON &json);
+  Command(const JSON &json, int64_t timeout);
 
   // Copy constructor is default copy.
   Command(const Command &command) = default;
@@ -38,18 +40,20 @@ public:
   friend std::ostream &operator<<(std::ostream&, const Command&);
 
 private:
-  // Builds the actual CLI command represented by this object.
+  // Builds out best guess of the underlying command run by exec. Also adds a "redirect" as if
+  // we were executing in the shell. In truth we're doing manual stream redirection.
   std::string buildCommand(const ExecutionInput &input, const ExecutionOutput &output) const;
 
   // Resolves magic parameters to values.
-  fs::path resolveArg(const ExecutionInput &ei, const ExecutionOutput &eo, std::string arg)
-    const;
+  fs::path resolveArg(const ExecutionInput &ei, const ExecutionOutput &eo, std::string arg) const;
 
   // Resolves magic exe parameters to value.
-  fs::path resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo, std::string exe)
-    const;
+  fs::path resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo, std::string exe) const;
+
+//  void runCommand(std::promise<unsigned int> promise, const std::string &exe, const std::string &args) const;
 
 private:
+  // Command info.
   std::string name;
   fs::path exePath;
   std::vector<std::string> args;
@@ -57,6 +61,9 @@ private:
   // Output info.
   bool isStdOut;
   fs::path output;
+
+  // Set up info.
+  int64_t timeout;
 };
 
 } // End namespace tester

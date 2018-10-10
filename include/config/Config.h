@@ -42,6 +42,9 @@ public:
   // Config bool getters.
   bool isQuiet() const { return quiet; }
 
+  // Config int getters.
+  int64_t getTimeout() const { return timeout; }
+
   // Initialisation verification.
   bool isInitialised() const { return initialised; }
   int getErrorCode() const { return errorCode; }
@@ -60,11 +63,13 @@ private:
   // Option flags.
   bool quiet;
 
+  // The command timeout.
+  int64_t timeout;
+
   // Is the config initialised or not and an appropriate error code. This could be due to asking for
   // help or a missing config file.
   bool initialised;
   int errorCode;
-
 };
 
 } // End namespace tester

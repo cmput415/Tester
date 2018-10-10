@@ -7,14 +7,14 @@
 
 namespace tester {
 
-ToolChain::ToolChain(const JSON &json) {
+ToolChain::ToolChain(const JSON &json, int64_t timeout) {
   // Make sure we've got an array of commands.
   if (!json.is_array())
     throw std::runtime_error("Not a toolchain array.");
 
   // Build our commands from each step.
   for (const JSON &step : json)
-    commands.emplace_back(step);
+    commands.emplace_back(step, timeout);
 }
 
 ExecutionOutput ToolChain::build(fs::path inputPath) const {

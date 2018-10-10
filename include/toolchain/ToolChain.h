@@ -22,7 +22,7 @@ public:
   ToolChain() = delete;
 
   // Construct the ToolChain from a json file path.
-  explicit ToolChain(const JSON &json);
+  ToolChain(const JSON &json, int64_t timeout);
 
   // Copy constructor is default copy.
   ToolChain(const ToolChain &tc) = default;
@@ -31,7 +31,9 @@ public:
   ExecutionOutput build(fs::path inputPath) const;
 
   // Manipulate the executable to be tested.
-  void setTestedExecutable(fs::path testedExecutable_) { testedExecutable = testedExecutable_; }
+  void setTestedExecutable(fs::path testedExecutable_) {
+    testedExecutable = std::move(testedExecutable_);
+  }
   fs::path getTestedExecutable() const { return testedExecutable; }
 
   // Gets a brief description of the toolchain.

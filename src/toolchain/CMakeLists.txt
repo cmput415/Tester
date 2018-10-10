@@ -7,3 +7,4 @@ set(
 
 # Build the library from the source files.
 add_library(toolchain STATIC ${toolchain_src_files})
+target_link_libraries(toolchain config pthread)

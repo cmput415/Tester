@@ -4,11 +4,88 @@
 
 #include "toolchain/CommandException.h"
 
-#include <cstdlib>
+#include <chrono>
+#include <fcntl.h>
+#include <iostream>
+#include <unistd.h>
+#include <wait.h>
+
+namespace {
+
+// This get a bit complicated. We want easy command running which is available in a cross platform
+// manner via std::system but there's no way for us to kill a long running subprocess (i.e. there's
+// and infinite loop in a test). This means we need to fall back on forking/execing, unfortunately.
+void runCommand(std::promise<unsigned int> &promise, const std::string &exe,
+                const std::vector<std::string> &trueArgs, const std::string &output) {
+  // Build a list of true arguments.
+  const char *args[trueArgs.size() + 2];
+
+  // The base arg is the executable.
+  args[0] = exe.c_str();
+
+  // Now fill the actual args in.
+  for (size_t i = 0; i < trueArgs.size(); ++i)
+    args[i + 1] = trueArgs[i].c_str();
+
+  // Null terminate the args array.
+  args[trueArgs.size() + 1] = NULL;
+
+  // Do the actual fork.
+  pid_t childId = fork();
+
+  // We're the child process, we want to replace our process image with the shell running the
+  if (childId == 0) {
+    // If we're provided with a redirect file we need to replace STDOUT.
+    if (!output.empty()) {
+      // Open up the file we'd like to use. Write only, create if it doesn't exist, truncate if it
+      // does exist. User can read and write after.
+      int fd = open(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+
+      // Close the stream behind STDOUT and replace it with the file we opened.
+      dup2(fd, STDOUT_FILENO);
+
+      // Close the descriptor to that file.
+      close(fd);
+    }
+
+    // Replace ourself with the program
+    execv(exe.c_str(), const_cast<char * const *>(args));
+
+    // Because execv replaces the current process, we only ever get here if it fails.
+    perror("waitpid");
+    throw std::runtime_error("Child process didn't start.");
+  }
+
+  // We're in the parent process. Set up variables for watching the child process.
+  int status;
+  pid_t closing;
+
+  // Initial attempt to wait.
+  closing = waitpid(childId, &status, WNOHANG);
+
+  // Our busy loop, continually asking about the status of the child.
+  while (closing == 0) {
+    // Sleep for a bit then ask again.
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    closing = waitpid(childId, &status, WNOHANG);
+  }
+
+  // We had an error instead of actually exiting succesfully.
+  if (closing < 0) {
+    std::cout << childId << '\n';
+    throw std::runtime_error("Problem monitoring subthread.");
+  }
+
+  // Set our return value and let the thread end.
+  promise.set_value_at_thread_exit(static_cast<unsigned int>(status));
+}
+
+} // End anonymous namespace.
+
 
 namespace tester {
 
-Command::Command(const JSON &step) {
+Command::Command(const JSON &step, int64_t timeout) : timeout(timeout) {
   // Make sure the step has all of the values needed for construction.
   ensureContains(step, "stepName");
   ensureContains(step, "executablePath");
@@ -58,19 +135,69 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   ExecutionOutput eo(output);
 
   // Make the actual shell command, using our input and output contexts.
-  std::string command = buildCommand(ei, eo);
+  std::vector<std::string> trueArgs;
+  for (std::string arg : args)
+    trueArgs.emplace_back(resolveArg(ei, eo, arg).string());
+  std::string exe = resolveExe(ei, eo, exePath).string();
+  std::string stdOutFile = isStdOut ? eo.getOutputFile().string() : "";
 
-  // Run the command. If we fail, raise a custom exception.
-  int rv = std::system(command.c_str());
+  // Create the futures for the thread.
+  std::promise<unsigned int> promise;
+  std::future<unsigned int> future = promise.get_future();
 
-#if __linux__ || __unix__ || __unix
-  // If we're on a POSIX system then we need to decompose the return value.
-  rv = WEXITSTATUS(rv);
+  // Run the command in another thread.
+  std::thread thread = std::thread(
+     runCommand, std::ref(promise), std::ref(exe), std::ref(trueArgs), std::ref(stdOutFile)
+  );
+
+  // Before detaching, get a reference to the native handle so we can kill this aggressively if
+  // necessary.
+  std::thread::native_handle_type handle = thread.native_handle();
+
+  // Detach the thread to allow it to run in the background.
+  thread.detach();
+
+  int rv = future.get();
+
+// If we're on a POSIX system then we need to decompose the return value appropriately.
+#if __linux__ || __APPLE__
+  // If we exited "normally" we need to check the return code. If the return code is 0, all is well.
+  if (WIFEXITED(rv)) {
+    // Get the exit status
+    rv = WEXITSTATUS(rv);
+
+    // If we the return code is not 0, we failed in some manner. Raise a custom exception.
+    if (rv != 0)
+      throw FailException("Subcommand returned status code " + std::to_string(rv)
+                          + ":\n  " + buildCommand(ei, eo));
+  }
+
+  // If we exited due to a signal we can dump the signal and throw an exception.
+  else if (WIFSIGNALED(rv)) {
+    rv = WTERMSIG(rv);
+    throw FailException("Subcommand terminated by signal " + std::to_string(rv)
+                        + ":\n  " + buildCommand(ei, eo));
+  }
+
+  // We have some other status of the process. Throw a more generic error that will pass itself
+  // all the way out of the program. This needs to be handled.
+  else
+    throw std::runtime_error("Subcommand terminated in an unknown fashion:\n  " + buildCommand(ei, eo));
+
+// Best guess at decoding status code on Windows.
+#elif _WIN32 || _WIN64
+  LPDWORD status_code;
+  bool success = GetExitCodeThread(handle, &status_code);
+  if (!success)
+    throw std::runtime_eror("Failed to get Windows process exit code.");
+
+  if (status_code != 0)
+    throw FailException("Subcommand returned status code " + std::to_string(rv)
+                        + ":\n  " + command);
+#else
+  // We don't know how to get status on this platform... throw generic error.
+  throw std::runtime_error("We don't know how to get status on this platform.")
 #endif
-
-  if (rv != 0)
-    throw CommandException("Subcommand returned status code " + std::to_string(rv) +
-                           ":\n  " + command);
 
   // Tell the toolchain about our output.
   return eo;
@@ -86,18 +213,19 @@ std::string Command::buildCommand(const ExecutionInput &ei, const ExecutionOutpu
     command += resolveArg(ei, eo, arg).string();
   }
 
-  // If we were initially writing to stdout, then we add the redirect.
+  // If we were initially writing to stdout, then we add the redirect note.
   if (isStdOut) {
-#ifdef _WIN32
-    throw std::runtime_error("Don't know how to capture stdout on Windows yet");
-#endif
+#if __linux__ || __APPLE__
     command += " > \"" + eo.getOutputFile().string() + "\"";
+#else
+    command += " TO STDOUT";
+#endif
   }
 
   return command;
 }
 
-fs::path Command::resolveArg(const ExecutionInput &ei,const ExecutionOutput &eo,
+fs::path Command::resolveArg(const ExecutionInput &ei, const ExecutionOutput &eo,
     std::string arg) const {
   // Input magic argument. Resolves to the input file for this command.
   if (arg == "$INPUT")
@@ -115,7 +243,7 @@ fs::path Command::resolveArg(const ExecutionInput &ei,const ExecutionOutput &eo,
   return fs::path(arg);
 }
 
-fs::path Command::resolveExe(const ExecutionInput &ei,const ExecutionOutput &eo,
+fs::path Command::resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo,
                                 std::string exe) const {
   // Exe magic argument. Resolves to the current "tested executable" (probably your compiler).
   if (exe == "$EXE")
