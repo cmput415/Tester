@@ -71,7 +71,7 @@ Config::Config(int argc, char **argv) : timeout(2l) {
 
   for (auto it = tepJson.begin(); it != tepJson.end(); ++it) {
     std::string path = it.value();
-    executables.emplace(it.key(), path);
+    executables.emplace(std::make_pair(it.key(), path));
   }
 
   // Make sure toolchains are provided then build the set of toolchains.
@@ -81,7 +81,7 @@ Config::Config(int argc, char **argv) : timeout(2l) {
     throw std::runtime_error("Toolchains is not an object.");
 
   for (auto it = tcJson.begin(); it != tcJson.end(); ++it) {
-    toolchains.emplace(it.key(), ToolChain(it.value(), timeout));
+    toolchains.emplace(std::make_pair(it.key(), ToolChain(it.value(), timeout)));
   }
 
   // Make sure an in and out dir were provided.
