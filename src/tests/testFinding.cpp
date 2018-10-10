@@ -113,10 +113,14 @@ void findTests(fs::path in, fs::path out, tester::PackageSet &tests) {
   for (tester::PathPair pair : dirsHere) {
     // The package name and its TestSet.
     std::string packName = pair.in.stem().string();
-    tester::TestSet &packTests = tests[packName];
+    tester::TestSet packTests;
 
     // Find the tests.
     recurseFindTests(pair.in, pair.out, "", packTests);
+
+    // If we actually found any tests, add it to the list.
+    if (packTests.size() > 0)
+      tests.emplace(std::make_pair(packName, std::move(packTests)));
   }
 }
 
