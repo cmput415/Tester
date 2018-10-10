@@ -38,8 +38,7 @@ Config::Config(int argc, char **argv) : timeout(2l) {
 
   // ---- These flags are optional always.
   // Add a timeout flag that defaults to 2 seconds (see initialiser list).
-  CLI::Option *timeoutOpt = app.add_option("--timeout", timeout,
-      "Specify timeout length for EACH command in a toolchain.");
+  app.add_option("--timeout", timeout, "Specify timeout length for EACH command in a toolchain.");
 
   // If we're doing grading then it doesn't make sense to specify quiet or summary.
   gradeOpt->excludes(quietFlag)->excludes(summaryOpt);
