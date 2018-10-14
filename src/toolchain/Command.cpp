@@ -17,6 +17,7 @@
 
 namespace {
 
+#if __linux__ || __APPLE__
 // This get a bit complicated. We want easy command running which is available in a cross platform
 // manner via std::system but there's no way for us to kill a long running subprocess (i.e. there's
 // and infinite loop in a test). This means we need to fall back on forking/execing, unfortunately.
@@ -91,6 +92,14 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
   promise.set_value_at_thread_exit(static_cast<unsigned int>(status));
 }
 
+#elif _WIN32 || _WIN64
+void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
+                const std::string &exe, const std::vector<std::string> &trueArgs,
+                const std::string &runtime, const std::string &output) {
+  throw std::runtime_error("Don't know how to run commands on Windows.");
+}
+#endif
+
 } // End anonymous namespace.
 
 
@@ -113,7 +122,7 @@ Command::Command(const JSON &step, int64_t timeout) : timeout(timeout) {
 
   // "-" represents stdout.
   if (outName == "-") {
-#ifdef _WIN32
+#if _WIN32 || _WIN64
     throw std::runtime_error("Don't know how to capture stdout on Windows yet.");
 #endif
     isStdOut = true;
