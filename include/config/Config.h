@@ -12,7 +12,7 @@ namespace fs = std::experimental::filesystem;
 
 namespace tester {
 
-typedef std::map<std::string, fs::path> Executables;
+typedef std::map<std::string, fs::path> PathMap;
 typedef std::map<std::string, ToolChain> ToolChains;
 
 class Config {
@@ -31,10 +31,14 @@ public:
   const fs::path &getInDirPath() const {return inDirPath; }
   const fs::path &getOutDirPath() const {return outDirPath; }
 
-  // Config map getters and convenience indiviual getters.
-  const Executables getExecutables() const { return executables; }
+  // Config map getters and convenience individual getters.
+  const PathMap getExecutables() const { return executables; }
   const fs::path &getExecutablePath(const std::string &name) const { return executables.at(name); }
   bool hasExecutable(const std::string &name) const { return executables.count(name) != 0; }
+
+  const PathMap getRuntimes() const { return runtimes; }
+  const fs::path &getRuntimePath(const std::string &name) const { return runtimes.at(name); }
+  bool hasRuntime(const std::string &name) const { return runtimes.count(name) != 0; }
 
   const ToolChains &getToolChains() const { return toolchains; }
   const ToolChain &getToolChain(const std::string &name) const { return toolchains.at(name); }
@@ -57,7 +61,8 @@ private:
   fs::path outDirPath;
 
   // Option file maps.
-  Executables executables;
+  PathMap executables;
+  PathMap runtimes;
   ToolChains toolchains;
 
   // Option flags.

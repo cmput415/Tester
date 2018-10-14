@@ -17,6 +17,10 @@ inline void ensureContains(const JSON &json, std::string name) {
     throw std::runtime_error(name + " missing from JSON.");
 }
 
+inline bool doesContain(const JSON &json, std::string name) {
+  return json.count(name) == 0;
+}
+
 }
 
 #endif //TESTER_UTIL_H

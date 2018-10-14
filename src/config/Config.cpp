@@ -99,6 +99,19 @@ Config::Config(int argc, char **argv) : timeout(2l) {
     throw std::runtime_error("Input file directory did not exist: " + inDirStr);
   if (!fs::exists(outDirPath) || !fs::is_directory(outDirPath))
     throw std::runtime_error("Output file directory did not exist: " + outDirStr);
+
+  // Add runtimes to the config.
+  if (doesContain(json, "runtimes")) {
+    const JSON &runtimesJson = json["runtimes"];
+    if (!runtimesJson.is_object())
+      throw std::runtime_error("Runtime paths was not an object.");
+
+    for (auto it = runtimesJson.begin(); it != runtimesJson.end(); ++it) {
+      std::string path = it.value();
+      runtimes.emplace(std::make_pair(it.key(), path));
+    }
+
+  }
 }
 
 }
