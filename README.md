@@ -90,13 +90,16 @@ data tests:
                     +-- expressions.out
 ```
 #### Preparing a Configuration File
-The configuration file is a JSON file with a specfic format.
+The configuration file is a JSON file with a specific format.
 ```json
 {
   "inDir": "<path_to_input>",
   "outDir": "<path_to_output>",
   "testedExecutablePaths": {
     "ccid_or_groupid": "<path_to_executable>"
+  },
+  "runtimes": {
+    "ccid_or_groupid": "<path_to_SHARED_library>"
   },
   "toolchains": {
     "toolchain_name": [
@@ -107,7 +110,8 @@ The configuration file is a JSON file with a specfic format.
           "arg1",
           "arg2"
         ],
-        "outputName": "<file_name_for_intermediate_output>"
+        "outputName": "<file_name_for_intermediate_output>",
+        "usesRuntime": true
       }
     ]
   }
@@ -125,6 +129,9 @@ solution there should only be one entry in this list: your own solution. Make
 sure `ccid_or_groupid` matches your test package name: this is used to match
 your solution with your tests. You need to be able to pass all of your own
 tests!
+
+The `runtimes` property is a named list of _shared_ libraries that can be loaded before a command is
+executed. This is useful to load a runtime library into lli. This property is _not required_.
 
 The `toolchains` property is a named list of toolchains. A toolchain defines how
 to take an input file and turn it into the expected output file, assuming the
@@ -149,6 +156,9 @@ to fuel the current step.
     are unable to name output from a step. If `"outputName": "-"` is used then
     stdout will be captured as output and saved into a temporary file to be
     passed to the next step.
+  * `usesRuntime` is a boolean that, if `true`, tells the tester to preload the
+    runtime library associated with the current executable name. If this
+    option is missing or `false` then the runtime will not be loaded.
 
 For the first step, `$INPUT` will be resolved to the `.in` file. For the final
 step `$OUTPUT` will be compared against the expected output to determine
