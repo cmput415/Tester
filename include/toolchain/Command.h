@@ -56,11 +56,15 @@ private:
   // Command info.
   std::string name;
   fs::path exePath;
+  fs::path runtimePath;
   std::vector<std::string> args;
 
   // Output info.
   bool isStdOut;
   fs::path output;
+
+  // Uses runtime.
+  bool usesRuntime;
 
   // Set up info.
   int64_t timeout;

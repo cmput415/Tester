@@ -14,8 +14,9 @@ public:
   ExecutionInput() = delete;
 
   // Creates input to a subprocess execution.
-  ExecutionInput(const fs::path &inputPath, const fs::path &testedExecutable)
-    : inputPath(inputPath), testedExecutable(testedExecutable) { }
+  ExecutionInput(fs::path inputPath, fs::path testedExecutable, fs::path testedRuntime)
+    : inputPath(std::move(inputPath)), testedExecutable(std::move(testedExecutable)),
+      testedRuntime(std::move(testedRuntime)) { }
 
   // Gets input file.
   fs::path getInputFile() const { return inputPath; }
@@ -23,9 +24,13 @@ public:
   // Gets tested executable.
   fs::path getTestedExecutable() const { return testedExecutable; }
 
+  // Gets tested runtime.
+  fs::path getTestedRuntime() const { return testedRuntime; }
+
 private:
   fs::path inputPath;
   fs::path testedExecutable;
+  fs::path testedRuntime;
 };
 
 // A class meant to share intermediate info when end a toolchain step.
@@ -35,7 +40,7 @@ public:
   ExecutionOutput()  = delete;
 
   // Creates output to a subprocess execution.
-  ExecutionOutput(fs::path outputPath) : outputPath(outputPath) { }
+  explicit ExecutionOutput(fs::path outputPath) : outputPath(std::move(outputPath)) { }
 
   // Gets output file.
   fs::path getOutputFile() const { return outputPath; }

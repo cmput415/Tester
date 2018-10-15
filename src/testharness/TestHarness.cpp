@@ -113,6 +113,12 @@ void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
   std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
   toolChain.setTestedExecutable(exe);
 
+  // If we have a runtime, set that as well.
+  if (cfg.hasRuntime(exeName))
+    toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
+  else
+    toolChain.setTestedRuntime("");
+
   // Say which toolchain.
   std::cout << "With toolchain: " << tcName << " -> " <<  toolChain.getBriefDescription() << '\n';
 

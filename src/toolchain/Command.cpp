@@ -15,15 +15,15 @@
 #include <sys/wait.h>
 #endif
 
+#include <iostream> // DEBUG
+
 namespace {
 
 #if __linux__ || __APPLE__
-// This get a bit complicated. We want easy command running which is available in a cross platform
-// manner via std::system but there's no way for us to kill a long running subprocess (i.e. there's
-// and infinite loop in a test). This means we need to fall back on forking/execing, unfortunately.
-void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
-                const std::string &exe, const std::vector<std::string> &trueArgs,
-                const std::string &output) {
+
+
+void becomeCommand(const std::string &exe, const std::vector<std::string> &trueArgs,
+                   const std::string &runtime, const std::string &output) {
   // Build a list of true arguments.
   const char *args[trueArgs.size() + 2];
 
@@ -37,31 +37,48 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
   // Null terminate the args array.
   args[trueArgs.size() + 1] = NULL;
 
+  // Build the environment (LD_PRELOAD). Only add the preload arg if the runtime isn't empty.
+  std::string preload = "LD_PRELOAD=" + runtime;
+  const char *env[2] = {!runtime.empty() ? preload.c_str() : NULL, NULL};
+
+  // If we're provided with a redirect file we need to replace STDOUT.
+  if (!output.empty()) {
+    // Open up the file we'd like to use. Write only, create if it doesn't exist, truncate if it
+    // does exist. User can read and write after.
+    int fd = open(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+
+    // Close the stream behind STDOUT and replace it with the file we opened.
+    dup2(fd, STDOUT_FILENO);
+
+    // Close the descriptor to that file.
+    close(fd);
+  }
+
+  // Replace ourself with the command.
+  execve(exe.c_str(), const_cast<char * const *>(args), const_cast<char * const *>(env));
+
+  // Because execve replaces the current process, we only ever get here if it fails.
+  perror("execve");
+  throw std::runtime_error("Child process didn't start.");
+}
+
+
+// This can get a bit complicated. We want easy command running which is available in a cross
+// platform manner via std::system but there's no way for us to kill a long running subprocess (i.e.
+// there's an infinite loop in a test). This means we need to fall back on forking/execing,
+// unfortunately.
+void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
+                const std::string &exe, const std::vector<std::string> &trueArgs,
+                const std::string &runtime, const std::string &output) {
+
   // Do the actual fork.
   pid_t childId = fork();
 
   // We're the child process, we want to replace our process image with the shell running the
-  if (childId == 0) {
-    // If we're provided with a redirect file we need to replace STDOUT.
-    if (!output.empty()) {
-      // Open up the file we'd like to use. Write only, create if it doesn't exist, truncate if it
-      // does exist. User can read and write after.
-      int fd = open(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-
-      // Close the stream behind STDOUT and replace it with the file we opened.
-      dup2(fd, STDOUT_FILENO);
-
-      // Close the descriptor to that file.
-      close(fd);
-    }
-
-    // Replace ourself with the program
-    execv(exe.c_str(), const_cast<char * const *>(args));
-
-    // Because execv replaces the current process, we only ever get here if it fails.
-    perror("execv");
-    throw std::runtime_error("Child process didn't start.");
-  }
+  // command. This function will never return if successful and will throw a runtime_error if it is
+  // unsuccessful.
+  if (childId == 0)
+    becomeCommand(exe, trueArgs, runtime, output);
 
   // We're in the parent process. Set up variables for watching the child process.
   int status;
@@ -148,30 +165,39 @@ Command::Command(const JSON &step, int64_t timeout) : timeout(timeout) {
   // into an fs::path.
   std::string path = step["executablePath"];
   exePath = fs::path(path);
+
+  // Do we use a runtime?
+  if (doesContain(step, "usesRuntime"))
+    usesRuntime = step["usesRuntime"];
 }
 
 ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   // Create our output context.
   ExecutionOutput eo(output);
 
-  // Make the actual shell command, using our input and output contexts.
+  // Get the exe and its arguments, the things used in the actual execution of the command.
+  std::string exe = resolveExe(ei, eo, exePath).string();
   std::vector<std::string> trueArgs;
   for (std::string arg : args)
     trueArgs.emplace_back(resolveArg(ei, eo, arg).string());
-  std::string exe = resolveExe(ei, eo, exePath).string();
-  std::string stdOutFile = isStdOut ? eo.getOutputFile().string() : "";
 
-  // Create the futures for the thread.
+  // Get the runtime path and standard out file, the things used in setting up the execution of the
+  // command.
+  std::string stdOutFile = isStdOut ? eo.getOutputFile().string() : "";
+  std::string runtime = usesRuntime ? ei.getTestedRuntime().string() : "";
+
+  // Create the promise, which gives the future for the thread, and the kill variable, the things
+  // used in the monitor thread.
   std::promise<unsigned int> promise;
   std::future<unsigned int> future = promise.get_future();
-
-  // Create the kill condition.
   std::atomic_bool kill(false);
 
   // Run the command in another thread.
   std::thread thread = std::thread(
      runCommand,
-     std::ref(promise), std::ref(kill), std::ref(exe), std::ref(trueArgs),std::ref(stdOutFile)
+     std::ref(promise), std::ref(kill), // Parent variables.
+     std::ref(exe), std::ref(trueArgs), // Child execution variables.
+     std::ref(runtime), std::ref(stdOutFile) // Child setup variables.
   );
 
   // Detach the thread to allow it to run in the background.
@@ -286,7 +312,7 @@ fs::path Command::resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo
     return ei.getTestedExecutable();
 
   // Input magic argument. Resolves to the input file for this command. Use for when a step
-  // prodouces a runnable executable (your compiled executable).
+  // prodocues a runnable executable (your compiled executable).
   if (exe == "$INPUT")
     return ei.getInputFile();
 
@@ -300,7 +326,7 @@ fs::path Command::resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo
 
 // Implement the Command ostream operator
 std::ostream &operator<<(std::ostream &os, const Command &c) {
-  ExecutionInput ei("$INPUT", "$EXE");
+  ExecutionInput ei("$INPUT", "$EXE", "");
   ExecutionOutput eo(c.output);
   os << c.buildCommand(ei, eo);
   return os;

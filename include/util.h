@@ -18,7 +18,7 @@ inline void ensureContains(const JSON &json, std::string name) {
 }
 
 inline bool doesContain(const JSON &json, std::string name) {
-  return json.count(name) == 0;
+  return json.count(name) != 0;
 }
 
 }

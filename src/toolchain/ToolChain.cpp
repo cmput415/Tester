@@ -19,13 +19,13 @@ ToolChain::ToolChain(const JSON &json, int64_t timeout) {
 
 ExecutionOutput ToolChain::build(fs::path inputPath) const {
   // The current output and input contexts.
-  ExecutionInput ei(inputPath, testedExecutable);
+  ExecutionInput ei(inputPath, testedExecutable, testedRuntime);
   ExecutionOutput eo("");
 
   // Run the command, updating the contexts as we go.
   for (const Command &c : commands) {
     eo = c.execute(ei);
-    ei = ExecutionInput(eo.getOutputFile(), ei.getTestedExecutable());
+    ei = ExecutionInput(eo.getOutputFile(), ei.getTestedExecutable(), ei.getTestedRuntime());
   }
 
   // Return the output context of the final command.

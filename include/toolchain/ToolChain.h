@@ -34,7 +34,11 @@ public:
   void setTestedExecutable(fs::path testedExecutable_) {
     testedExecutable = std::move(testedExecutable_);
   }
-  fs::path getTestedExecutable() const { return testedExecutable; }
+
+  // Manipulate the tested runtime.
+  void setTestedRuntime(fs::path testedRuntime_) {
+    testedRuntime = std::move(testedRuntime_);
+  }
 
   // Gets a brief description of the toolchain.
   std::string getBriefDescription() const;
@@ -46,7 +50,11 @@ private:
   // The list of commands to execute this toolchain.
   std::vector<Command> commands;
 
+  // The tested executable.
   fs::path testedExecutable;
+
+  // The tested executable's runtime.
+  fs::path testedRuntime;
 };
 
 } // End namespace tester
