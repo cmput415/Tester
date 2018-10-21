@@ -23,7 +23,7 @@ void getFileLines(fs::path fp, std::vector<std::string> &lines) {
 
 namespace tester {
 
-TestResult runTest(const PathPair &tp, const ToolChain &toolChain, bool quiet) {
+TestResult runTest(const PathMatch &tp, const ToolChain &toolChain, bool quiet) {
   // Try to build the test. If there's a problem running a command, then we assume failure.
   fs::path output;
   try {

@@ -14,7 +14,7 @@ namespace tester {
 // Builds TestSet during object creation.
 TestHarness::TestHarness(const Config &cfg) : cfg(cfg), tests(), results() {
   // Build the test set.
-  findTests(cfg.getInDirPath(), cfg.getOutDirPath(), tests);
+  findTests(cfg.getInDirPath(), cfg.getOutDirPath(), "", tests); // TODO
 }
 
 void TestHarness::runTests() {
@@ -143,7 +143,7 @@ void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
       unsigned int subPackagePasses = 0;
 
       // Iterate over the tests.
-      for (const PathPair &tp : testSet.second) {
+      for (const PathMatch &tp : testSet.second) {
         // Run the test and save the result.
         TestResult result = runTest(tp, toolChain, cfg.isQuiet());
         results.addResult(exeName, tcName, testPackage.first, result);
