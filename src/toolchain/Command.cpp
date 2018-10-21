@@ -23,7 +23,8 @@ namespace {
 
 
 void becomeCommand(const std::string &exe, const std::vector<std::string> &trueArgs,
-                   const std::string &runtime, const std::string &output) {
+                   const std::string &runtime, const std::string &output,
+                   const std::string &input) {
   // Build a list of true arguments.
   const char *args[trueArgs.size() + 2];
 
@@ -47,8 +48,30 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
     // does exist. User can read and write after.
     int fd = open(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
+    if (fd == -1) {
+      perror("open");
+      throw std::runtime_error("Child process couldn't open stdout replacement.");
+    }
+
     // Close the stream behind STDOUT and replace it with the file we opened.
     dup2(fd, STDOUT_FILENO);
+
+    // Close the descriptor to that file.
+    close(fd);
+  }
+
+  // If we're provided with a input stream file we need to replace STDIN.
+  if (!input.empty()) {
+    // Open up the file we'd like to use.
+    int fd = open(input.c_str(), O_RDONLY, NULL);
+
+    if (fd == -1) {
+      perror("open");
+      throw std::runtime_error("Child process couldn't open stdin replacement.");
+    }
+
+    // Close the stream behind STDIN and replace it with the file we opened.
+    dup2(fd, STDIN_FILENO);
 
     // Close the descriptor to that file.
     close(fd);
@@ -69,7 +92,7 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
 // unfortunately.
 void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
                 const std::string &exe, const std::vector<std::string> &trueArgs,
-                const std::string &runtime, const std::string &output) {
+                const std::string &runtime, const std::string &output, const std::string &input) {
 
   // Do the actual fork.
   pid_t childId = fork();
@@ -78,7 +101,7 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
   // command. This function will never return if successful and will throw a runtime_error if it is
   // unsuccessful.
   if (childId == 0)
-    becomeCommand(exe, trueArgs, runtime, output);
+    becomeCommand(exe, trueArgs, runtime, output, input);
 
   // We're in the parent process. Set up variables for watching the child process.
   int status;
@@ -183,8 +206,9 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
   // Get the runtime path and standard out file, the things used in setting up the execution of the
   // command.
-  std::string stdOutFile = isStdOut ? eo.getOutputFile().string() : "";
   std::string runtime = usesRuntime ? ei.getTestedRuntime().string() : "";
+  std::string stdOutFile = isStdOut ? eo.getOutputFile().string() : "";
+  std::string stdInFile = ""; // TODO
 
   // Create the promise, which gives the future for the thread, and the kill variable, the things
   // used in the monitor thread.
@@ -197,7 +221,7 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
      runCommand,
      std::ref(promise), std::ref(kill), // Parent variables.
      std::ref(exe), std::ref(trueArgs), // Child execution variables.
-     std::ref(runtime), std::ref(stdOutFile) // Child setup variables.
+     std::ref(runtime), std::ref(stdOutFile), std::ref(stdInFile) // Child setup variables.
   );
 
   // Detach the thread to allow it to run in the background.
