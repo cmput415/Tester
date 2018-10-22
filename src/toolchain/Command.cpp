@@ -206,7 +206,7 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   // Get the exe and its arguments, the things used in the actual execution of the command.
   std::string exe = resolveExe(ei, eo, exePath).string();
   std::vector<std::string> trueArgs;
-  for (std::string arg : args)
+  for (const std::string &arg : args)
     trueArgs.emplace_back(resolveArg(ei, eo, arg).string());
 
   // Get the runtime path and standard out file, the things used in setting up the execution of the
