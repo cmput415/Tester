@@ -20,16 +20,16 @@ public:
       testedExecutable(std::move(testedExecutable)), testedRuntime(std::move(testedRuntime)) { }
 
   // Gets input file.
-  fs::path getInputFile() const { return inputPath; }
+  const fs::path &getInputFile() const { return inputPath; }
 
   // Gets the input stream file.
-  fs::path getInputStreamFile() const { return inputStreamPath; }
+  const fs::path &getInputStreamFile() const { return inputStreamPath; }
 
   // Gets tested executable.
-  fs::path getTestedExecutable() const { return testedExecutable; }
+  const fs::path &getTestedExecutable() const { return testedExecutable; }
 
   // Gets tested runtime.
-  fs::path getTestedRuntime() const { return testedRuntime; }
+  const fs::path &getTestedRuntime() const { return testedRuntime; }
 
 private:
   fs::path inputPath;
