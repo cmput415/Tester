@@ -4,6 +4,8 @@
 #include <experimental/filesystem>
 #include <cassert>
 
+#include <iostream>
+
 // Convenience.
 namespace fs = std::experimental::filesystem;
 
@@ -17,8 +19,8 @@ struct PathMatch {
   // Construct with in path, out path, and an instream path that may be empty.
   PathMatch(fs::path in, fs::path out, fs::path inStream)
       : in(std::move(in)), out(std::move(out)), inStream(std::move(inStream)) {
-    assert(!in.empty() && "Input file was empty.");
-    assert(!out.empty() && "Output file was empty.");
+    assert(!this->in.empty() && "Input file was empty.");
+    assert(!this->out.empty() && "Output file was empty.");
   }
 
   // The matched files..
