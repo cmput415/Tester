@@ -119,13 +119,21 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
 
   // We had an error instead of actually exiting succesfully.
   if (closing < 0) {
-    throw std::runtime_error("Problem monitoring subthread.");
+    perror("waitpid,WNOHANG");
+    throw std::runtime_error("Problem monitoring subprocess.");
   }
 
-  // We timed out, need to kill the subprocess.
+  // We didn't exit because of an error, did we time out? If we did, we need to kill the subprocess.
   if (killVar.load()) {
     kill(childId, SIGKILL);
     closing = waitpid(childId, &status, 0);
+
+    // We had an error instead of killing successfully. Very weird considering we send SIGKILL not
+    // SIGTERM.
+    if (closing < 0) {
+      perror("waitpid,0");
+      throw std::runtime_error("Problem killing subprocess.");
+    }
   }
 
   // Set our return value and let the thread end.
