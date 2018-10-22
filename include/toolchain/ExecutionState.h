@@ -42,7 +42,7 @@ private:
 class ExecutionOutput {
 public:
   // No default constructor.
-  ExecutionOutput()  = delete;
+  ExecutionOutput() = delete;
 
   // Creates output to a subprocess execution.
   explicit ExecutionOutput(fs::path outputPath) : outputPath(std::move(outputPath)) { }
