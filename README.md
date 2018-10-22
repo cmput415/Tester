@@ -39,34 +39,57 @@ greater detail shortly:
    input file.
 
 #### Preparing Tests
-A test consists of a pair of files: the first is the input and the other is the
-expected output. They should be named identically except that their extensions
-should be `.in` and `.out` (e.g. `example.in` and `example.out`). Because the
-tool is meant to test multiple student's solutions, a directory tree has been
-devised to keep these files separate.
+A test consists of at least two files: the first is the input and the other is
+the expected output. They should be named identically except that their
+extensions should be `.in` and `.out` (e.g. `example.in` and `example.out`).
+A third file can be included: an input stream with extension `.ins` (e.g.
+`example.ins`). This file becomes stdin to automate tests that make use of
+input. Because the tool is meant to test multiple student's solutions, a
+directory tree has been devised to keep these files separate.
 ```
 +-- tests
     +-- input
     |   +-- packagename
     |   |   +-- subpackagename1
+    |   |   |   +-- input1.in
+    |   |   |   +-- ...
     |   |   +-- subpackagename2
-    |   |   +-- ...
+    |   |   |   +-- ...
+    |   |   +-- inputx.in
     |   +-- ...
     +-- output
+    |   +-- packagename
+    |   |   +-- subpackagename1
+    |   |   |   +-- input1.out
+    |   |   |   +-- ...
+    |   |   +-- subpackagename2
+    |   |   |   +-- ...
+    |   |   +-- inputx.in
+    |   +-- ...
+    +-- inStream
         +-- packagename
         |   +-- subpackagename1
+        |   |   +-- input1.ins
+        |   |   +-- ...
         |   +-- subpackagename2
-        |   +-- ...
+        |   |   +-- ...
+        |   +-- inputx.ins
         +-- ...
 ```
-The `input` and `output` directories don't need to be together, but it is
-generally a good idea to have a folder containing these two folders. Inside
-`input` and `output` there will be only test package folders. Packages should be
-used for **student IDs or group IDs**. Inside the input folder you should place
-files with the extension `.in`; likewise, files with the extension `.out` go in
-the output directory. You can further choose to subdivide files into subpackages
-for your own organisation, but successes and failures, while shown for each
-subpackage, will be attributed to the overall package.
+The `input`, `output`, and `inStream` directories don't need to be together,
+but it is generally a good idea to have a folder containing these three
+folders. Inside `input`, `output`, and `inStream` there will be only test
+package folders. Packages should be used for **student IDs or group IDs**.
+Inside the input folder you should place files with the extension `.in`;
+likewise, files with the extension `.out` go in the output directory and files
+with the extension `.ins` go in the input stream directory. You can further
+choose to subdivide files into subpackages for your own organisation, but
+successes and failures, while shown for each subpackage, will be attributed
+to the overall package.
+
+Note that note every test requires an input stream. You only need to create
+a `.in` and `.out` file for this test and do not need to include an empty
+`.ins` file.
 
 For example, my CCID is `braedy`. This is a theoretical directory tree for my
 data tests:
@@ -81,20 +104,27 @@ data tests:
     |           +-- advanced
     |               +-- expressions.in
     +-- output
+    |   +-- braedy
+    |       +-- data
+    |           +-- basic
+    |           |   +-- declarations.out
+    |           |   +-- definitions.out
+    |           +-- advanced
+    |              +-- expressions.out
+    +-- inStream
         +-- braedy
             +-- data
-                +-- basic
-                |   +-- declarations.out
-                |   +-- definitions.out
                 +-- advanced
-                    +-- expressions.out
+                    +-- expressions.ins
 ```
+
 #### Preparing a Configuration File
 The configuration file is a JSON file with a specific format.
 ```json
 {
   "inDir": "<path_to_input>",
   "outDir": "<path_to_output>",
+  "inStrDir": "<path_to_input_streams>",
   "testedExecutablePaths": {
     "ccid_or_groupid": "<path_to_executable>"
   },
@@ -111,17 +141,19 @@ The configuration file is a JSON file with a specific format.
           "arg2"
         ],
         "outputName": "<file_name_for_intermediate_output>",
-        "usesRuntime": true
+        "usesRuntime": true,
+        "usesInStr": true
       }
     ]
   }
 }
 ```
-The above format can look a bit intimidating, but once broken down it makes much
-more sense.
+The above format can look a bit intimidating, but once broken down it makes
+much more sense.
 
-The two top level properties `inDir` and `outDir` point to the input and output
-directories containing your test files.
+The three top level properties `inDir`, `outDir`, and `inStrDir` point to the
+input, output, and input stream directories containing your test files. If none
+of your tests use stdin then `inStrDir` is not required.
 
 The `testedExecutablePaths` property is a named list of executable paths that
 should be tested using the toolchains and tests. If you're testing your own
@@ -130,8 +162,9 @@ sure `ccid_or_groupid` matches your test package name: this is used to match
 your solution with your tests. You need to be able to pass all of your own
 tests!
 
-The `runtimes` property is a named list of _shared_ libraries that can be loaded before a command is
-executed. This is useful to load a runtime library into lli. This property is _not required_.
+The `runtimes` property is a named list of _shared_ libraries that can be
+loaded before a command is executed. This is useful to load a runtime library
+into lli. This property is _not required_.
 
 The `toolchains` property is a named list of toolchains. A toolchain defines how
 to take an input file and turn it into the expected output file, assuming the
@@ -159,6 +192,10 @@ to fuel the current step.
   * `usesRuntime` is a boolean that, if `true`, tells the tester to preload the
     runtime library associated with the current executable name. If this
     option is missing or `false` then the runtime will not be loaded.
+  * `usesInStr` is a boolean that, if `true`, tells the tester to replace stdin
+    with the file stream associated with the matching file in the directory
+    at `inStrDir`. If the option is missing or false then stdin will not be
+    replaced in this step.
 
 For the first step, `$INPUT` will be resolved to the `.in` file. For the final
 step `$OUTPUT` will be compared against the expected output to determine
