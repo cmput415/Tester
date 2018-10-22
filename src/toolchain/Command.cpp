@@ -307,7 +307,7 @@ std::string Command::buildCommand(const ExecutionInput &ei, const ExecutionOutpu
   std::string command = resolveExe(ei, eo, exePath).string();
 
   // Then add new arguments, using the resolver to see if they're "magic" arguments.
-  for (std::string arg : args) {
+  for (const std::string &arg : args) {
     command += ' ';
     command += resolveArg(ei, eo, arg).string();
   }
