@@ -17,15 +17,20 @@ ToolChain::ToolChain(const JSON &json, int64_t timeout) {
     commands.emplace_back(step, timeout);
 }
 
-ExecutionOutput ToolChain::build(fs::path inputPath) const {
+ExecutionOutput ToolChain::build(const fs::path &inputPath, const fs::path &inputStrPath) const {
   // The current output and input contexts.
-  ExecutionInput ei(inputPath, testedExecutable, testedRuntime);
+  ExecutionInput ei(inputPath, inputStrPath, testedExecutable, testedRuntime);
   ExecutionOutput eo("");
 
   // Run the command, updating the contexts as we go.
   for (const Command &c : commands) {
     eo = c.execute(ei);
-    ei = ExecutionInput(eo.getOutputFile(), ei.getTestedExecutable(), ei.getTestedRuntime());
+    ei = ExecutionInput(
+        eo.getOutputFile(),
+        ei.getInputStreamFile(),
+        ei.getTestedExecutable(),
+        ei.getTestedRuntime()
+    );
   }
 
   // Return the output context of the final command.

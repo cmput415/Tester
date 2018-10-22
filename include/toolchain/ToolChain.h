@@ -28,7 +28,7 @@ public:
   ToolChain(const ToolChain &tc) = default;
 
   // Runs the toolchain on a specified inputfile.
-  ExecutionOutput build(fs::path inputPath) const;
+  ExecutionOutput build(const fs::path &inputPath, const fs::path &inputStrPath) const;
 
   // Manipulate the executable to be tested.
   void setTestedExecutable(fs::path testedExecutable_) {

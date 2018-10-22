@@ -23,23 +23,23 @@ void getFileLines(fs::path fp, std::vector<std::string> &lines) {
 
 namespace tester {
 
-TestResult runTest(const PathMatch &tp, const ToolChain &toolChain, bool quiet) {
+TestResult runTest(const PathMatch &pm, const ToolChain &toolChain, bool quiet) {
   // Try to build the test. If there's a problem running a command, then we assume failure.
   fs::path output;
   try {
-    ExecutionOutput eo = toolChain.build(tp.in);
+    ExecutionOutput eo = toolChain.build(pm.in, pm.inStream);
     output = eo.getOutputFile();
   }
   catch (const CommandException &ce) {
     if (!quiet)
       std::cout << "Command error: " << ce.what() << '\n';
-    return TestResult(tp.in, false, true, "");
+    return TestResult(pm.in, false, true, "");
   }
 
   // Get the lines from the files.
   std::vector<std::string> expLines;
   std::vector<std::string> genLines;
-  getFileLines(tp.out, expLines);
+  getFileLines(pm.out, expLines);
   getFileLines(output, genLines);
 
   dtl::Diff<std::string> diff(expLines, genLines);
@@ -50,10 +50,10 @@ TestResult runTest(const PathMatch &tp, const ToolChain &toolChain, bool quiet) 
   if (!diff.getUniHunks().empty()) {
     std::stringstream ss;
     diff.printUnifiedFormat(ss);
-    return TestResult(tp.in, false, false, ss.str());
+    return TestResult(pm.in, false, false, ss.str());
   }
 
-  return TestResult(tp.in, true, false, "");
+  return TestResult(pm.in, true, false, "");
 }
 
 } // End namespace tester

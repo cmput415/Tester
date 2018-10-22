@@ -350,7 +350,7 @@ fs::path Command::resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo
 
 // Implement the Command ostream operator
 std::ostream &operator<<(std::ostream &os, const Command &c) {
-  ExecutionInput ei("$INPUT", "$EXE", "");
+  ExecutionInput ei("$INPUT", "", "$EXE", "");
   ExecutionOutput eo(c.output);
   os << c.buildCommand(ei, eo);
   return os;

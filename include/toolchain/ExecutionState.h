@@ -14,12 +14,16 @@ public:
   ExecutionInput() = delete;
 
   // Creates input to a subprocess execution.
-  ExecutionInput(fs::path inputPath, fs::path testedExecutable, fs::path testedRuntime)
-    : inputPath(std::move(inputPath)), testedExecutable(std::move(testedExecutable)),
-      testedRuntime(std::move(testedRuntime)) { }
+  ExecutionInput(fs::path inputPath, fs::path inputStreamPath, fs::path testedExecutable,
+                 fs::path testedRuntime)
+    : inputPath(std::move(inputPath)), inputStreamPath(std::move(inputStreamPath)),
+      testedExecutable(std::move(testedExecutable)), testedRuntime(std::move(testedRuntime)) { }
 
   // Gets input file.
   fs::path getInputFile() const { return inputPath; }
+
+  // Gets the input stream file.
+  fs::path getInputStreamFile() const { return inputStreamPath; }
 
   // Gets tested executable.
   fs::path getTestedExecutable() const { return testedExecutable; }
@@ -29,6 +33,7 @@ public:
 
 private:
   fs::path inputPath;
+  fs::path inputStreamPath;
   fs::path testedExecutable;
   fs::path testedRuntime;
 };
