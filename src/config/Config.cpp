@@ -100,6 +100,16 @@ Config::Config(int argc, char **argv) : timeout(2l) {
   if (!fs::exists(outDirPath) || !fs::is_directory(outDirPath))
     throw std::runtime_error("Output file directory did not exist: " + outDirStr);
 
+  // Get the in stream directories if they exist.
+  if (doesContain(json, "inStrDir")) {
+    std::string inStreamDirStr = json["inStrDir"];
+    inStreamDirPath = inStreamDirStr;
+    if (!fs::exists(inStreamDirPath) || !fs::is_directory(inStreamDirPath))
+      throw std::runtime_error("Input stream file directory did not exist: " + inStreamDirStr);
+  }
+  else
+    inStreamDirPath = "";
+
   // Add runtimes to the config.
   if (doesContain(json, "runtimes")) {
     const JSON &runtimesJson = json["runtimes"];

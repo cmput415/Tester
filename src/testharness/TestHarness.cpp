@@ -14,7 +14,7 @@ namespace tester {
 // Builds TestSet during object creation.
 TestHarness::TestHarness(const Config &cfg) : cfg(cfg), tests(), results() {
   // Build the test set.
-  findTests(cfg.getInDirPath(), cfg.getOutDirPath(), "", tests); // TODO
+  findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
 }
 
 void TestHarness::runTests() {
