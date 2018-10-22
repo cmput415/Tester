@@ -66,6 +66,9 @@ private:
   // Uses runtime.
   bool usesRuntime;
 
+  // Uses input stream.
+  bool usesInStr;
+
   // Set up info.
   int64_t timeout;
 };

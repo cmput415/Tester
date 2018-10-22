@@ -145,7 +145,8 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
 
 namespace tester {
 
-Command::Command(const JSON &step, int64_t timeout) : timeout(timeout) {
+Command::Command(const JSON &step, int64_t timeout)
+    : usesRuntime(false), usesInStr(false), timeout(timeout) {
   // Make sure the step has all of the values needed for construction.
   ensureContains(step, "stepName");
   ensureContains(step, "executablePath");
@@ -189,6 +190,10 @@ Command::Command(const JSON &step, int64_t timeout) : timeout(timeout) {
   std::string path = step["executablePath"];
   exePath = fs::path(path);
 
+  // Do we use an input stream file?
+  if (doesContain(step, "usesInStr"))
+    usesInStr = step["usesInStr"];
+
   // Do we use a runtime?
   if (doesContain(step, "usesRuntime"))
     usesRuntime = step["usesRuntime"];
@@ -208,7 +213,7 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   // command.
   std::string runtime = usesRuntime ? ei.getTestedRuntime().string() : "";
   std::string stdOutFile = isStdOut ? eo.getOutputFile().string() : "";
-  std::string stdInFile = ""; // TODO
+  std::string stdInFile = usesInStr ? ei.getInputStreamFile().string() : "";
 
   // Create the promise, which gives the future for the thread, and the kill variable, the things
   // used in the monitor thread.
