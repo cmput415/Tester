@@ -132,7 +132,7 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
     // SIGTERM.
     if (closing < 0) {
       perror("waitpid,0");
-      throw std::runtime_error("Problem killing subprocess.");
+      throw std::runtime_error("Problem killing subprocess. Check for zombie processes.");
     }
   }
 
