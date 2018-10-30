@@ -119,10 +119,10 @@ void Grader::analyseResults() {
                         passSummary.getAttackerNameRange());
 
   // Mock up the base coverage table.
-//  auto &coverage = analysis.addTable<TestCoverageTable>("coverage", "Solution Coverage Summary");
-//  for (const std::string &solution : names)
-//    // This is just a dummy thing. These values will be filled in by the marker.
-//    coverage.addName(solution);
+  auto &coverage = analysis.addTable<TestCoverageTable>("coverage", "Test Coverage");
+  for (const std::string &solution : names)
+    // This is just a dummy thing. These values will be filled in by the marker.
+    coverage.addName(solution);
 
   // Build the summary table.
   auto &pointSum = analysis.addTable<PointSummaryTable>("points", "Points Summary");
