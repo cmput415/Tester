@@ -78,7 +78,7 @@ void CountIfsCell::dump(std::ostream &os) {
     // Dump out the range info.
     const Cell &rMin = it->range.min, &rMax = it->range.max;
     os << posToCellName(rMin.getCol(), rMin.getRow()) << ':'
-       << posToCellName(rMax.getCol(), rMax.getRow()) << ',';
+       << posToCellName(rMax.getCol(), rMax.getRow()) << ", ";
 
     // Dump out the condition.
     it->cond->dump(os);
@@ -101,7 +101,7 @@ void MultIfsCell::dump(std::ostream &os) {
     // Dump out the range info.
     const Cell &rMin = it->range.min, &rMax = it->range.max;
     os << posToCellName(rMin.getCol(), rMin.getRow()) << ':'
-       << posToCellName(rMax.getCol(), rMax.getRow()) << ',';
+       << posToCellName(rMax.getCol(), rMax.getRow()) << ", ";
 
     // Dump out the condition.
     it->cond->dump(os);
