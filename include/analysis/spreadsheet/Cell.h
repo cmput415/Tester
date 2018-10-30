@@ -63,7 +63,7 @@ public:
   RefCell() = delete;
 
   // Construct with the cell to reference.
-  RefCell(const Cell &cell) : cell(cell) { }
+  explicit RefCell(const Cell &cell) : cell(cell) { }
 
   // Dump the cell contents to a stream.
   void dump(std::ostream &os) override;
