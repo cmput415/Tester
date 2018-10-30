@@ -155,7 +155,7 @@ public:
 // Cross tables
 // ------------
 // Uses a crosstable to hold per-toolchain pass rates.
-class TestPassRateTable : public CrossTable {
+class ToolchainPassRateTable : public CrossTable {
 public:
   // Add a pass rate to the table.
   void addPassRate(const std::string &defender, const std::string &attacker, size_t passCount,
@@ -163,7 +163,7 @@ public:
 };
 
 // Uses a crosstable to hold per-participant, averaged pass rates.
-class TestSummaryTable : public CrossTable {
+class TotalPassRateTable : public CrossTable {
 public:
   // Add a pass rate to the table.
   void addSummary(const std::string &defender, const std::string &attacker,

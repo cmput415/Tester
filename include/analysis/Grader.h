@@ -43,8 +43,8 @@ private:
   std::vector<std::string> names;
 
   // The vector of pass rate tables.
-  typedef std::reference_wrapper<tester::TestPassRateTable> TestPassRateTableRef;
-  std::vector<TestPassRateTableRef> passRates;
+  typedef std::reference_wrapper<tester::ToolchainPassRateTable> ToolChainPassRateTableRef;
+  std::vector<ToolChainPassRateTableRef> passRates;
 };
 
 } // End namespace tester

@@ -47,7 +47,7 @@ void Grader::buildResults() {
     std::string tableTitle = "Pass Rate (" + toolChainName + ")";
 
     // Make our table.
-    auto &passRate = analysis.addTable<TestPassRateTable>(tableName, tableTitle);
+    auto &passRate = analysis.addTable<ToolchainPassRateTable>(tableName, tableTitle);
     passRate.reserve(names);
     passRates.emplace_back(passRate);
 
@@ -84,7 +84,7 @@ void Grader::buildResults() {
 
 void Grader::analyseResults() {
   // Make the summary table.
-  auto &passSummary = analysis.addTable<TestSummaryTable>("summary", "Pass Rate Summary");
+  auto &passSummary = analysis.addTable<TotalPassRateTable>("summary", "Pass Rate Summary");
   passSummary.reserve(names);
 
   // Average over all toolchains. If there's only one then this table is slightly redundant, but

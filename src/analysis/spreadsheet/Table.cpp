@@ -171,12 +171,12 @@ void CoveragePointsTable::addCoverage(const std::string &name, const Cell &cover
   addCell(name, CellPtr(cell));
 }
 
-void TestPassRateTable::addPassRate(const std::string &defender, const std::string &attacker,
-                                    size_t passCount, const Cell &maxCount) {
+void ToolchainPassRateTable::addPassRate(const std::string &defender, const std::string &attacker,
+                                         size_t passCount, const Cell &maxCount) {
   addCrossCell(defender, attacker, CellPtr(new RateCell(passCount, maxCount)));
 }
 
-void TestSummaryTable::addSummary(const std::string &defender, const std::string &attacker,
+void TotalPassRateTable::addSummary(const std::string &defender, const std::string &attacker,
                                   const std::vector<CellRef> &addends) {
   addCrossCell(defender, attacker, CellPtr(new AverageCell(addends)));
 }
