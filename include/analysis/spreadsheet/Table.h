@@ -134,11 +134,21 @@ public:
   const Cell &getDefensePoints(const std::string &name) { return getCellByName(name); }
 };
 
-// A dummy table for the marker to fill with test coverage.
-class TestCoverageTable : public MapTable {
+// A dummy table for the marker to fill with test coverage multiplier.
+class CoverageTable : public MapTable {
 public:
-  void addName(const std::string &name) { addCell(name, CellPtr(new IntCell<size_t>(0))); }
+  void addName(const std::string &name) {
+    addCell(name, CellPtr(new StringCell("FILL ME (MAX .5)")));
+  }
   const Cell &getCoverage(const std::string &name) { return getCellByName(name); }
+};
+
+// Manages a solutions coverage points.
+class CoveragePointsTable : public MapTable {
+public:
+  void addCoverage(const std::string &name, const Cell &coverage, CellRange pointRange,
+                   CellRange nameRange);
+  const Cell &getCoveragePoints(const std::string &name) { return getCellByName(name); }
 };
 
 // ------------
@@ -171,7 +181,7 @@ public:
 
   // Add to the summary.
   void addSummary(const std::string &name, const Cell &offense, const Cell &defense,
-                  const Cell &self);
+                  const Cell &self, const Cell &method);
 };
 
 // Uses a summary table to generate the final percentages.

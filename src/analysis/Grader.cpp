@@ -118,11 +118,22 @@ void Grader::analyseResults() {
     defense.addDefender(defender, passSummary.getDefenderRange(defender),
                         passSummary.getAttackerNameRange());
 
-  // Mock up the base coverage table.
-  auto &coverage = analysis.addTable<TestCoverageTable>("coverage", "Test Coverage");
+  // Mock up the coverage multiplier table.
+  auto &coverageMults = analysis.addTable<CoverageTable>("coverageMults", "Test Coverage");
   for (const std::string &solution : names)
-    // This is just a dummy thing. These values will be filled in by the marker.
-    coverage.addName(solution);
+    // Solution doesn't have a coverage.
+    if (solution != "solution")
+      // This is just a dummy thing. These values will be filled in by the marker.
+      coverageMults.addName(solution);
+
+  // Build coverage table.
+  auto &coverage = analysis.addTable<CoveragePointsTable>("coverage", "Coverage Points Summary");
+  for (const std::string &solution : names)
+    // Solution doesn't have a coverage.
+    if (solution != "solution")
+      coverage.addCoverage(solution, coverageMults.getCoverage(solution),
+                           passSummary.getAttackerRange(solution),
+                           passSummary.getDefenderNameRange());
 
   // Build the summary table.
   auto &pointSum = analysis.addTable<PointSummaryTable>("points", "Points Summary");
@@ -131,7 +142,8 @@ void Grader::analyseResults() {
     if (solution != "solution")
       pointSum.addSummary(solution, offense.getCellByName(solution),
                           defense.getCellByName(solution),
-                          passSummary.getCrossCell(solution, solution));
+                          passSummary.getCrossCell(solution, solution),
+                          coverage.getCellByName(solution));
 
   // Build the final summary table.
   auto &finalSum = analysis.addTable<FinalSummaryTable>("final", "Final Summary");

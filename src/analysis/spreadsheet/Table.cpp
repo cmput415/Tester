@@ -161,6 +161,16 @@ void DefensivePointsTable::addDefender(const std::string &name, CellRange pointR
   addCell(name, CellPtr(cell));
 };
 
+void CoveragePointsTable::addCoverage(const std::string &name, const Cell &coverage,
+                                      CellRange pointRange, CellRange nameRange) {
+  auto *cell = new MultIfsCell(coverage);
+  cell->addCondition(pointRange, ConditionPtr(new LiteralCondition<int>("<", 1)));
+  cell->addCondition(nameRange, ConditionPtr(new LiteralCondition<std::string>("<>", name)));
+  // Note that there's no guard against solution here. You get bonus points for breaking solution.
+
+  addCell(name, CellPtr(cell));
+}
+
 void TestPassRateTable::addPassRate(const std::string &defender, const std::string &attacker,
                                     size_t passCount, const Cell &maxCount) {
   addCrossCell(defender, attacker, CellPtr(new RateCell(passCount, maxCount)));
@@ -172,11 +182,11 @@ void TestSummaryTable::addSummary(const std::string &defender, const std::string
 }
 
 PointSummaryTable::PointSummaryTable()
-    : SummaryTable({{"offense", "Offense"}, {"defense", "Defense"}, //{"method", "Test Methodology"},
-                    {"self", "Self Testing"}}) { }
+    : SummaryTable({{"offense", "Offense"}, {"defense", "Defense"}, {"self", "Self Testing"},
+                    {"method", "Test Methodology"}}) { }
 
 void PointSummaryTable::addSummary(const std::string &name, const Cell &offense,
-                                   const Cell &defense, const Cell &self) {
+                                   const Cell &defense, const Cell &self, const Cell &method) {
   // Sanity check.
   size_t size = cells[0].size();
   for (const auto &row : cells)
@@ -197,8 +207,12 @@ void PointSummaryTable::addSummary(const std::string &name, const Cell &offense,
   Cell *selfCell = new IfCell(std::move(cond), 1, 0);
   cells[rowByName.at("self")].emplace_back(selfCell);
 
+  // Add section for testing method.
+  Cell *methodCell = new RefCell(method);
+  cells[rowByName.at("method")].emplace_back(methodCell);
+
   // Add summary cell.
-  std::vector<CellRef> sumCells{*offenseCell, *defenseCell, *selfCell};
+  std::vector<CellRef> sumCells{*offenseCell, *defenseCell, *selfCell, *methodCell};
   cells[cells.size() - 1].emplace_back(new SumCell(std::move(sumCells)));
 }
 
