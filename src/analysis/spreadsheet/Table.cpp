@@ -6,7 +6,7 @@
 
 namespace tester {
 
-void MapTable::addCell(const std::string &name, tester::CellPtr cell) {
+void MapTable::addCell(const std::string &name, CellPtr cell) {
   // Sanity checks.
   assert(cells.size() == 2 && "More than two rows in map table.");
   assert(colByName.count(name) == 0 && "Adding col that exists already in map table.");
@@ -65,7 +65,7 @@ const Cell &CrossTable::getCrossCell(const std::string &defender, const std::str
 }
 
 void CrossTable::addCrossCell(const std::string &defender, const std::string &attacker,
-                              tester::CellPtr toAdd) {
+                              CellPtr toAdd) {
   // Sanity checks.
   assert(isReserved && "Adding cell to unreserved cross table.");
   CellPtr &cell = cells[idxByName.at(defender)][idxByName.at(attacker)];
@@ -150,8 +150,8 @@ void OffensivePointsTable::addAttacker(const std::string &name, CellRange pointR
   addCell(name, CellPtr(cell));
 };
 
-void DefensivePointsTable::addDefender(const std::string &name, tester::CellRange pointRange,
-                                       tester::CellRange nameRange){
+void DefensivePointsTable::addDefender(const std::string &name, CellRange pointRange,
+                                       CellRange nameRange){
   // Create the cell and add conditions to it.
   auto *cell = new CountIfsCell();
   cell->addCondition(pointRange, ConditionPtr(new LiteralCondition<int>("=", 1)));
@@ -162,12 +162,12 @@ void DefensivePointsTable::addDefender(const std::string &name, tester::CellRang
 };
 
 void TestPassRateTable::addPassRate(const std::string &defender, const std::string &attacker,
-                                    size_t passCount, const tester::Cell &maxCount) {
+                                    size_t passCount, const Cell &maxCount) {
   addCrossCell(defender, attacker, CellPtr(new RateCell(passCount, maxCount)));
 }
 
 void TestSummaryTable::addSummary(const std::string &defender, const std::string &attacker,
-                                  const std::vector<tester::CellRef> &addends) {
+                                  const std::vector<CellRef> &addends) {
   addCrossCell(defender, attacker, CellPtr(new AverageCell(addends)));
 }
 
@@ -175,8 +175,8 @@ PointSummaryTable::PointSummaryTable()
     : SummaryTable({{"offense", "Offense"}, {"defense", "Defense"}, //{"method", "Test Methodology"},
                     {"self", "Self Testing"}}) { }
 
-void PointSummaryTable::addSummary(const std::string &name, const tester::Cell &offense,
-                                   const tester::Cell &defense, const tester::Cell &self) {
+void PointSummaryTable::addSummary(const std::string &name, const Cell &offense,
+                                   const Cell &defense, const Cell &self) {
   // Sanity check.
   size_t size = cells[0].size();
   for (const auto &row : cells)
@@ -208,9 +208,8 @@ FinalSummaryTable::FinalSummaryTable()
                     {"passRate", "Teaching-Team Tests (50%)"},
                     {"tournament", "Competitive Testing tournament (20%)"}}) { }
 
-void FinalSummaryTable::addSummary(const std::string &name, const tester::Cell &points,
-                                   const tester::CellRange &pointsRange,
-                                   const tester::Cell &passRate) {
+void FinalSummaryTable::addSummary(const std::string &name, const Cell &points,
+                                   const CellRange &pointsRange, const Cell &passRate) {
   // Sanity check.
   size_t size = cells[0].size();
   for (const auto &row : cells)
