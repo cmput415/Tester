@@ -176,8 +176,8 @@ void ToolchainPassRateTable::addPassRate(const std::string &defender, const std:
   addCrossCell(defender, attacker, CellPtr(new RateCell(passCount, maxCount)));
 }
 
-void TotalPassRateTable::addSummary(const std::string &defender, const std::string &attacker,
-                                  const std::vector<CellRef> &addends) {
+void TotalPassRateTable::addPassRate(const std::string &defender, const std::string &attacker,
+                                     const std::vector<CellRef> &addends) {
   addCrossCell(defender, attacker, CellPtr(new AverageCell(addends)));
 }
 

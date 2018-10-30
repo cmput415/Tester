@@ -100,7 +100,7 @@ void Grader::analyseResults() {
       }
 
       // Add to the summary.
-      passSummary.addSummary(defender, attacker, cells);
+      passSummary.addPassRate(defender, attacker, cells);
     }
   }
 

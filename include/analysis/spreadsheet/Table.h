@@ -166,8 +166,8 @@ public:
 class TotalPassRateTable : public CrossTable {
 public:
   // Add a pass rate to the table.
-  void addSummary(const std::string &defender, const std::string &attacker,
-                  const std::vector<CellRef> &cells);
+  void addPassRate(const std::string &defender, const std::string &attacker,
+                   const std::vector<CellRef> &cells);
 };
 
 // --------------
