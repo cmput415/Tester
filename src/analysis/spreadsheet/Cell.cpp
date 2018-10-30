@@ -92,6 +92,29 @@ void CountIfsCell::dump(std::ostream &os) {
   os << ')';
 }
 
+void MultIfsCell::dump(std::ostream &os) {
+  // Put out begining of countifs.
+  os << "=COUNTIFS(";
+
+  // Iterate over conditions.
+  for (auto it = conds.begin(); it != conds.end(); ++it) {
+    // Dump out the range info.
+    const Cell &rMin = it->range.min, &rMax = it->range.max;
+    os << posToCellName(rMin.getCol(), rMin.getRow()) << ':'
+       << posToCellName(rMax.getCol(), rMax.getRow()) << ',';
+
+    // Dump out the condition.
+    it->cond->dump(os);
+
+    // Add a comma if necessary.
+    if ((it + 1) != conds.end())
+      os << ", ";
+  }
+
+  // Final bracket plus the multiplier.
+  os << ") * " << posToCellName(mult.getCol(), mult.getRow());
+}
+
 void TournamentResultsCell::dump(std::ostream &os) {
   // We want to print (cell / max(results)) * scale.
   os << "=(" << posToCellName(cell.getCol(), cell.getRow()) << " / "

@@ -227,6 +227,31 @@ private:
   std::vector<RangeCondition> conds;
 };
 
+// Multiplies a CountIfs cell by a multiplier.
+class MultIfsCell : public Cell {
+public:
+  // No default constructor
+  MultIfsCell() = delete;
+
+  // Construct with multiplier cell.
+  MultIfsCell(const Cell &mult) : mult(mult), conds() { }
+
+  // Dump the cell contents to a stream.
+  void dump(std::ostream &os) override;
+
+  // Add a condition to a the if.
+  void addCondition(CellRange range, ConditionPtr cond) {
+    conds.emplace_back(range, std::move(cond));
+  }
+
+private:
+  // The cell to multiply by.
+  const Cell &mult;
+
+  // Our conditions.
+  std::vector<RangeCondition> conds;
+};
+
 // A specialised cell for calculating tournament results.
 class TournamentResultsCell : public Cell {
 public:
