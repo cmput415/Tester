@@ -252,7 +252,7 @@ public:
   SumIfsCell() = delete;
 
   // Construct with range to sum over. Add.
-  explicit SumIfsCell(const CellRange &values) : values(values), conds() { }
+  explicit SumIfsCell(CellRange values) : values(values), conds() { }
 
   // Dump the cell contents to a stream.
   void dump(std::ostream &os) override;
@@ -264,7 +264,7 @@ public:
 
 private:
   // The cell to multiply by.
-  const CellRange &values;
+  CellRange values;
 
   // Our conditions.
   std::vector<RangeCondition> conds;
