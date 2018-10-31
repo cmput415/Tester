@@ -112,8 +112,8 @@ void Grader::analyseResults() {
   auto &offense = analysis.addTable<OffensivePointsTable>("offensive","Offensive Points Summary");
   for (const std::string &attacker : names)
     // We're comparing against the defender's names.
-    offense.addAttacker(attacker, totalPassRate.getAttackerRange(attacker),
-                        totalPassRate.getDefenderNameRange());
+    offense.addAttacker(attacker, totalFailRate.getAttackerRange(attacker),
+                        totalFailRate.getDefenderNameRange());
 
   // Build defense table.
   auto &defense = analysis.addTable<DefensivePointsTable>("defensive", "Defensive Points Summary");
