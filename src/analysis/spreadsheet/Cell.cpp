@@ -58,6 +58,10 @@ void AverageCell::dump(std::ostream &os) {
   os << ") / " << cells.size();
 }
 
+void PercentComplementCell::dump(std::ostream & os) {
+  os << "=1 - " << posToCellName(other.getCol(), other.getRow());
+}
+
 void IfCell::dump(std::ostream &os) {
   // Beginning of the if.
   os << "=IF(";

@@ -165,6 +165,23 @@ private:
   const std::vector<CellRef> cells;
 };
 
+// A cell that represents the complement of a percentage (1 - %).
+class PercentComplementCell : public Cell {
+public:
+  // No default constructor.
+  PercentComplementCell() = delete;
+
+  // Construct with cell to create the complement of.
+  explicit PercentComplementCell(const Cell &other) : other(other) { }
+
+  // Dump the cell contents to a stream.
+  void dump(std::ostream &os) override;
+
+private:
+  // The cell to complement
+  const Cell &other;
+};
+
 // A cell that mulitplies the value of another cell by a constant.
 template <typename T>
 class MultCell : public Cell {
