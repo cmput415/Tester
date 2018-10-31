@@ -83,12 +83,15 @@ void Grader::buildResults() {
 }
 
 void Grader::analyseResults() {
-  // Make the summary table.
-  auto &passSummary = analysis.addTable<TotalPassRateTable>("summary", "Pass Rate Summary");
-  passSummary.reserve(names);
+  // Make the summary tables.
+  auto &totalPassRate = analysis.addTable<TotalPassRateTable>("passSummary", "Pass Rate Summary");
+  auto &totalFailRate = analysis.addTable<TotalFailRateTable>("failSummary", "Fail Rate Summary");
+  totalPassRate.reserve(names);
+  totalFailRate.reserve(names);
 
-  // Average over all toolchains. If there's only one then this table is slightly redundant, but
-  // it's the thought that counts.
+  // Average over all toolchains to get the pass rate for all tests. If there's only one then this
+  // table is slightly redundant, but it's the thought that counts. While we're doing this, also
+  // construct the complement table that will be used for offensive points.
   for (const std::string &defender : names) {
     for (const std::string &attacker : names) {
       // Make our vector of nodes to average over.
@@ -99,8 +102,9 @@ void Grader::analyseResults() {
         cells.emplace_back(rateTable.get().getCrossCell(defender, attacker));
       }
 
-      // Add to the summary.
-      passSummary.addPassRate(defender, attacker, cells);
+      // Add to the summaries.
+      totalPassRate.addPassRate(defender, attacker, cells);
+      totalFailRate.addFailRate(defender, attacker, totalPassRate.getCrossCell(defender, attacker));
     }
   }
 
@@ -108,15 +112,15 @@ void Grader::analyseResults() {
   auto &offense = analysis.addTable<OffensivePointsTable>("offensive","Offensive Points Summary");
   for (const std::string &attacker : names)
     // We're comparing against the defender's names.
-    offense.addAttacker(attacker, passSummary.getAttackerRange(attacker),
-                        passSummary.getDefenderNameRange());
+    offense.addAttacker(attacker, totalPassRate.getAttackerRange(attacker),
+                        totalPassRate.getDefenderNameRange());
 
   // Build defense table.
   auto &defense = analysis.addTable<DefensivePointsTable>("defensive", "Defensive Points Summary");
   for (const std::string &defender : names)
     // We're comparing against the attackers's names.
-    defense.addDefender(defender, passSummary.getDefenderRange(defender),
-                        passSummary.getAttackerNameRange());
+    defense.addDefender(defender, totalPassRate.getDefenderRange(defender),
+                        totalPassRate.getAttackerNameRange());
 
   // Mock up the coverage multiplier table.
   auto &coverageMults = analysis.addTable<CoverageTable>("coverageMults", "Test Coverage");
@@ -132,8 +136,8 @@ void Grader::analyseResults() {
     // Solution doesn't have a coverage.
     if (solution != "solution")
       coverage.addCoverage(solution, coverageMults.getCoverage(solution),
-                           passSummary.getAttackerRange(solution),
-                           passSummary.getDefenderNameRange());
+                           totalPassRate.getAttackerRange(solution),
+                           totalPassRate.getDefenderNameRange());
 
   // Build the summary table.
   auto &pointSum = analysis.addTable<PointSummaryTable>("points", "Points Summary");
@@ -142,7 +146,7 @@ void Grader::analyseResults() {
     if (solution != "solution")
       pointSum.addSummary(solution, offense.getCellByName(solution),
                           defense.getCellByName(solution),
-                          passSummary.getCrossCell(solution, solution),
+                          totalPassRate.getCrossCell(solution, solution),
                           coverage.getCellByName(solution));
 
   // Build the final summary table.
@@ -151,7 +155,7 @@ void Grader::analyseResults() {
     // Don't put the solution into the final summary. It's impossible.
     if (solution != "solution")
       finalSum.addSummary(solution, pointSum.getSummary(solution), pointSum.getSummaryRange(),
-                          passSummary.getCrossCell(solution, "solution"));
+                          totalPassRate.getCrossCell(solution, "solution"));
 }
 
 } // End namespace tester
