@@ -96,6 +96,32 @@ void CountIfsCell::dump(std::ostream &os) {
   os << ')';
 }
 
+void SumIfsCell::dump(std::ostream &os) {
+  // Put the initial range out.
+  const Cell &rMin = values.min, &rMax = values.max;
+  os << "=SUMIFS("
+     << posToCellName(rMin.getCol(), rMin.getRow()) << ':'
+     << posToCellName(rMax.getCol(), rMax.getRow()) << ", ";
+
+  // Iterate over conditions.
+  for (auto it = conds.begin(); it != conds.end(); ++it) {
+    // Dump out the range info.
+    const Cell &rMin = it->range.min, &rMax = it->range.max;
+    os << posToCellName(rMin.getCol(), rMin.getRow()) << ':'
+       << posToCellName(rMax.getCol(), rMax.getRow()) << ", ";
+
+    // Dump out the condition.
+    it->cond->dump(os);
+
+    // Add a comma if necessary.
+    if ((it + 1) != conds.end())
+      os << ", ";
+  }
+
+  // Final bracket.
+  os << ')';
+}
+
 void MultIfsCell::dump(std::ostream &os) {
   // Put out begining of countifs.
   os << "=COUNTIFS(";

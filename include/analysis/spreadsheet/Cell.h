@@ -226,6 +226,7 @@ private:
   int trueVal, falseVal;
 };
 
+// Counts the number of cells matching a condition.
 class CountIfsCell : public Cell {
 public:
   // Only default constructor. Add conditions after.
@@ -240,6 +241,31 @@ public:
   }
 
 private:
+  // Our conditions.
+  std::vector<RangeCondition> conds;
+};
+
+// Sums a range if they meet conditions.
+class SumIfsCell : public Cell {
+public:
+  // No default constructor
+  SumIfsCell() = delete;
+
+  // Construct with range to sum over. Add.
+  explicit SumIfsCell(const CellRange &values) : values(values), conds() { }
+
+  // Dump the cell contents to a stream.
+  void dump(std::ostream &os) override;
+
+  // Add a condition to a the if.
+  void addCondition(CellRange range, ConditionPtr cond) {
+    conds.emplace_back(range, std::move(cond));
+  }
+
+private:
+  // The cell to multiply by.
+  const CellRange &values;
+
   // Our conditions.
   std::vector<RangeCondition> conds;
 };
