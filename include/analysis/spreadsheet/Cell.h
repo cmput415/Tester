@@ -251,7 +251,7 @@ public:
   MultIfsCell() = delete;
 
   // Construct with multiplier cell.
-  MultIfsCell(const Cell &mult) : mult(mult), conds() { }
+  explicit MultIfsCell(const Cell &mult) : mult(mult), conds() { }
 
   // Dump the cell contents to a stream.
   void dump(std::ostream &os) override;
