@@ -181,6 +181,11 @@ void TotalPassRateTable::addPassRate(const std::string &defender, const std::str
   addCrossCell(defender, attacker, CellPtr(new AverageCell(addends)));
 }
 
+void TotalFailRateTable::addFailRate(const std::string &defender, const std::string &attacker,
+                                     const tester::Cell &passRate) {
+  addCrossCell(defender, attacker, CellPtr(new PercentComplementCell(passRate)));
+}
+
 PointSummaryTable::PointSummaryTable()
     : SummaryTable({{"offense", "Offense"}, {"defense", "Defense"}, {"self", "Self Testing"},
                     {"method", "Test Methodology"}}) { }

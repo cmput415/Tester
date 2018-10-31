@@ -170,6 +170,15 @@ public:
                    const std::vector<CellRef> &cells);
 };
 
+// Uses a crosstable to hold per-participant, averaged fail rates.
+// Note that this depends on the TotalPassRateTable and only adds cells as the complementary
+// percentage of the pass rate (1 - passRate).
+class TotalFailRateTable : public CrossTable {
+public:
+  // Add a fail rate to the table.
+  void addFailRate(const std::string &defender, const std::string &attacker, const Cell &passRate);
+};
+
 // --------------
 // Summary tables
 // --------------
