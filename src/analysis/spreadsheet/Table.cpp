@@ -142,8 +142,9 @@ void TestCountTable::addTestCount(const std::string &name, size_t count) {
 void OffensivePointsTable::addAttacker(const std::string &name, CellRange pointRange,
                                        CellRange nameRange) {
   // Create the cell and add conditions to it.
-  auto *cell = new CountIfsCell();
-  cell->addCondition(pointRange, ConditionPtr(new LiteralCondition<int>("<>", 1)));
+  auto *cell = new SumIfsCell(pointRange);
+  // Note that there's no guard against score here. The thing we don't want to sum is when the
+  // defender passed everything... but then their fail rate is zero, so summing does nothing.
   cell->addCondition(nameRange, ConditionPtr(new LiteralCondition<std::string>("<>", name)));
   // Note that there's no guard against solution here. You get bonus points for breaking solution.
 
