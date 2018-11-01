@@ -5,6 +5,7 @@
 #include "toolchain/CommandException.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -38,9 +39,16 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
   // Null terminate the args array.
   args[trueArgs.size() + 1] = NULL;
 
-  // Build the environment (LD_PRELOAD). Only add the preload arg if the runtime isn't empty.
+  // Build the new command's environment (PATH, LD_PRELOAD).
+  // PATH.
+  std::string path = "PATH=";
+  path += std::getenv("PATH");
+
+  // LD_PRELOAD.
   std::string preload = "LD_PRELOAD=" + runtime;
-  const char *env[2] = {!runtime.empty() ? preload.c_str() : NULL, NULL};
+
+  // Final resulting environment. Only add the preload arg if the runtime isn't empty.
+  const char *env[3] = {path.c_str(), !runtime.empty() ? preload.c_str() : NULL, NULL};
 
   // If we're provided with a redirect file we need to replace STDOUT.
   if (!output.empty()) {
