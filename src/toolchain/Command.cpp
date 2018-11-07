@@ -44,8 +44,12 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
   std::string path = "PATH=";
   path += std::getenv("PATH");
 
-  // LD_PRELOAD.
+  // Insert runtime into environment.
+#if __linux__
   std::string preload = "LD_PRELOAD=" + runtime;
+#elif __APPLE__
+  std::string preload = "DYLD_INSERT_LIBRARIES" + runtime;
+#endif
 
   // Final resulting environment. Only add the preload arg if the runtime isn't empty.
   const char *env[3] = {path.c_str(), !runtime.empty() ? preload.c_str() : NULL, NULL};
@@ -92,7 +96,6 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
   perror("execve");
   throw std::runtime_error("Child process didn't start.");
 }
-
 
 // This can get a bit complicated. We want easy command running which is available in a cross
 // platform manner via std::system but there's no way for us to kill a long running subprocess (i.e.
@@ -378,4 +381,3 @@ std::ostream &operator<<(std::ostream &os, const Command &c) {
 }
 
 } // End namespace tester
-
