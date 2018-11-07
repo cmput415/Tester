@@ -16,8 +16,6 @@
 #include <sys/wait.h>
 #endif
 
-#include <iostream> // DEBUG
-
 namespace {
 
 #if __linux__ || __APPLE__
