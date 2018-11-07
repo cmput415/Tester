@@ -134,8 +134,15 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
     throw std::runtime_error("Problem monitoring subprocess.");
   }
 
-  // We didn't exit because of an error, did we time out? If we did, we need to kill the subprocess.
-  if (killVar.load()) {
+  // We didn't stop monitoring because of an error, so we have two options: successful exit or
+  // timeout.
+  // If we timed out, we need to kill the subprocess.
+  // Also check if closing is already set. This would mean that the above loop stopped because we
+  // exited successfully, but in the meantime there was a timeout (this race condition is impossible
+  // to remove, but we can handle it). This means that the child has already been reaped so we
+  // should not kill and wait on it. We check for equality with zero because < 0 is handled above
+  // and > 0 we have already killed.
+  if (killVar.load() && closing == 0) {
     kill(childId, SIGKILL);
     closing = waitpid(childId, &status, 0);
 
