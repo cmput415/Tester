@@ -143,14 +143,23 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
   // should not kill and wait on it. We check for equality with zero because < 0 is handled above
   // and > 0 we have already killed.
   if (killVar.load() && closing == 0) {
-    kill(childId, SIGKILL);
+    // Try to kill the sub process.
+    int killResult = kill(childId, SIGKILL);
+
+    // Somehow we weren't able to send a kill signal to our child process.
+    if (killResult < 0) {
+      perror("kill");
+      throw std::runtime_error("Problem killing subprocess. Check for zombie processes.");
+    }
+
+    // Try to wait on the killed subprocess to reap it.
     closing = waitpid(childId, &status, 0);
 
     // We had an error instead of killing successfully. Very weird considering we send SIGKILL not
     // SIGTERM.
     if (closing < 0) {
       perror("waitpid,0");
-      throw std::runtime_error("Problem killing subprocess. Check for zombie processes.");
+      throw std::runtime_error("Problem waiting on killed subprocess. Check for zombie processes.");
     }
   }
 
