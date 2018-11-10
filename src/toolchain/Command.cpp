@@ -46,7 +46,7 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
 #if __linux__
   std::string preload = "LD_PRELOAD=" + runtime;
 #elif __APPLE__
-  std::string preload = "DYLD_INSERT_LIBRARIES" + runtime;
+  std::string preload = "DYLD_INSERT_LIBRARIES=" + runtime;
 #endif
 
   // Final resulting environment. Only add the preload arg if the runtime isn't empty.
