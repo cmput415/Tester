@@ -57,6 +57,12 @@ void Grader::buildResults() {
       // Set up the tool chain with the defender's executable.
       tc.setTestedExecutable(cfg.getExecutablePath(defender));
 
+      if (cfg.hasRuntime(defender))
+        tc.setTestedRuntime(cfg.getRuntimePath(defender));
+      else
+        tc.setTestedRuntime("");
+
+
       // Iterate over attackers.
       for (const std::string &attacker : names) {
         std::cout << toolChainName << '-' << attacker << '-' << defender << ':';
