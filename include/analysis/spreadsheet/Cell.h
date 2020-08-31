@@ -320,23 +320,23 @@ private:
   float scale;
 };
 
-} // End namespace tester
-
 // Template implementation needs to be in header file.
 // Specialise on char.
 template <>
-void tester::IntCell<signed char>::dump(std::ostream &os);
+void IntCell<signed char>::dump(std::ostream &os);
 template <>
-void tester::IntCell<unsigned char>::dump(std::ostream &os);
+void IntCell<unsigned char>::dump(std::ostream &os);
 
 template <typename T>
-void tester::IntCell<T>::dump(std::ostream &os) {
+void IntCell<T>::dump(std::ostream &os) {
   os << value;
 }
 
 template <typename T>
-void tester::MultCell<T>::dump(std::ostream &os) {
+void MultCell<T>::dump(std::ostream &os) {
   os << '=' << tester::posToCellName(cell.getCol(), cell.getRow()) << " * " << multiplier;
 }
+
+} // End namespace tester
 
 #endif //TESTER_CELL_H
