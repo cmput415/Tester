@@ -11,12 +11,12 @@ void CellCondition::dump(std::ostream &os) {
 std::string idxToColName(size_t idx) {
   std::string result;
 
-  if (idx < 26)
-    result += static_cast<char>(65 + idx);
-  else {
-    result += static_cast<char>(65 + idx / 26);
-    result += static_cast<char>(65 + idx % 26);
-  }
+  // If we're on the second round of the alphabet, then we need to insert the second character.
+  if (idx > 25)
+    result += static_cast<char>(65 + idx / 26 - 1);
+
+  result += static_cast<char>(65 + idx % 26);
+
   return result;
 }
 
