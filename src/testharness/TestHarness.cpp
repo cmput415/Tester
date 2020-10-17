@@ -17,14 +17,17 @@ TestHarness::TestHarness(const Config &cfg) : cfg(cfg), tests(), results() {
   findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
 }
 
-void TestHarness::runTests() {
+int TestHarness::runTests() {
+  int result = 0;
   // Iterate over executables.
   for (auto exePair : cfg.getExecutables()) {
     // Iterate over toolchains.
     for (auto &tcPair : cfg.getToolChains()) {
-      runTestsForToolChain(exePair.first, tcPair.first);
+      if (runTestsForToolChain(exePair.first, tcPair.first) == 1)
+        result = 1;
     }
   }
+  return result;
 }
 
 std::string TestHarness::getTestInfo() const {
@@ -104,7 +107,9 @@ std::string TestHarness::getTestSummary() const {
   return allInfo.str();
 }
 
-void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
+int TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
+  int toolChainResult = 0;
+
   // Get the toolchain to use.
   ToolChain toolChain = cfg.getToolChain(tcName);
 
@@ -158,8 +163,11 @@ void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
           ++subPackagePasses;
         }
         // If we fail, potentially print the diff.
-        else if (!cfg.isQuiet() && !result.error)
-          std::cout << '\n' << result.diff << '\n';
+        else {
+	  toolChainResult = 1;
+          if (!cfg.isQuiet() && !result.error)
+            std::cout << '\n' << result.diff << '\n';
+	}
       }
 
       std::cout << "  Subpackage passed " << subPackagePasses << " / " << testSet.second.size()
@@ -174,6 +182,7 @@ void TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
   }
 
   std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount << "\n\n";
+  return toolChainResult;
 }
 
 } // End namespace tester
