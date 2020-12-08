@@ -25,7 +25,7 @@ public:
   TestHarness(const Config &cfg);
 
   // Run the found tests.
-  // Returns 0 if all tests passed, 1 otherwise.
+  // Returns 1 if any tests failed, 0 otherwise.
   int runTests();
 
   // Get tests info.
