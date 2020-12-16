@@ -25,8 +25,8 @@ public:
   TestHarness(const Config &cfg);
 
   // Run the found tests.
-  // Returns 1 if any tests failed, 0 otherwise.
-  int runTests();
+  // Returns true if any tests failed, false otherwise.
+  bool runTests();
 
   // Get tests info.
   std::string getTestInfo() const;
@@ -36,8 +36,8 @@ public:
 
 private:
   // Runs the accumulated tests against a specific exe and toolchain.
-  // Returns 0 if all tests passed, 1 otherwise.
-  int runTestsForToolChain(std::string tcId, std::string exeName);
+  // Returns true if any tests failed, false otherwise.
+  bool runTestsForToolChain(std::string tcId, std::string exeName);
 
 private:
   // Our input config.
