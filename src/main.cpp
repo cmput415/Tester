@@ -20,13 +20,14 @@ int main(int argc, char **argv) {
     return 0;
   }
 
+  bool failed = false;
   try {
     // Build our tester.
     tester::TestHarness t(cfg);
     std::cout << t.getTestInfo() << '\n';
 
     // Run our tests.
-    bool failed = t.runTests();
+    failed = t.runTests();
 
     // Save or print the summary.
     std::string summary = t.getTestSummary();
@@ -39,10 +40,11 @@ int main(int argc, char **argv) {
       std::cout << "Summary:\n" << summary;
     }
 
-    return failed ? 1 : 0;
   }
   catch (const std::runtime_error &e) {
     std::cout << "Test harness error: " << e.what() << '\n';
     return 1;
   }
+
+  return failed ? 1 : 0;
 }
