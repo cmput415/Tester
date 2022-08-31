@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <fcntl.h>
 #include <unistd.h>
+#include <thread>
 
 #if __linux__
 #include <wait.h>
