@@ -10,7 +10,6 @@ set(
     config
     toolchain
     tests
-    stdc++fs
 )
 
 # Build the library from the source files.

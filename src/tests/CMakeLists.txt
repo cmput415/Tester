@@ -7,4 +7,4 @@ set(
 
 # Build the library from the source files.
 add_library(tests STATIC ${tests_src_files})
-target_link_libraries(tests toolchain stdc++fs)
+target_link_libraries(tests toolchain)
