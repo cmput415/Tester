@@ -87,7 +87,7 @@ choose to subdivide files into subpackages for your own organisation, but
 successes and failures, while shown for each subpackage, will be attributed
 to the overall package.
 
-Note that note every test requires an input stream. You only need to create
+Note that not every test requires an input stream. You only need to create
 a `.in` and `.out` file for this test and do not need to include an empty
 `.ins` file.
 
