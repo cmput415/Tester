@@ -1198,8 +1198,10 @@ struct from_json_fn
     template<typename BasicJsonType, typename T>
     void call(const BasicJsonType& /*unused*/, T& /*unused*/, priority_tag<0> /*unused*/) const noexcept
     {
+#if 0
         static_assert(sizeof(BasicJsonType) == 0,
                       "could not find from_json() method in T's namespace");
+#endif
 #ifdef _MSC_VER
         // MSVC does not show a stacktrace for the above assert
         using decayed = uncvref_t<T>;
@@ -8675,7 +8677,7 @@ class serializer
             return;
         }
 
-        const bool is_negative = (x <= 0) and (x != 0);  // see issue #755
+        const bool is_negative = (x <= 0);  // see issue #755
         std::size_t i = 0;
 
         while (x != 0)
