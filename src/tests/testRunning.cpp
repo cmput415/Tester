@@ -6,6 +6,7 @@
 #include "dtl/dtl.hpp"
 
 #include <fstream>
+#include <sstream>
 
 // Private namespace that holds utility functions for the functions that are actually exported. You
 // can find the actual functions at the bottom of the file.
