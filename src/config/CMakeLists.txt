@@ -6,4 +6,4 @@ set(
 
 # Build the library from the source files.
 add_library(config STATIC ${config_src_files})
-target_link_libraries(config toolchain stdc++fs)
+target_link_libraries(config toolchain)
