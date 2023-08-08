@@ -25,6 +25,18 @@ ExecutionOutput ToolChain::build(const fs::path &inputPath, const fs::path &inpu
   // Run the command, updating the contexts as we go.
   for (const Command &c : commands) {
     eo = c.execute(ei);
+
+    /* If the SUT did not produce output, it may be because it found an error.
+     * If the err file exists, use that instead.
+     */
+    std::error_code ec;
+    std::uintmax_t olen = std::filesystem::file_size(eo.getOutputFile(), ec);
+    if (olen == static_cast<std::uintmax_t>(-1) || olen == 0) {
+        if (std::filesystem::exists(eo.getErrorFile(), ec)) {
+            // Break the command pipe and return the current output
+            return eo;
+        }
+    }
     ei = ExecutionInput(
         eo.getOutputFile(),
         ei.getInputStreamFile(),
