@@ -38,20 +38,23 @@ private:
   fs::path testedRuntime;
 };
 
-// A class meant to share intermediate info when end a toolchain step.
+// A class meant to share intermediate info when a toolchain step ends.
 class ExecutionOutput {
 public:
   // No default constructor.
   ExecutionOutput() = delete;
 
   // Creates output to a subprocess execution.
-  explicit ExecutionOutput(fs::path outputPath) : outputPath(std::move(outputPath)) { }
+  explicit ExecutionOutput(fs::path outputPath, fs::path errorPath = "") :
+      outputPath(std::move(outputPath)), errorPath(std::move(errorPath)) { }
 
   // Gets output file.
   fs::path getOutputFile() const { return outputPath; }
+  fs::path getErrorFile() const { return errorPath; }
 
 private:
   fs::path outputPath;
+  fs::path errorPath;
 };
 
 } // End namespace tester

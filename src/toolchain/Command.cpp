@@ -88,6 +88,11 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
     close(fd);
   }
 
+  // Redirect stderr to stdout
+  if (dup2(STDOUT_FILENO, STDERR_FILENO) == -1) {
+    perror("dup2");
+  }
+
   // Replace ourself with the command.
   execve(exe.c_str(), const_cast<char * const *>(args), const_cast<char * const *>(env));
 
@@ -102,7 +107,8 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
 // unfortunately.
 void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
                 const std::string &exe, const std::vector<std::string> &trueArgs,
-                const std::string &runtime, const std::string &output, const std::string &input) {
+                const std::string &runtime, const std::string &output,
+                const std::string &input) {
 
   // Do the actual fork.
   pid_t childId = fork();
@@ -111,7 +117,7 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
   // command. This function will never return if successful and will throw a runtime_error if it is
   // unsuccessful.
   if (childId == 0)
-    becomeCommand(exe, trueArgs, runtime, output, input);
+      becomeCommand(exe, trueArgs, runtime, output, input);
 
   // We're in the parent process. Set up variables for watching the child process.
   int status;
@@ -206,6 +212,7 @@ Command::Command(const JSON &step, int64_t timeout)
     fs::path fileName(name + "-temp.out");
     output = fs::current_path();
     output /= fileName;
+    stdoutPath = output;
   }
   // We've got a file name.
   else {
@@ -217,6 +224,9 @@ Command::Command(const JSON &step, int64_t timeout)
       output = outPath;
     else
       output = fs::absolute(outPath);
+
+    // Need to capture stdout anyway
+    stdoutPath = output.string() + ".stdout";
   }
 
   // Need to explicitly tell json what type we're pulling out here because it doesn't like loading
@@ -235,7 +245,12 @@ Command::Command(const JSON &step, int64_t timeout)
 
 ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   // Create our output context.
-  ExecutionOutput eo(output);
+  ExecutionOutput eo(output, stdoutPath);
+
+  // Always remove old output files so we know if a new one was created
+  std::error_code ec;
+  std::filesystem::remove(output, ec);
+  std::filesystem::remove(stdoutPath, ec);
 
   // Get the exe and its arguments, the things used in the actual execution of the command.
   std::string exe = resolveExe(ei, eo, exePath).string();
@@ -246,7 +261,7 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   // Get the runtime path and standard out file, the things used in setting up the execution of the
   // command.
   std::string runtime = usesRuntime ? ei.getTestedRuntime().string() : "";
-  std::string stdOutFile = isStdOut ? eo.getOutputFile().string() : "";
+  std::string stdOutFile = stdoutPath.string();
   std::string stdInFile = usesInStr ? ei.getInputStreamFile().string() : "";
 
   // Create the promise, which gives the future for the thread, and the kill variable, the things
@@ -260,7 +275,8 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
      runCommand,
      std::ref(promise), std::ref(kill), // Parent variables.
      std::ref(exe), std::ref(trueArgs), // Child execution variables.
-     std::ref(runtime), std::ref(stdOutFile), std::ref(stdInFile) // Child setup variables.
+     std::ref(runtime),
+     std::ref(stdOutFile), std::ref(stdInFile) // Child setup variables.
   );
 
   // Detach the thread to allow it to run in the background.

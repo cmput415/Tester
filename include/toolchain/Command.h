@@ -60,8 +60,9 @@ private:
   std::vector<std::string> args;
 
   // Output info.
-  bool isStdOut;
   fs::path output;
+  bool isStdOut;
+  fs::path stdoutPath;
 
   // Uses runtime.
   bool usesRuntime;
