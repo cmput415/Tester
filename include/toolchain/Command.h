@@ -70,6 +70,9 @@ private:
   // Uses input stream.
   bool usesInStr;
 
+  // Allow return with non-zero exit code.
+  bool allowError;
+
   // Set up info.
   int64_t timeout;
 };

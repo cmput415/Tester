@@ -241,6 +241,10 @@ Command::Command(const JSON &step, int64_t timeout)
   // Do we use a runtime?
   if (doesContain(step, "usesRuntime"))
     usesRuntime = step["usesRuntime"];
+
+  // Do we allow errors?
+  if (doesContain(step, "allowError"))
+    allowError = step["allowError"];
 }
 
 ExecutionOutput Command::execute(const ExecutionInput &ei) const {
@@ -307,8 +311,9 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
     // Get the exit status
     rv = WEXITSTATUS(rv);
 
-    // If we the return code is not 0, we failed in some manner. Raise a custom exception.
-    if (rv != 0)
+    // If the return code is not 0 and we do not allow errors, we failed in some
+    // manner. Raise a custom exception.
+    if (rv != 0 && !allowError)
       throw FailException("Subcommand returned status code " + std::to_string(rv)
                           + ":\n  " + buildCommand(ei, eo));
   }
