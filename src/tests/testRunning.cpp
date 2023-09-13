@@ -61,7 +61,8 @@ TestResult runTest(const PathMatch &pm, const ToolChain &toolChain, bool quiet) 
   }
   else { // Is an error test.
     getFileLines(eo.getErrorFile(), genLines);
-    genLines = {genLines[0].substr(0, genLines[0].find(':'))};
+    if (!genLines.empty())
+      genLines = {genLines[0].substr(0, genLines[0].find(':'))};
   }
 
   dtl::Diff<std::string> diff(expLines, genLines);
