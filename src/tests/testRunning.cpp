@@ -15,8 +15,10 @@ namespace {
 void getFileLines(fs::path fp, std::vector<std::string> &lines) {
     std::ifstream fs(fp);
     std::string buf;
-    while (std::getline(fs, buf))
+    while (!fs.eof()) {
+        std::getline(fs, buf);
         lines.push_back(buf);
+    }
 }
 
 } // End anonymous namespace
