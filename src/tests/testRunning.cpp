@@ -15,7 +15,7 @@ namespace {
 void getFileLines(fs::path fp, std::vector<std::string> &lines) {
     std::ifstream fs(fp);
     std::string buf;
-    while (!fs.eof()) {
+    while (fs.good()) {
         std::getline(fs, buf);
         lines.push_back(buf);
     }
