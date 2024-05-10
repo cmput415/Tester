@@ -7,3 +7,4 @@ bin/
 # Ignore CLion files
 cmake-build*/
 .idea/
+.vscode/

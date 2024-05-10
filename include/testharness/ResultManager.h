@@ -26,7 +26,14 @@ public:
 
   // Get test results.
   const ResultSet &getResults(const std::string &exe, const std::string &toolchain) const {
+    // ToolChainMap tcm = results.at(exe);
+    // if (tcm) {
+      // tcm.at(toolchain);
+    // }
+    std::cout << results.size() << std::endl;
     return results.at(exe).at(toolchain);
+    
+    // return results.at(exe).at(toolchain);
   }
 
 private:

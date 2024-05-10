@@ -21,7 +21,7 @@ public:
   Config() = default;
 
   // Construct with argc/argv.
-  Config(int argc, char ** argv);
+  Config(int argc, char** argv);
 
   // Config path getters and checkers.
   const fs::path &getGradePath() const { return gradeFilePath; }
@@ -31,6 +31,7 @@ public:
   const fs::path &getInDirPath() const { return inDirPath; }
   const fs::path &getOutDirPath() const { return outDirPath; }
   const fs::path &getInStrDirPath() const { return inStreamDirPath; }
+  const fs::path &getTestDirPath() const { return testDirPath; }
 
   // Config map getters and convenience individual getters.
   const PathMap getExecutables() const { return executables; }
@@ -58,6 +59,7 @@ private:
   // Option file paths.
   fs::path gradeFilePath;
   fs::path summaryFilePath;
+  fs::path testDirPath;
   fs::path inDirPath;
   fs::path outDirPath;
   fs::path inStreamDirPath; // This can be empty if there is no input streams.

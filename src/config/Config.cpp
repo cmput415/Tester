@@ -85,9 +85,15 @@ Config::Config(int argc, char **argv) : timeout(2l) {
   }
 
   // Make sure an in and out dir were provided.
-  ensureContains(json, "inDir");
   ensureContains(json, "outDir");
+  ensureContains(json, "inDir");
 
+  // TODO: Make testDir required once working 
+  if (doesContain(json, "testDir")) {
+    std::string testDirStr = json["testDir"];
+    testDirPath = testDirStr;
+  }
+  
   // Get the in and out paths.
   std::string inDirStr = json["inDir"];
   std::string outDirStr = json["outDir"];
@@ -99,7 +105,7 @@ Config::Config(int argc, char **argv) : timeout(2l) {
     throw std::runtime_error("Input file directory did not exist: " + inDirStr);
   if (!fs::exists(outDirPath) || !fs::is_directory(outDirPath))
     throw std::runtime_error("Output file directory did not exist: " + outDirStr);
-
+  
   // Get the in stream directories if they exist.
   if (doesContain(json, "inStrDir")) {
     std::string inStreamDirStr = json["inStrDir"];

@@ -159,4 +159,55 @@ void findTests(fs::path in, fs::path out, fs::path inStream, tester::PackageSet 
   }
 }
 
+bool hasFiles(const fs::path& path) {
+    for (const auto& entry : fs::recursive_directory_iterator(path)) {
+        if (fs::is_regular_file(entry.status())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::vector<PathMatch> fillSubpackage(fs::path subPackagePath) {
+  std::vector<PathMatch> testFiles; 
+  for (const auto& testFile : fs::directory_iterator(subPackagePath)) {
+    if (fs::is_regular_file(testFile)) {
+      std::cout << "REGULAR FILE:" << testFile.path().filename() << std::endl;
+      testFiles.push_back(PathMatch(testFile));
+    }
+  }
+  return testFiles;
+}
+
+void findSubpackages(const fs::path &searchPath, std::vector<tester::SubPackage>& subPackages) {
+    try {
+        for (const auto& subDir : fs::directory_iterator(searchPath)) {
+            if (fs::is_directory(subDir)) {
+                std::cout << "SUBPACKAGE: " << subDir.path().filename() << std::endl; 
+                if (hasFiles(subDir)) {
+                    tester::SubPackage subPackage;
+                    subPackage.emplace(subDir.path(), fillSubpackage(subDir.path()));
+                    subPackages.push_back(subPackage);
+                }
+                findSubpackages(subDir, subPackages);
+            }
+        }
+    } catch (const fs::filesystem_error& e) {
+        std::cerr << e.what() << std::endl;
+    }
+}
+
+void findTests(fs::path testsPath, tester::PackageSet &testPackage) {
+  
+  for (const auto& dir: fs::directory_iterator(testsPath)) {
+    std::cout << "PACKAGE: " << dir.path().filename() << std::endl;
+
+    tester::Package package;
+    std::vector<tester::SubPackage> subPackages;
+
+    // tester::TestSet package;
+    findSubpackages(dir.path(), subPackages);
+  }
+}
+
 } // End namespace tests

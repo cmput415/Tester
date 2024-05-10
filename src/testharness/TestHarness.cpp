@@ -14,7 +14,12 @@ namespace tester {
 // Builds TestSet during object creation.
 TestHarness::TestHarness(const Config &cfg) : cfg(cfg), tests(), results() {
   // Build the test set.
-  findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
+  // findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
+  findTests(cfg.getTestDirPath(), tests);
+
+  #ifndef DEBUG
+    // std::cout << "Constructing Test Harness" << std::endl;
+  #endif 
 }
 
 bool TestHarness::runTests() {
@@ -63,6 +68,10 @@ std::string TestHarness::getTestSummary() const {
 
       // Iterate over toolchains.
       for (const auto &tcPair : cfg.getToolChains()) {
+
+        std::cout << "toolchain pair" << std::endl;
+        std::cout << tcPair.first << tcPair.second << std::endl;
+
         // Get the list of results for this exe, toolchain, and package.
         const ResultList &packageResults =
           results.getResults(exePair.first, tcPair.first).at(testPair.first);
@@ -150,7 +159,15 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
       // Iterate over the tests.
       for (const PathMatch &tp : testSet.second) {
         // Run the test and save the result.
+
+        // std::cout << "IN: " << tp.in << std::endl;
+        // std::cout << "OUT: " << tp.out << std::endl;
+        // std::cout << "STDIN: " << tp.inStream << std::endl;
+        // std::cout << "TEST: " << tp.test << std::endl;
+        
         TestResult result = runTest(tp, toolChain, cfg.isQuiet());
+
+        //
         results.addResult(exeName, tcName, testPackage.first, result);
 
         // Log the pass/fail.
