@@ -160,12 +160,12 @@ void findTests(fs::path in, fs::path out, fs::path inStream, tester::PackageSet 
 }
 
 bool hasFiles(const fs::path& path) {
-    for (const auto& entry : fs::recursive_directory_iterator(path)) {
-        if (fs::is_regular_file(entry.status())) {
-            return true;
-        }
+  for (const auto& entry : fs::recursive_directory_iterator(path)) {
+    if (fs::is_regular_file(entry.status())) {
+      return true;
     }
-    return false;
+  }
+  return false;
 }
 
 std::vector<PathMatch> fillSubpackage(fs::path subPackagePath) {
@@ -180,33 +180,41 @@ std::vector<PathMatch> fillSubpackage(fs::path subPackagePath) {
 }
 
 void findSubpackages(const fs::path &searchPath, std::vector<tester::SubPackage>& subPackages) {
-    try {
-        for (const auto& subDir : fs::directory_iterator(searchPath)) {
-            if (fs::is_directory(subDir)) {
-                std::cout << "SUBPACKAGE: " << subDir.path().filename() << std::endl; 
-                if (hasFiles(subDir)) {
-                    tester::SubPackage subPackage;
-                    subPackage.emplace(subDir.path(), fillSubpackage(subDir.path()));
-                    subPackages.push_back(subPackage);
-                }
-                findSubpackages(subDir, subPackages);
-            }
+  try {
+    for (const auto& subDir : fs::directory_iterator(searchPath)) {
+      if (fs::is_directory(subDir)) {
+        std::cout << "SUBPACKAGE: " << subDir.path().filename() << std::endl; 
+        if (hasFiles(subDir)) {
+          tester::SubPackage subPackage;
+          subPackage.emplace(subDir.path(), fillSubpackage(subDir.path()));
+          subPackages.push_back(subPackage);
         }
-    } catch (const fs::filesystem_error& e) {
-        std::cerr << e.what() << std::endl;
+        findSubpackages(subDir, subPackages);
+      }
     }
+  } catch (const fs::filesystem_error& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 
-void findTests(fs::path testsPath, tester::PackageSet &testPackage) {
+void findTests(fs::path testsPath, tester::Module &module) {
   
   for (const auto& dir: fs::directory_iterator(testsPath)) {
     std::cout << "PACKAGE: " << dir.path().filename() << std::endl;
 
-    tester::Package package;
+    tester::Package package;  
     std::vector<tester::SubPackage> subPackages;
 
-    // tester::TestSet package;
+    // fill subpackages 
     findSubpackages(dir.path(), subPackages);
+    package[dir.path()] = subPackages;
+
+    // insert package into packageSet
+    module[dir.path().filename()] = package;
+  }
+
+  for (const auto& package : module) {
+    std::cout << "MODULE COUNT " << std::endl;
   }
 }
 

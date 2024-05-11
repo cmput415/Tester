@@ -12,10 +12,10 @@
 namespace tester {
 
 // Builds TestSet during object creation.
-TestHarness::TestHarness(const Config &cfg) : cfg(cfg), tests(), results() {
+TestHarness::TestHarness(const Config &cfg) : cfg(cfg), tests(), results(), module() {
   // Build the test set.
   // findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
-  findTests(cfg.getTestDirPath(), tests);
+  findTests(cfg.getTestDirPath(), module);
 
   #ifndef DEBUG
     // std::cout << "Constructing Test Harness" << std::endl;
@@ -117,6 +117,9 @@ std::string TestHarness::getTestSummary() const {
 }
 
 bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
+
+  std::cout << "RUN: runTestsForToolChain" << std::endl;
+
   bool failed = false;
 
   // Get the toolchain to use.
@@ -138,6 +141,17 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
 
   // Stat tracking for toolchain tests.
   unsigned int toolChainCount = 0, toolChainPasses = 0;
+
+  // Iterate the module
+  for (const auto& package: module) {
+    std::cout << "Entering package: " << package.first << '\n';
+    for (const auto& subPackage: package.second) {
+      std::cout << "Entering SubPackage: " << subPackage.first << std::endl;
+      for (const auto& testFile: subPackage.second) {
+        std::cout << "Test file: " << std::endl;
+      }
+    }
+  }
 
   // Iterate the packages.
   for (const auto &testPackage : tests) {

@@ -48,6 +48,9 @@ private:
 
   // The results of the tests.
   ResultManager results;
+  
+  // File Check Test Module
+  Module module;
 };
 
 } // End namespace tester

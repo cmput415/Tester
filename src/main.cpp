@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <exception>
+#define DEBUG
 
 int main(int argc, char **argv) {
   // Build the config and exit if it fails.
@@ -26,8 +27,7 @@ int main(int argc, char **argv) {
     // Build our tester.
     tester::TestHarness t(cfg);
 
-    #if !DEBUG
-      
+    #ifdef DEBUG      
       std::cout << t.getTestInfo() << std::endl;
       tester::PathMap exePaths = cfg.getExecutables();
       tester::PathMap rtPaths = cfg.getRuntimes();
@@ -41,9 +41,13 @@ int main(int argc, char **argv) {
         std::cout << tcPair.first << std::endl;
       }
     #endif
+
     // Run our tests.
     failed = t.runTests();
-    return 0;
+
+    #ifdef DEBUG
+      return 0;
+    #endif
 
     // Save or print the summary.
     std::string summary = t.getTestSummary();

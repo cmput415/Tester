@@ -21,10 +21,11 @@ typedef std::map<std::string, TestSet> PackageSet;
 // simplified test file typedefs
 typedef std::map<fs::path, std::vector<PathMatch>> SubPackage;
 typedef std::map<fs::path, std::vector<SubPackage>> Package;
+typedef std::map<std::string, Package> Module;
 
 // Find tests to run.
 void findTests(fs::path in, fs::path out, fs::path inStream, tester::PackageSet &tests);
-void findTests(fs::path testsPath, tester::PackageSet &testPackage);
+void findTests(fs::path testsPath, tester::Module &module);
 
 // Run a test.
 TestResult runTest(const PathMatch &pm, const ToolChain &toolChain, bool quiet);
