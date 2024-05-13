@@ -43,9 +43,6 @@ private:
   // Our input config.
   const Config &cfg;
 
-  // The list of tests to test.
-  PackageSet tests;
-
   // The results of the tests.
   ResultManager results;
   

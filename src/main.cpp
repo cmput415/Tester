@@ -21,33 +21,31 @@ int main(int argc, char **argv) {
     grader.dump(svFile);
     return 0;
   }
+  
 
   bool failed = false;
   try {
     // Build our tester.
     tester::TestHarness t(cfg);
 
-    #ifdef DEBUG      
-      std::cout << t.getTestInfo() << std::endl;
-      tester::PathMap exePaths = cfg.getExecutables();
-      tester::PathMap rtPaths = cfg.getRuntimes();
-      for (auto exe : exePaths) {
-        std::cout << exe.first << exe.second << std::endl;
-      }
-      for (auto runtime: rtPaths) {
-        std::cout << runtime.first << runtime.second << std::endl;
-      }
-      for (const auto &tcPair : cfg.getToolChains()) {
-        std::cout << tcPair.first << std::endl;
-      }
-    #endif
+    // #ifdef DEBUG      
+    //   std::cout << t.getTestInfo() << std::endl;
+    //   tester::PathMap exePaths = cfg.getExecutables();
+    //   tester::PathMap rtPaths = cfg.getRuntimes();
+    //   for (auto exe : exePaths) {
+    //     std::cout << exe.first << exe.second << std::endl;
+    //   }
+    //   for (auto runtime: rtPaths) {
+    //     std::cout << runtime.first << runtime.second << std::endl;
+    //   }
+    //   for (const auto &tcPair : cfg.getToolChains()) {
+    //     std::cout << tcPair.first << std::endl;
+    //   }
+    // #endif
 
     // Run our tests.
     failed = t.runTests();
-
-    #ifdef DEBUG
-      return 0;
-    #endif
+    return 0;
 
     // Save or print the summary.
     std::string summary = t.getTestSummary();

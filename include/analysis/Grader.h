@@ -34,7 +34,7 @@ private:
   const Config &cfg;
 
   // Our tests.
-  PackageSet tests;
+  Module tests;
 
   // The sheet that our analysis goes into.
   Sheet analysis;

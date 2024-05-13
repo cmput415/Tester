@@ -11,7 +11,8 @@ namespace {
 namespace tester {
 
 Grader::Grader(const Config &cfg) : cfg(cfg), tests(), analysis() {
-  findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
+  // findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
+  findTests(cfg.getTestDirPath(), tests);
   buildResults();
   analyseResults();
 }
@@ -65,12 +66,12 @@ void Grader::buildResults() {
 
       // Iterate over attackers.
       for (const std::string &attacker : names) {
-        std::cout << toolChainName << '-' << attacker << '-' << defender << ':';
+        std::cout << toolChainName << '|' << attacker << '|' << defender << ':';
         // Iterate over subpackages and the contained tests from the attacker, tracking pass count.
         size_t passCount = 0;
         for (const auto &subpackages : tests[attacker]) {
           for (const auto &test : subpackages.second) {
-            if (runTest(test, tc, true).pass)
+            if (runTest(test, tc, true).pass) // TODO: verify correct types
               ++passCount;
 
             // Status showing. Flushing every iteration isn't "ideal" but 1) I like seeing progress

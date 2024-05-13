@@ -168,28 +168,28 @@ bool hasFiles(const fs::path& path) {
   return false;
 }
 
-std::vector<PathMatch> fillSubpackage(fs::path subPackagePath) {
-  std::vector<PathMatch> testFiles; 
+tester::SubPackage fillSubpackage(fs::path subPackagePath) {
+  tester::SubPackage testFiles; 
   for (const auto& testFile : fs::directory_iterator(subPackagePath)) {
     if (fs::is_regular_file(testFile)) {
-      std::cout << "REGULAR FILE:" << testFile.path().filename() << std::endl;
-      testFiles.push_back(PathMatch(testFile));
+      testFiles.push_back(TestFile(testFile));
     }
   }
   return testFiles;
 }
 
-void findSubpackages(const fs::path &searchPath, std::vector<tester::SubPackage>& subPackages) {
+void fillSubpackages(const fs::path &searchPath, tester::Package &package, const std::string &parentKey) {
   try {
     for (const auto& subDir : fs::directory_iterator(searchPath)) {
       if (fs::is_directory(subDir)) {
-        std::cout << "SUBPACKAGE: " << subDir.path().filename() << std::endl; 
+        std::string subpackageKey = parentKey + "." + subDir.path().stem().string(); 
+        
         if (hasFiles(subDir)) {
-          tester::SubPackage subPackage;
-          subPackage.emplace(subDir.path(), fillSubpackage(subDir.path()));
-          subPackages.push_back(subPackage);
+          tester::SubPackage subpackage = fillSubpackage(subDir.path());
+          package[subpackageKey] = std::move(subpackage);
         }
-        findSubpackages(subDir, subPackages);
+
+        fillSubpackages(subDir, package, subpackageKey);
       }
     }
   } catch (const fs::filesystem_error& e) {
@@ -198,23 +198,14 @@ void findSubpackages(const fs::path &searchPath, std::vector<tester::SubPackage>
 }
 
 void findTests(fs::path testsPath, tester::Module &module) {
-  
+  // Iterate over each package. One package corresponds to one teams/individuals tests. 
   for (const auto& dir: fs::directory_iterator(testsPath)) {
-    std::cout << "PACKAGE: " << dir.path().filename() << std::endl;
-
-    tester::Package package;  
-    std::vector<tester::SubPackage> subPackages;
-
-    // fill subpackages 
-    findSubpackages(dir.path(), subPackages);
-    package[dir.path()] = subPackages;
-
-    // insert package into packageSet
-    module[dir.path().filename()] = package;
-  }
-
-  for (const auto& package : module) {
-    std::cout << "MODULE COUNT " << std::endl;
+    const fs::path &packagePath = dir.path();
+    const std::string &packageKeyPrefix = packagePath.filename();
+    tester::Package package;
+     
+    fillSubpackages(packagePath, package, packageKeyPrefix);
+    module[packageKeyPrefix] = package;
   }
 }
 

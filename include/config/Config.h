@@ -28,9 +28,9 @@ public:
   bool hasGradePath() const { return !gradeFilePath.empty(); }
   const fs::path &getSummaryPath() const { return summaryFilePath; }
   bool hasSummaryPath() const { return !summaryFilePath.empty(); }
-  const fs::path &getInDirPath() const { return inDirPath; }
-  const fs::path &getOutDirPath() const { return outDirPath; }
-  const fs::path &getInStrDirPath() const { return inStreamDirPath; }
+  // const fs::path &getInDirPath() const { return inDirPath; }
+  // const fs::path &getOutDirPath() const { return outDirPath; }
+  // const fs::path &getInStrDirPath() const { return inStreamDirPath; }
   const fs::path &getTestDirPath() const { return testDirPath; }
 
   // Config map getters and convenience individual getters.
@@ -60,9 +60,9 @@ private:
   fs::path gradeFilePath;
   fs::path summaryFilePath;
   fs::path testDirPath;
-  fs::path inDirPath;
-  fs::path outDirPath;
-  fs::path inStreamDirPath; // This can be empty if there is no input streams.
+  // fs::path inDirPath;
+  // fs::path outDirPath;
+  // fs::path inStreamDirPath; // This can be empty if there is no input streams.
 
   // Option file maps.
   PathMap executables;
