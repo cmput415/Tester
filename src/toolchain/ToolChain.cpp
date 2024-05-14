@@ -17,6 +17,13 @@ ToolChain::ToolChain(const JSON &json, int64_t timeout) {
     commands.emplace_back(step, timeout);
 }
 
+ExecutionOutput ToolChain::build(const TestFile& test) const {
+  ExecutionOutput eo("");
+
+
+  return eo;
+}
+
 ExecutionOutput ToolChain::build(const fs::path &inputPath, const fs::path &inputStrPath) const {
   // The current output and input contexts.
   ExecutionInput ei(inputPath, inputStrPath, testedExecutable, testedRuntime);

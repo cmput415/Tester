@@ -3,7 +3,8 @@
 
 #include "tests/PathMatch.h"
 #include "tests/TestResult.h"
-#include "toolchain/ToolChain.h"
+#include "tests/TestFile.h"
+#include "../toolchain/ToolChain.h"
 
 #include <filesystem>
 #include <map>
@@ -12,18 +13,6 @@
 namespace fs = std::filesystem;
 
 namespace tester {
-
-class TestFile {
-public:
-  TestFile(const fs::path& path) : testPath(path) {} // Copy reference to path 
-  fs::path testPath;
-
-  // implicit conversion to fs::path
-  operator fs::path() const {
-    return testPath;
-  };
-  
-};
 
 // Test file typedefs.
 typedef std::vector<PathMatch> PathList;

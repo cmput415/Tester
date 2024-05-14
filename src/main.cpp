@@ -28,21 +28,6 @@ int main(int argc, char **argv) {
     // Build our tester.
     tester::TestHarness t(cfg);
 
-    // #ifdef DEBUG      
-    //   std::cout << t.getTestInfo() << std::endl;
-    //   tester::PathMap exePaths = cfg.getExecutables();
-    //   tester::PathMap rtPaths = cfg.getRuntimes();
-    //   for (auto exe : exePaths) {
-    //     std::cout << exe.first << exe.second << std::endl;
-    //   }
-    //   for (auto runtime: rtPaths) {
-    //     std::cout << runtime.first << runtime.second << std::endl;
-    //   }
-    //   for (const auto &tcPair : cfg.getToolChains()) {
-    //     std::cout << tcPair.first << std::endl;
-    //   }
-    // #endif
-
     // Run our tests.
     failed = t.runTests();
     return 0;

@@ -30,17 +30,21 @@ TestResult runTest(const TestFile &test, const ToolChain &toolChain, bool quiet)
   // Try to build the test. If there's a problem running a command, then we assume failure.
   ExecutionOutput eo("");
   std::string diff = "";
+
+  
+  try {
+    eo = toolChain.build(test);
+  }
+  catch (const CommandException &ce) {
+      if (!quiet) {
+          std::cout << "Command error: " << ce.what() << '\n';
+          std::cout << "output " << eo.getOutputFile() << std::endl;
+      }
+      return TestResult(test, false, true, "");
+  }
+  
   return TestResult(test, true, false, diff);  
-  // try {
-  //     eo = toolChain.build(pm.in, pm.inStream);
-  // }
-  // catch (const CommandException &ce) {
-  //     if (!quiet) {
-  //         std::cout << "Command error: " << ce.what() << '\n';
-  //         std::cout << "output " << eo.getOutputFile() << std::endl;
-  //     }
-  //     return TestResult(pm.in, false, true, "");
-  // }
+  
 
   // // Get the lines from the reference file.
   // std::vector<std::string> expLines;
