@@ -18,24 +18,21 @@ ToolChain::ToolChain(const JSON &json, int64_t timeout) {
 }
 
 ExecutionOutput ToolChain::build(const TestFile& test) const {
+
+  ExecutionInput ei(test, testedExecutable, testedRuntime);
   ExecutionOutput eo("");
 
-
-  return eo;
-}
-
-ExecutionOutput ToolChain::build(const fs::path &inputPath, const fs::path &inputStrPath) const {
-  // The current output and input contexts.
-  ExecutionInput ei(inputPath, inputStrPath, testedExecutable, testedRuntime);
-  ExecutionOutput eo("");
-
-  // Run the command, updating the contexts as we go.
   for (const Command &c : commands) {
+    
+    // std::cout << "Execute: " << c.getName() << std::endl;
+
+    // std::cout << "\t test input: " << ei.getInputFile() << std::endl;
+    // std::cout << "\t input stream: " << ei.getInputStreamFile() << std::endl;
+    // std::cout << "\t exe: " << ei.getTestedExecutable() << std::endl;
+    // std::cout << "\t rt lib: " << ei.getTestedRuntime() << std::endl;
+    
     eo = c.execute(ei);
 
-    /* If the SUT did not produce output, it may be because it found an error.
-     * If the err file exists, use that instead.
-     */
     std::error_code ec;
     std::uintmax_t olen = std::filesystem::file_size(eo.getOutputFile(), ec);
     if (olen == static_cast<std::uintmax_t>(-1) || olen == 0) {
@@ -44,15 +41,15 @@ ExecutionOutput ToolChain::build(const fs::path &inputPath, const fs::path &inpu
             return eo;
         }
     }
+
     ei = ExecutionInput(
-        eo.getOutputFile(),
-        ei.getInputStreamFile(),
-        ei.getTestedExecutable(),
-        ei.getTestedRuntime()
+      eo.getOutputFile(),
+      ei.getInputStreamFile(),
+      ei.getTestedExecutable(),
+      ei.getTestedRuntime()
     );
   }
 
-  // Return the output context of the final command.
   return eo;
 }
 

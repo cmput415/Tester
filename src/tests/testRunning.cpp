@@ -42,13 +42,28 @@ TestResult runTest(const TestFile &test, const ToolChain &toolChain, bool quiet)
       }
       return TestResult(test, false, true, "");
   }
-  
+
+  // std::cout << "Output File: !" << eo.getOutputFile() << std::endl;
+  std::vector<std::string> genLines; 
+  getFileLines(eo.getOutputFile(), genLines);
+
+  std::cout << "CHECK LINES" << std::endl;
+  for (auto line : test.checkLines) {
+    std::cout << "\tCHECK: " << line << std::endl;
+  }
+
+  std::cout << "GEN LINES" << std::endl;
+
+  for (auto line : genLines) {
+    std::cout << "\tGEN: " << line << std::endl;
+  }  
+  // Read 
+
   return TestResult(test, true, false, diff);  
   
 
   // // Get the lines from the reference file.
-  // std::vector<std::string> expLines;
-  // getFileLines(pm.out, expLines);
+
 
   // /* Check to see if this an error test. The expected output must contain
   //  * exactly one line and the substring "Error".

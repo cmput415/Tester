@@ -1,6 +1,7 @@
 #ifndef TESTER_EXECUTION_STATE_H
 #define TESTER_EXECUTION_STATE_H
 
+#include "tests/TestFile.h"
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -12,6 +13,13 @@ class ExecutionInput {
 public:
   // No default constructor.
   ExecutionInput() = delete;
+
+  // Test File Constructor 
+  ExecutionInput(const TestFile &test, fs::path testedExecutable, fs::path testedRuntime)
+    : inputPath(std::move(test.testPath)),
+      inputStreamPath(std::move(test.insPath)), 
+      testedExecutable(std::move(testedExecutable)), 
+      testedRuntime(std::move(testedRuntime)) { }
 
   // Creates input to a subprocess execution.
   ExecutionInput(fs::path inputPath, fs::path inputStreamPath, fs::path testedExecutable,

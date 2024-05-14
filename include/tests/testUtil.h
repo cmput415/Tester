@@ -14,18 +14,12 @@ namespace fs = std::filesystem;
 
 namespace tester {
 
-// Test file typedefs.
-typedef std::vector<PathMatch> PathList;
-typedef std::map<std::string, PathList> TestSet;
-typedef std::map<std::string, TestSet> PackageSet;
-
 // simplified test file typedefs
 typedef std::vector<TestFile> SubPackage; // One Subpackage : Many Tests
 typedef std::map<std::string, SubPackage> Package; // One Package : Many Subpackages
 typedef std::map<std::string, Package> Module; // One Module : Many Packages
 
 // Find tests to run.
-void findTests(fs::path in, fs::path out, fs::path inStream, tester::PackageSet &tests);
 void findTests(fs::path testsPath, tester::Module &module);
 
 // Run a test.
