@@ -17,19 +17,20 @@ ToolChain::ToolChain(const JSON &json, int64_t timeout) {
     commands.emplace_back(step, timeout);
 }
 
-ExecutionOutput ToolChain::build(const TestFile& test) const {
+ExecutionOutput ToolChain::build(const std::unique_ptr<TestFile>& test) const {
 
-  ExecutionInput ei(test, testedExecutable, testedRuntime);
+  // ExecutionInput ei(test, testedExecutable, testedRuntime);
+  ExecutionInput ei(test->testPath, test->insPath, testedExecutable, testedRuntime);
+
+  #if 1
+    std::cout << "passed: "<< test->testPath << " | "<< test->insPath << std::endl;
+
+    std::cout << "is a file (toolChain::build):" << fs::exists(test->insPath) << std::endl;
+  #endif
+
   ExecutionOutput eo("");
 
   for (const Command &c : commands) {
-    
-    // std::cout << "Execute: " << c.getName() << std::endl;
-
-    // std::cout << "\t test input: " << ei.getInputFile() << std::endl;
-    // std::cout << "\t input stream: " << ei.getInputStreamFile() << std::endl;
-    // std::cout << "\t exe: " << ei.getTestedExecutable() << std::endl;
-    // std::cout << "\t rt lib: " << ei.getTestedRuntime() << std::endl;
     
     eo = c.execute(ei);
 

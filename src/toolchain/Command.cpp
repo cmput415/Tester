@@ -39,7 +39,6 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
   args[trueArgs.size() + 1] = NULL;
 
   // Build the new command's environment (PATH, LD_PRELOAD).
-  // PATH.
   std::string path = "PATH=";
   path += std::getenv("PATH");
 

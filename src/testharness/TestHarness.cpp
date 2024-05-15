@@ -11,12 +11,9 @@
 
 namespace tester {
 
-// Builds TestSet during object creation.
 TestHarness::TestHarness(const Config &cfg) : cfg(cfg), results(), module() {
   // Build the test set.
-  findTests(cfg.getTestDirPath(), module);
-
-  std::cout << "Found " << module.size() << " packages:"<< std::endl;
+  fillModule(cfg.getTestDirPath(), module);
 }
 
 bool TestHarness::runTests() {
@@ -150,10 +147,11 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
       packageCount += subPackage.size(); 
       
       for (const auto& test : subPackage) {  
+        std::cout << "is a file (testharness::run):" << fs::exists(test->insPath) << std::endl;
         TestResult result = runTest(test, toolChain, cfg.isQuiet());
         results.addResult(exeName, tcName, pKey, result);
         // Log the pass/fail.
-        std::cout << "    " << test.testPath.stem().string() << ": "
+        std::cout << "    " << test->testPath.stem().string() << ": "
                   << (result.pass ? "PASS" : "FAIL") << '\n';
         // If we pass, note the pass.
         if (result.pass) {
@@ -179,78 +177,4 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
   std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount << "\n\n";
   return failed;
 } 
-} // End namespace tester
-  // for (const auto& package: module) {
-
-
-  //   for (const auto& subPackage: package.second) {
-  //     std::cout << "Entering SubPackage: " << subPackage.first << std::endl;
-
-  //     for (const auto& testFile: subPackage.second) {
-  //       // std::cout << "Test file: " << testFile.testPath.string() << std::endl;
-  //     }
-  //   }
-  // }
-
-  // // Iterate the packages.
-  // for (const auto &testPackage : tests) {
-  //   // Print the package name.
-  //   std::cout << "Entering package: " << testPackage.first << '\n';
-
-  //   // Stat tracking for package tests.
-  //   unsigned int packageCount = 0, packagePasses = 0;
-
-  //   for (const auto &testSet : testPackage.second) {
-  //     std::cout << "  Entering subpackage: " << testSet.first << '\n';
-
-  //     // Track how many tests we run.
-  //     packageCount += testSet.second.size();
-
-  //     // Count how many passes we get.
-  //     unsigned int subPackagePasses = 0;
-
-  //     // Iterate over the tests.
-  //     for (const PathMatch &tp : testSet.second) {
-  //       // Run the test and save the result.
-
-  //       // std::cout << "IN: " << tp.in << std::endl;
-  //       // std::cout << "OUT: " << tp.out << std::endl;
-  //       // std::cout << "STDIN: " << tp.inStream << std::endl;
-  //       // std::cout << "TEST: " << tp.test << std::endl;
-        
-//         TestResult result = runTest(tp, toolChain, cfg.isQuiet());
-
-//         //
-//         results.addResult(exeName, tcName, testPackage.first, result);
-
-//         // Log the pass/fail.
-//         std::cout << "    " << tp.in.stem().string() << ": "
-//                   << (result.pass ? "PASS" : "FAIL") << '\n';
-
-//         // If we pass, note the pass.
-//         if (result.pass) {
-//           ++packagePasses;
-//           ++subPackagePasses;
-//         }
-//         // If we fail, potentially print the diff.
-//         else {
-//           failed = true;
-//           if (!cfg.isQuiet() && !result.error)
-//             std::cout << '\n' << result.diff << '\n';
-//         }
-//       }
-
-//       std::cout << "  Subpackage passed " << subPackagePasses << " / " << testSet.second.size()
-//                 << '\n';
-//     }
-
-//     // Update the toolchain stats from the package stats.
-//     toolChainPasses += packagePasses;
-//     toolChainCount += packageCount;
-
-//     std::cout << " Package passed " << packagePasses<< " / " << packageCount << '\n';
-//   }
-
-//   std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount << "\n\n";
-//   return failed;
-// }
+}

@@ -12,7 +12,7 @@ namespace tester {
 
 Grader::Grader(const Config &cfg) : cfg(cfg), tests(), analysis() {
   // findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
-  findTests(cfg.getTestDirPath(), tests);
+  fillModule(cfg.getTestDirPath(), tests);
   buildResults();
   analyseResults();
 }

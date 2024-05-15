@@ -8,10 +8,6 @@
 #include <fstream>
 #include <sstream>
 
-// Private namespace that holds utility functions for the functions that are actually exported. You
-// can find the actual functions at the bottom of the file.
-namespace {
-
 void getFileLines(fs::path fp, std::vector<std::string> &lines) {
     std::ifstream fs(fp);
     std::string buf;
@@ -21,18 +17,16 @@ void getFileLines(fs::path fp, std::vector<std::string> &lines) {
     }
 }
 
-} // End anonymous namespace
-
-
 namespace tester {
 
-TestResult runTest(const TestFile &test, const ToolChain &toolChain, bool quiet) {
+TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolChain, bool quiet) {
   // Try to build the test. If there's a problem running a command, then we assume failure.
   ExecutionOutput eo("");
   std::string diff = "";
-
-  
+ 
   try {
+    
+    std::cout << "is a file (runTest):" << fs::exists(test->insPath) << std::endl;
     eo = toolChain.build(test);
   }
   catch (const CommandException &ce) {
@@ -40,7 +34,7 @@ TestResult runTest(const TestFile &test, const ToolChain &toolChain, bool quiet)
           std::cout << "Command error: " << ce.what() << '\n';
           std::cout << "output " << eo.getOutputFile() << std::endl;
       }
-      return TestResult(test, false, true, "");
+      return TestResult(test->testPath, false, true, "");
   }
 
   // std::cout << "Output File: !" << eo.getOutputFile() << std::endl;
@@ -48,7 +42,7 @@ TestResult runTest(const TestFile &test, const ToolChain &toolChain, bool quiet)
   getFileLines(eo.getOutputFile(), genLines);
 
   std::cout << "CHECK LINES" << std::endl;
-  for (auto line : test.checkLines) {
+  for (auto line : test->checkLines) {
     std::cout << "\tCHECK: " << line << std::endl;
   }
 
@@ -59,7 +53,7 @@ TestResult runTest(const TestFile &test, const ToolChain &toolChain, bool quiet)
   }  
   // Read 
 
-  return TestResult(test, true, false, diff);  
+  return TestResult(test->testPath, true, false, diff);  
   
 
   // // Get the lines from the reference file.

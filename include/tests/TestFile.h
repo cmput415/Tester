@@ -31,6 +31,7 @@ public:
   // Path for the .test and .ins files. The former exists beforehand, the
   // later is created in fillInputStreamFile.
   fs::path testPath, insPath;
+  
   // A vector containing contents of each CHECK directive in the .test file. 
   std::vector<std::string> checkLines;
 

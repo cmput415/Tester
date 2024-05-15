@@ -5,33 +5,36 @@
 // Namespace that holds our actual exported functions.
 namespace tester {
 
-bool hasFiles(const fs::path& path) {
+// check if test files exist at directory given by path
+bool hasTestFiles(const fs::path& path) {
   for (const auto& entry : fs::recursive_directory_iterator(path)) {
-    if (fs::is_regular_file(entry.status())) {
+    // TODO: assert file extension equals .test
+    if (fs::is_regular_file(entry.status()))
       return true;
-    }
   }
   return false;
 }
 
-tester::SubPackage fillSubpackage(fs::path subPackagePath) {
-  tester::SubPackage testFiles; 
-  for (const auto& testFile : fs::directory_iterator(subPackagePath)) {
-    if (fs::is_regular_file(testFile)) {
-      testFiles.push_back(TestFile(testFile)); 
+// fill the vector of tests with TestFile objects in current directory path 
+void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {
+  for (const auto& file : fs::directory_iterator(subPackPath)) {
+    if (fs::is_regular_file(file)) {
+      subPackage.push_back(std::make_unique<TestFile>(file));
     }
   }
-  return testFiles;
 }
 
-void fillSubpackages(const fs::path &searchPath, tester::Package &package, const std::string &parentKey) {
+// recursively find subpackages and fill them. Move ownership of locally created subpackages 
+// into the parent Package. 
+void fillSubpackages(const fs::path &packPath, tester::Package &package, const std::string &parentKey) {
   try {
-    for (const auto& subDir : fs::directory_iterator(searchPath)) {
+    for (const auto& subDir : fs::directory_iterator(packPath)) {
       if (fs::is_directory(subDir)) {
         std::string subpackageKey = parentKey + "." + subDir.path().stem().string(); 
         
-        if (hasFiles(subDir)) {
-          tester::SubPackage subpackage = fillSubpackage(subDir.path());
+        if (hasTestFiles(subDir)) {
+          tester::SubPackage subpackage;
+          fillSubpackage(subpackage, subDir.path());
           package[subpackageKey] = std::move(subpackage);
         }
 
@@ -43,7 +46,7 @@ void fillSubpackages(const fs::path &searchPath, tester::Package &package, const
   }
 }
 
-void findTests(fs::path testsPath, tester::Module &module) {
+void fillModule(fs::path testsPath, tester::Module &module) {
   // Iterate over each package. One package corresponds to one teams/individuals tests. 
   for (const auto& dir: fs::directory_iterator(testsPath)) {
     const fs::path &packagePath = dir.path();
@@ -51,7 +54,7 @@ void findTests(fs::path testsPath, tester::Module &module) {
     tester::Package package;
      
     fillSubpackages(packagePath, package, packageKeyPrefix);
-    module[packageKeyPrefix] = package;
+    module[packageKeyPrefix] = std::move(package);
   }
 }
 

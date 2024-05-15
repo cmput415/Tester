@@ -64,11 +64,8 @@ private:
   bool isStdOut;
   fs::path stdoutPath;
 
-  // Uses runtime.
-  bool usesRuntime;
-
-  // Uses input stream.
-  bool usesInStr;
+  // Uses runtime and uses input stream.
+  bool usesRuntime, usesInStr;
 
   // Allow return with non-zero exit code.
   bool allowError;

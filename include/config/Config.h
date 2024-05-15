@@ -60,10 +60,7 @@ private:
   fs::path gradeFilePath;
   fs::path summaryFilePath;
   fs::path testDirPath;
-  // fs::path inDirPath;
-  // fs::path outDirPath;
-  // fs::path inStreamDirPath; // This can be empty if there is no input streams.
-
+  
   // Option file maps.
   PathMap executables;
   PathMap runtimes;
