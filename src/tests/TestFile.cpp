@@ -3,8 +3,7 @@
 namespace tester {
 
 TestFile::~TestFile() {
-    
-  std::cout << "deleting file:" << insPath << std::endl;
+
   std::error_code ec;
   fs::remove(insPath, ec);
   if (ec) {
@@ -18,10 +17,7 @@ void TestFile::fillInputStreamFile() {
   insPath = fs::temp_directory_path() / testPath.filename().replace_extension(".ins");
   std::ifstream testFile(testPath);
   std::ofstream insFile(insPath);
-
-  std::cout << "test path: " << testPath << std::endl;
-  std::cout << "ins path: " << insPath << std::endl;
-
+  
   // TODO: how to handle errors properly 
   if (!testFile.is_open()) {
     std::cerr << "error: failed to open test file: " << testPath << std::endl; 
@@ -31,15 +27,27 @@ void TestFile::fillInputStreamFile() {
     return; 
   }
 
+  // TODO: ensure that NEWLINES are not ignored. Should an empty INPUT: generate a string
+  // with only a newline character?
   std::string line;
   while (std::getline(testFile, line)) {
     size_t findIdx = line.find(input_directive);
     if (findIdx != std::string::npos) {
       // write the conetnts following the INPUT directive into the input stream file.
       insFile << line.substr(findIdx + strlen(input_directive)) << std::endl;
-      hasInputStream = true; 
+      hasInput = true; 
     }
   }
+ 
+  //DEBUG: print the contents of insFile
+  std::cout << "DEBUG" << std::endl;
+  std::ifstream dumpInsFile(insPath);
+  std::string dumpLine;
+  while (std::getline(dumpInsFile, dumpLine)) {
+    std::cout << dumpLine << std::endl;
+  } 
+  std::cout << "END_DEBUG" << std::endl;
+
   // Close files
   insFile.close();
   testFile.close();  
@@ -57,10 +65,14 @@ void TestFile::fillCheckLines() {
   while (std::getline(testFile, line)) {
       size_t findIdx = line.find(check_directive);
       if (findIdx != std::string::npos) {
-      std::string checkLine = line.substr(findIdx + strlen(check_directive));
-      checkLines.push_back(checkLine);
+        std::string checkLine = line.substr(findIdx + strlen(check_directive));
+        checkLines.push_back(checkLine);
+        hasCheck = true;
       }
   }
-  testFile.close();
+  if (!hasCheck) {
+    checkLines.push_back("");
   }
+  testFile.close();
+}
 } // namespace tester

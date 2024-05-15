@@ -374,7 +374,7 @@ fs::path Command::resolveArg(const ExecutionInput &ei, const ExecutionOutput &eo
     std::string arg) const {
   // Input magic argument. Resolves to the input file for this command.
   if (arg == "$INPUT")
-    return ei.getInputFile();
+    return ei.getTestFile();
 
   // Output magic argument. Resolves to the output file for this command.
   if (arg == "$OUTPUT")
@@ -397,7 +397,7 @@ fs::path Command::resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo
   // Input magic argument. Resolves to the input file for this command. Use for when a step
   // prodocues a runnable executable (your compiled executable).
   if (exe == "$INPUT")
-    return ei.getInputFile();
+    return ei.getTestFile();
 
   // Seem like it was meant to be a magic parameter.
   if (exe[0] == '$')

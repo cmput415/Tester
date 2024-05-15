@@ -27,7 +27,9 @@ public:
   // Delete the temporary .ins file created along with the class instance. 
   ~TestFile();
 
-  bool hasInputStream; 
+  // Does the test file contain non-empty INPUT & CHECK directives
+  bool hasInput, hasCheck;
+
   // Path for the .test and .ins files. The former exists beforehand, the
   // later is created in fillInputStreamFile.
   fs::path testPath, insPath;

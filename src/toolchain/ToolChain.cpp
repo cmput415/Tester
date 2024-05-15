@@ -19,15 +19,7 @@ ToolChain::ToolChain(const JSON &json, int64_t timeout) {
 
 ExecutionOutput ToolChain::build(const std::unique_ptr<TestFile>& test) const {
 
-  // ExecutionInput ei(test, testedExecutable, testedRuntime);
   ExecutionInput ei(test->testPath, test->insPath, testedExecutable, testedRuntime);
-
-  #if 1
-    std::cout << "passed: "<< test->testPath << " | "<< test->insPath << std::endl;
-
-    std::cout << "is a file (toolChain::build):" << fs::exists(test->insPath) << std::endl;
-  #endif
-
   ExecutionOutput eo("");
 
   for (const Command &c : commands) {

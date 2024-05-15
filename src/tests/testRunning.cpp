@@ -22,11 +22,8 @@ namespace tester {
 TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolChain, bool quiet) {
   // Try to build the test. If there's a problem running a command, then we assume failure.
   ExecutionOutput eo("");
-  std::string diff = "";
  
-  try {
-    
-    std::cout << "is a file (runTest):" << fs::exists(test->insPath) << std::endl;
+  try { 
     eo = toolChain.build(test);
   }
   catch (const CommandException &ce) {
@@ -37,61 +34,29 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
       return TestResult(test->testPath, false, true, "");
   }
 
-  // std::cout << "Output File: !" << eo.getOutputFile() << std::endl;
   std::vector<std::string> genLines; 
   getFileLines(eo.getOutputFile(), genLines);
 
-  std::cout << "CHECK LINES" << std::endl;
-  for (auto line : test->checkLines) {
-    std::cout << "\tCHECK: " << line << std::endl;
+  dtl::Diff<std::string> diff(test->checkLines, genLines);
+  diff.compose();
+  diff.composeUnifiedHunks();
+
+  std::cout << "DEBUG" << std::endl;
+  for (auto line: test->checkLines) {
+    std::cout << "\tCHECK:" << line << std::endl;
+  }
+  for (auto line: genLines) {
+    std::cout << "\tGEN:" << line << std::endl;
   }
 
-  std::cout << "GEN LINES" << std::endl;
+  // We failed the test.
+  if (!diff.getUniHunks().empty()) {
+    std::stringstream ss;
+    diff.printUnifiedFormat(ss);
+    return TestResult(test->testPath, false, false, ss.str());
+  }
 
-  for (auto line : genLines) {
-    std::cout << "\tGEN: " << line << std::endl;
-  }  
-  // Read 
-
-  return TestResult(test->testPath, true, false, diff);  
-  
-
-  // // Get the lines from the reference file.
-
-
-  // /* Check to see if this an error test. The expected output must contain
-  //  * exactly one line and the substring "Error".
-  //  */
-  // bool isErrorTest = false;
-  // if (expLines.size() == 1 && expLines[0].find("Error") != std::string::npos) {
-  //   isErrorTest = true;
-  //   expLines = {expLines[0]};
-  // }
-
-  // // Get the lines from the output file.
-  // std::vector<std::string> genLines;
-
-  // if (!isErrorTest) { // Is not an error test.
-  //   getFileLines(eo.getOutputFile(), genLines);
-  // }
-  // else { // Is an error test.
-  //   getFileLines(eo.getErrorFile(), genLines);
-  //   if (!genLines.empty())
-  //     genLines = {genLines[0].substr(0, genLines[0].find(':'))};
-  // }
-
-  // dtl::Diff<std::string> diff(expLines, genLines);
-  // diff.compose();
-  // diff.composeUnifiedHunks();
-
-  // // We failed the test.
-  // if (!diff.getUniHunks().empty()) {
-  //   std::stringstream ss;
-  //   diff.printUnifiedFormat(ss);
-  //   return TestResult(pm.in, false, false, ss.str());
-  // }
-
-  // return TestResult(pm.in, true, false, "");
+  return TestResult(test->testPath, true, false, "");
 }
 
 } // End namespace tester

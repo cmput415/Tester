@@ -147,11 +147,10 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
       packageCount += subPackage.size(); 
       
       for (const auto& test : subPackage) {  
-        std::cout << "is a file (testharness::run):" << fs::exists(test->insPath) << std::endl;
         TestResult result = runTest(test, toolChain, cfg.isQuiet());
         results.addResult(exeName, tcName, pKey, result);
         // Log the pass/fail.
-        std::cout << "    " << test->testPath.stem().string() << ": "
+        std::cout << "    " << test->testPath.filename().string() << ": "
                   << (result.pass ? "PASS" : "FAIL") << '\n';
         // If we pass, note the pass.
         if (result.pass) {
