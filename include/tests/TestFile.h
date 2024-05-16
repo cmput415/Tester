@@ -27,21 +27,37 @@ public:
   // Delete the temporary .ins file created along with the class instance. 
   ~TestFile();
 
-  // Does the test file contain non-empty INPUT & CHECK directives
-  bool hasInput, hasCheck;
+  fs::path getTestPath() { return testPath; }
+  fs::path getInsPath() { return insPath; }
 
-  // Path for the .test and .ins files. The former exists beforehand, the
-  // later is created in fillInputStreamFile.
+  // Get read-only reference to the checklines vector
+  const std::vector<std::string>& getCheckLines() const { return checkLines; }
+
+private:
+
+  // keywords
+  const char *input_file_directive = "INPUT_FILE:";
+  const char *input_directive = "INPUT:";
+  const char *check_directive = "CHECK:";
+  
+  // Flags to indicate if each directive has been parsed 
+  bool hasInput, hasCheck, hasInputFile;
+
+  // Test file breaks some convention or was unable to parse directives. 
+  bool badTest;
+  std::string testErrorMessage;
+
+  // Path for the .test (supplied in contructor) and .ins files (generated or supplied in INPUT_FILE). 
   fs::path testPath, insPath;
   
   // A vector containing contents of each CHECK directive in the .test file. 
   std::vector<std::string> checkLines;
-
-  const char *input_directive = "INPUT:";
-  const char *check_directive = "CHECK:";
-  
+ 
   // implicit conversion to fs::path
   operator fs::path() const { return testPath; };
+
+  // Parse a .test file to find directives and validate conventions
+  void parse();
 
   // Parses the .test file for INPUT directives and fills
   // a temporary .ins file with the found contents.   

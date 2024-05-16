@@ -1,5 +1,7 @@
 #include "tests/TestFile.h"
 
+
+ 
 namespace tester {
 
 TestFile::~TestFile() {
@@ -12,44 +14,68 @@ TestFile::~TestFile() {
   }
 }
 
+void TestFile::parse() {
+  std::ifstream testFile(testPath);
+  std::string line;
+  while (std::getline(testFile, line)) {
+    
+  }
+}
+
 void TestFile::fillInputStreamFile() {
  
   insPath = fs::temp_directory_path() / testPath.filename().replace_extension(".ins");
   std::ifstream testFile(testPath);
-  std::ofstream insFile(insPath);
+  std::ofstream tmpInsFile(insPath);
   
   // TODO: how to handle errors properly 
   if (!testFile.is_open()) {
     std::cerr << "error: failed to open test file: " << testPath << std::endl; 
     return;
-  } else if (!insFile.is_open()) {
+  } else if (!tmpInsFile.is_open()) {
     std::cerr << "error: failed to open inStream file: " << insPath << std::endl; 
     return; 
   }
 
-  // TODO: ensure that NEWLINES are not ignored. Should an empty INPUT: generate a string
-  // with only a newline character?
+  // TODO: ensure that NEWLINES are not ignored. Should an empty INPUT: generate a string with only a newline character?
   std::string line;
   while (std::getline(testFile, line)) {
     size_t findIdx = line.find(input_directive);
     if (findIdx != std::string::npos) {
+
       // write the conetnts following the INPUT directive into the input stream file.
-      insFile << line.substr(findIdx + strlen(input_directive)) << std::endl;
+      tmpInsFile << line.substr(findIdx + strlen(input_directive)) << std::endl;
       hasInput = true; 
+      // can not combine INPUT and INPUT_FILE directive in one test
+      continue; 
+    }
+
+    size_t inputFileIdx = line.find(input_file_directive);
+    if (inputFileIdx != std::string::npos) {
+      std::string insFilePath = line.substr(inputFileIdx + strlen(input_file_directive));
+      std::ifstream insFile(insFilePath);
+      if (!insFile.is_open()) {
+        testErrorMessage = "Failed to open file:"; 
+        badTest = true;
+      }
+      // validate input
+      
+      // if the input is valid and the path exists, assign to the insPath member variable
+      insPath = insFilePath;
     }
   }
  
   //DEBUG: print the contents of insFile
-  std::cout << "DEBUG" << std::endl;
-  std::ifstream dumpInsFile(insPath);
-  std::string dumpLine;
-  while (std::getline(dumpInsFile, dumpLine)) {
-    std::cout << dumpLine << std::endl;
-  } 
-  std::cout << "END_DEBUG" << std::endl;
+  // std::cout << "DEBUG" << std::endl;
+  // std::ifstream dumpInsFile(insPath);
+  // std::string dumpLine;
+  // while (std::getline(dumpInsFile, dumpLine)) {
+  //   std::cout << dumpLine << std::endl;
+  // } 
+  // std::cout << "END_DEBUG" << std::endl;
 
   // Close files
-  insFile.close();
+  tmpInsFile.close();
   testFile.close();  
 }
 
@@ -71,7 +97,7 @@ void TestFile::fillCheckLines() {
       }
   }
   if (!hasCheck) {
-    checkLines.push_back("");
+    checkLines.push_back(""); // Make the tester validate against an empty output
   }
   testFile.close();
 }

@@ -3,6 +3,7 @@ build/
 
 # Ignore custom cmake directories
 bin/
+tests/
 
 # Ignore CLion files
 cmake-build*/
