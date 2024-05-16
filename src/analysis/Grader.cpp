@@ -10,9 +10,8 @@ namespace {
 
 namespace tester {
 
-Grader::Grader(const Config &cfg) : cfg(cfg), tests(), analysis() {
+Grader::Grader(const Config &cfg) : cfg(cfg), module(cfg.getTestDirPath()), analysis() {
   // findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
-  fillModule(cfg.getTestDirPath(), tests);
   buildResults();
   analyseResults();
 }
@@ -22,7 +21,7 @@ void Grader::buildResults() {
 
   // Use this loop for multiple purposes. Create the test counts, but also build up the vector of
   // test package names that have executables (theoretically this should be all of them).
-  for (const auto &testPackage : tests) {
+  for (const auto &testPackage : module.tests) {
     // First check if the name exists in the executable lists.
     std::string name = testPackage.first;
     if (!cfg.hasExecutable(name)) {
@@ -69,7 +68,7 @@ void Grader::buildResults() {
         std::cout << toolChainName << '|' << attacker << '|' << defender << ':';
         // Iterate over subpackages and the contained tests from the attacker, tracking pass count.
         size_t passCount = 0;
-        for (const auto &subpackages : tests[attacker]) {
+        for (const auto &subpackages : module.tests[attacker]) {
           for (const auto &test : subpackages.second) {
             if (runTest(test, tc, true).pass) // TODO: verify correct types
               ++passCount;

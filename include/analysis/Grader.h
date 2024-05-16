@@ -5,6 +5,7 @@
 #include "analysis/spreadsheet/Table.h"
 #include "config/Config.h"
 #include "tests/testUtil.h"
+#include "tests/TestModule.h"
 
 #include <ostream>
 #include <string>
@@ -34,7 +35,7 @@ private:
   const Config &cfg;
 
   // Our tests.
-  Module tests;
+  TestModule module;
 
   // The sheet that our analysis goes into.
   Sheet analysis;

@@ -11,10 +11,10 @@
 
 namespace tester {
 
-TestHarness::TestHarness(const Config &cfg) : cfg(cfg), results(), module() {
-  // Build the test set.
-  fillModule(cfg.getTestDirPath(), module);
-}
+TestHarness::TestHarness(const Config &cfg) 
+  : cfg(cfg), 
+    results(), 
+    module(cfg.getTestDirPath()) {}
 
 bool TestHarness::runTests() {
   bool failed = false;
@@ -31,7 +31,7 @@ bool TestHarness::runTests() {
 
 std::string TestHarness::getTestInfo() const {
   std::string rv = "Tests:\n";
-  for (auto &package : module) {
+  for (auto &package : module.tests) {
     rv += "  " + package.first + ": " + std::to_string(package.second.size()) + '\n';
   }
   return rv;
@@ -56,7 +56,7 @@ std::string TestHarness::getTestSummary() const {
     bool toSelf = false, toOther = false;
 
     // Iterate over the test packages.
-    for (const auto &package : module) {
+    for (const auto &package : module.tests) {
       // Success count.
       unsigned int passes = 0, count = 0;
 
@@ -135,12 +135,12 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
   unsigned int toolChainCount = 0, toolChainPasses = 0;
 
   // Iterate the module
-  for (const auto& [pKey, package] : module) {
+  for (const auto& [pKey, package] : module.tests) {
     std::cout << "Entering package: " << pKey << '\n';
     
     uint32_t packageCount = 0, packagePasses = 0;
     
-    for (const auto& [spKey, subPackage] : module[pKey]) {
+    for (const auto& [spKey, subPackage] : module.tests[pKey]) {
       std::cout << "Entering SubPackage: " << spKey << std::endl;
       
       uint32_t subPackagePasses = 0;

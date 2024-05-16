@@ -3,6 +3,7 @@
 
 #include "config/Config.h"
 #include "tests/testUtil.h"
+#include "tests/TestModule.h"
 #include "testharness/ResultManager.h"
 #include "toolchain/ToolChain.h"
 
@@ -47,7 +48,7 @@ private:
   ResultManager results;
   
   // File Check Test Module
-  Module module;
+  TestModule module;
 };
 
 } // End namespace tester

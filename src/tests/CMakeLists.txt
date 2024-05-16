@@ -1,9 +1,10 @@
 # Gather our source files in this directory.
 set(
   tests_src_files
-    "${CMAKE_CURRENT_SOURCE_DIR}/testFinding.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/testRunning.cpp"
+    # "${CMAKE_CURRENT_SOURCE_DIR}/TestFinding.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/TestRunning.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/TestFile.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/TestModule.cpp"
 )
 
 # Build the library from the source files.

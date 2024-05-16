@@ -32,8 +32,6 @@ public:
     // }
     std::cout << results.size() << std::endl;
     return results.at(exe).at(toolchain);
-    
-    // return results.at(exe).at(toolchain);
   }
 
 private:
