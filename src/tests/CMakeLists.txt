@@ -5,6 +5,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/TestRunning.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/TestFile.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/TestModule.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/TestParser.cpp"
 )
 
 # Build the library from the source files.

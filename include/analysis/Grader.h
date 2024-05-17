@@ -4,7 +4,6 @@
 #include "analysis/spreadsheet/Sheet.h"
 #include "analysis/spreadsheet/Table.h"
 #include "config/Config.h"
-#include "tests/testUtil.h"
 #include "tests/TestModule.h"
 
 #include <ostream>

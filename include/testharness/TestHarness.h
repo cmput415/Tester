@@ -2,7 +2,6 @@
 #define TESTER_TEST_HARNESS_H
 
 #include "config/Config.h"
-#include "tests/testUtil.h"
 #include "tests/TestModule.h"
 #include "testharness/ResultManager.h"
 #include "toolchain/ToolChain.h"

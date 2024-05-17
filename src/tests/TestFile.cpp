@@ -1,6 +1,4 @@
 #include "tests/TestFile.h"
-
-
  
 namespace tester {
 
@@ -14,14 +12,6 @@ TestFile::~TestFile() {
   }
 }
 
-void TestFile::parse() {
-  std::ifstream testFile(testPath);
-  std::string line;
-  while (std::getline(testFile, line)) {
-    
-  }
-}
-
 void TestFile::fillInputStreamFile() {
  
   insPath = fs::temp_directory_path() / testPath.filename().replace_extension(".ins");
@@ -30,10 +20,10 @@ void TestFile::fillInputStreamFile() {
   
   // TODO: how to handle errors properly 
   if (!testFile.is_open()) {
-    std::cerr << "error: failed to open test file: " << testPath << std::endl; 
+    std::cerr << "ERROR: failed to open test file: " << testPath << std::endl; 
     return;
   } else if (!tmpInsFile.is_open()) {
-    std::cerr << "error: failed to open inStream file: " << insPath << std::endl; 
+    std::cerr << "ERROR: failed to open inStream file: " << insPath << std::endl; 
     return; 
   }
 
@@ -42,7 +32,6 @@ void TestFile::fillInputStreamFile() {
   while (std::getline(testFile, line)) {
     size_t findIdx = line.find(input_directive);
     if (findIdx != std::string::npos) {
-
       // write the conetnts following the INPUT directive into the input stream file.
       tmpInsFile << line.substr(findIdx + strlen(input_directive)) << std::endl;
       hasInput = true; 

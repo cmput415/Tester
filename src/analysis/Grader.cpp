@@ -1,17 +1,10 @@
 #include "analysis/Grader.h"
 
-#include "tests/testUtil.h"
-
 #include <iostream>
-
-// File static namespace.
-namespace {
-}
 
 namespace tester {
 
 Grader::Grader(const Config &cfg) : cfg(cfg), module(cfg.getTestDirPath()), analysis() {
-  // findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
   buildResults();
   analyseResults();
 }

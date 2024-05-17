@@ -7,6 +7,7 @@
 #include <string>
 #include <iostream>
 #include <cstring>
+#include "tests/TestParser.h"
 
 namespace fs = std::filesystem;
 
@@ -39,7 +40,7 @@ private:
   const char *input_file_directive = "INPUT_FILE:";
   const char *input_directive = "INPUT:";
   const char *check_directive = "CHECK:";
-  
+
   // Flags to indicate if each directive has been parsed 
   bool hasInput, hasCheck, hasInputFile;
 
@@ -55,9 +56,6 @@ private:
  
   // implicit conversion to fs::path
   operator fs::path() const { return testPath; };
-
-  // Parse a .test file to find directives and validate conventions
-  void parse();
 
   // Parses the .test file for INPUT directives and fills
   // a temporary .ins file with the found contents.   
