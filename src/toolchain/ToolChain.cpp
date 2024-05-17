@@ -19,7 +19,7 @@ ToolChain::ToolChain(const JSON &json, int64_t timeout) {
 
 ExecutionOutput ToolChain::build(const std::unique_ptr<TestFile>& test) const {
 
-  ExecutionInput ei(test->getTestPath(), test->getInsPath(), testedExecutable, testedRuntime);
+  ExecutionInput ei(test->testPath, test->inputStrPath, testedExecutable, testedRuntime);
   ExecutionOutput eo("");
 
   for (const Command &c : commands) {

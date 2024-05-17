@@ -150,7 +150,7 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
         TestResult result = runTest(test, toolChain, cfg.isQuiet());
         results.addResult(exeName, tcName, pKey, result);
         // Log the pass/fail.
-        std::cout << "    " << test->getTestPath().filename().string() << ": "
+        std::cout << "    " << test->testPath.filename().string() << ": "
                   << (result.pass ? "PASS" : "FAIL") << '\n';
         // If we pass, note the pass.
         if (result.pass) {

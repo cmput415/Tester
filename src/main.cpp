@@ -27,9 +27,10 @@ int main(int argc, char **argv) {
   try {
     // Build our tester.
     tester::TestHarness t(cfg);
-
+ 
     // Run our tests.
     failed = t.runTests();
+    
     return 0;
 
     // Save or print the summary.
