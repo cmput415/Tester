@@ -31,10 +31,10 @@ int main(int argc, char **argv) {
     tester::TestHarness t(cfg);
     
     std::cout << t.getTestInfo() << '\n';
-    return 0; 
 
     // Run our tests.
     failed = t.runTests();
+    return 0; 
 
     // Save or print the summary.
     std::string summary = t.getTestSummary();

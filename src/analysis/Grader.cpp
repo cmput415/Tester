@@ -1,7 +1,5 @@
 #include "analysis/Grader.h"
 
-#include "tests/testUtil.h"
-
 #include <iostream>
 
 // File static namespace.

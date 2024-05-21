@@ -52,20 +52,6 @@ private:
   // A vector containing contents of each CHECK directive in the .test file. 
   std::vector<std::string> checkLines;
  
-  // implicit conversion to fs::path
-//   operator fs::path() const { return testPath; };
-// 
-//   // Parse a .test file to find directives and validate conventions
-//   void parse();
-
-//   // Parses the .test file for INPUT directives and fills
-//   // a temporary .ins file with the found contents.   
-//   void fillInputStreamFile();
-
-//   // Parses the .test file for CHECK directives and fills the
-//   // checkLines vector with each line found. 
-//   void fillCheckLines();
-
 };
 
 } // namespace tester
