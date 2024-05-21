@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e 
+
+exe=$1
+path=$2
+echo "exe $exe path $path"
+prog=${path%.*}
+
+cp $path ./$prog.cc
+$exe -o $exe.exe ./$prog.cc
+
+
