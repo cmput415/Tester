@@ -50,8 +50,6 @@ private:
   // Resolves magic exe parameters to value.
   fs::path resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo, std::string exe) const;
 
-//  void runCommand(std::promise<unsigned int> promise, const std::string &exe, const std::string &args) const;
-
 private:
   // Command info.
   std::string name;
@@ -64,11 +62,8 @@ private:
   bool isStdOut;
   fs::path stdoutPath;
 
-  // Uses runtime.
-  bool usesRuntime;
-
-  // Uses input stream.
-  bool usesInStr;
+  // Uses runtime and uses input stream.
+  bool usesRuntime, usesInStr;
 
   // Allow return with non-zero exit code.
   bool allowError;

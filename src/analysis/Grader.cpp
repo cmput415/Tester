@@ -11,7 +11,8 @@ namespace {
 namespace tester {
 
 Grader::Grader(const Config &cfg) : cfg(cfg), tests(), analysis() {
-  findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
+  // TODO: add new findTests interface
+  // findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
   buildResults();
   analyseResults();
 }

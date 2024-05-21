@@ -1,0 +1,34 @@
+{
+  "testDir": "./testfiles",
+  "testedExecutablePaths": {
+    "gazprea-byte-benders-1": "/usr/local/bin/gazc"
+  },
+  "runtimes": {
+    "gazprea-byte-benders-1": "/usr/local/lib/libgazrt.so"
+  },
+  "toolchains": {
+    "gazprea": [
+      {
+        "stepName": "gazc",
+        "executablePath": "$EXE",
+        "arguments": [
+          "$INPUT",
+          "$OUTPUT"
+          ],
+        "output": "gazc.ll",
+        "allowError": true
+      }, 
+      {
+        "stepName": "lli",
+        "executablePath": "/home/justin/installs/llvm-project/build/bin/lli",
+        "arguments": [
+          "$INPUT"
+        ],
+        "output": "-",
+        "usesRuntime": true,
+        "usesInStr": true,
+        "allowError": true
+      }
+    ] 
+  }
+}

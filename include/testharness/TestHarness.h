@@ -2,7 +2,7 @@
 #define TESTER_TEST_HARNESS_H
 
 #include "config/Config.h"
-#include "tests/testUtil.h"
+#include "tests/Util.h"
 #include "testharness/ResultManager.h"
 #include "toolchain/ToolChain.h"
 
@@ -43,11 +43,11 @@ private:
   // Our input config.
   const Config &cfg;
 
-  // The list of tests to test.
-  PackageSet tests;
-
   // The results of the tests.
   ResultManager results;
+
+  // module where all tests are contained
+  TestModule module;
 };
 
 } // End namespace tester
