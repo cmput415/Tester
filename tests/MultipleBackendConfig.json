@@ -1,0 +1,37 @@
+{
+  "inDir": "./input",
+  "outDir": "./output",
+  "testedExecutablePaths": {
+    "runrau": "g++"
+  },
+  "toolchains": {
+    "LLVM": [
+      {
+        "stepName": "clang",
+        "executablePath": "./build",
+          "arguments": [ "clang", "$INPUT" ],
+        "output": "clang.exe"
+      },
+      {
+        "stepName": "run",
+        "executablePath": "$INPUT",
+        "arguments": [],
+        "output": "-"
+      }  
+    ],
+    "GNU": [
+      {
+        "stepName": "g++",
+        "executablePath": "./build",
+          "arguments": [ "g++", "$INPUT" ],
+        "output": "g++.exe"
+      },
+      {
+        "stepName": "run",
+        "executablePath": "$INPUT",
+        "arguments": [],
+        "output": "-"
+      }  
+    ]
+  }
+}
