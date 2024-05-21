@@ -7,6 +7,11 @@
 #include <exception>
 
 int main(int argc, char **argv) {
+
+#if defined(DEBUG)
+  std::cout << "415 Tester running in DEBUG mode" << std::endl;
+#endif
+  
   // Build the config and exit if it fails.
   tester::Config cfg(argc, argv);
   if (!cfg.isInitialised())
@@ -24,7 +29,9 @@ int main(int argc, char **argv) {
   try {
     // Build our tester.
     tester::TestHarness t(cfg);
+    
     std::cout << t.getTestInfo() << '\n';
+    return 0; 
 
     // Run our tests.
     failed = t.runTests();

@@ -19,11 +19,10 @@ bool isTestFile(const fs::path& path) {
 void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {  
 
   for (const auto& file : fs::directory_iterator(subPackPath)) {
-    if (fs::exists(file)) {
-      
+    if (fs::exists(file) && isTestFile(file)) {
+
 #if defined(DEBUG)
   std::cout << "Found Testfile: " << file << std::endl;
-  std::cout << "Is testfile: " << isTestFile(file) << std::endl;  
 #endif
 
       subPackage.push_back(std::make_unique<TestFile>(file));
@@ -32,37 +31,23 @@ void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {
 }
 
 void fillSubpackages(Package& package, const fs::path& packPath, const std::string& parentKey) {
-    try {
-        SubPackage topLevelSubPackage; // tests may be structed without any nested subpackages.
-        for (const auto& file : fs::directory_iterator(packPath)) {
+  try {
+    for (const auto& file : fs::directory_iterator(packPath)) {
+      if (fs::is_directory(file)) {
+        std::string subpackageKey = parentKey + "." + file.path().stem().string();
 
-            if (isTestFile(file)) {
-              topLevelSubPackage.push_back(std::make_unique<TestFile>(file));
-            } 
-
-            if (fs::is_directory(file)) {
-                std::string subpackageKey = parentKey + "." + file.path().stem().string();
- 
-#if defined(DEBUG)
-  std::cout << "Found subdirectory: " << subDir << std::endl;
-#endif               
-                if (hasTestFiles(file)) {
-                    SubPackage subpackage;
-                    fillSubpackage(subpackage, file.path());
-                    package[subpackageKey] = std::move(subpackage);
-                }
-
-                fillSubpackages(package, file, subpackageKey);
-            }
+        if (hasTestFiles(file)) {
+          SubPackage subpackage;
+          fillSubpackage(subpackage, file.path());
+          package[subpackageKey] = std::move(subpackage);
         }
 
-        if (!topLevelSubPackage.empty()) {
-          package[parentKey] = std::move(topLevelSubPackage);
-        }
-
-    } catch (const fs::filesystem_error& e) {
-        std::cerr << e.what() << std::endl;
+        fillSubpackages(package, file, subpackageKey);
+      }
     }
+  } catch (const fs::filesystem_error& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 
 // 
@@ -73,12 +58,22 @@ void fillModule(fs::path testsPath, TestModule& module) {
 #endif
 
   for (const auto& dir : fs::directory_iterator(testsPath)) {
-      
+
+    if (!fs::is_directory(dir)) {
+      throw std::runtime_error("All toplevel files in module must be directories.");
+    }       
+
     const fs::path& packagePath = dir.path();
     const std::string& packageKeyPrefix = packagePath.filename().string();
 
     // initialize an empty package for this student / team 
     Package package;
+
+    // initliaze some toplevel test files that have no subpackage in a default subpackage.
+    SubPackage moduleSubpackage;
+    fillSubpackage(moduleSubpackage, packagePath); 
+    if (!moduleSubpackage.empty())
+      package[packageKeyPrefix] = std::move(moduleSubpackage);
 
     // recursively fill the package with subpackages 
     fillSubpackages(package, packagePath, "");
