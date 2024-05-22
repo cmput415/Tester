@@ -5,6 +5,7 @@ a multitude of tests.
 
  1. [Usage](#usage)
     1. [Running](#running)
+    1. [The TestFile](#testfile)
     1. [Configuration](#configuration)
        1. [Preparing Tests](#preparing-tests)
        1. [Preparing a Configuration File](#preparing-a-configuration-file)
@@ -28,6 +29,31 @@ Currently there are a few options available.
 
 If you forget this, you can always use `-h` or `--help` to see info.
 
+### Testfile
+In a testfile, an input stream and expected output may be supplied within the file inside comments.
+There are three directives available. All directives are sensitive to whitespace and don't insert newlines between themselves by default. For example, `INPUT: a a a\n` contains three whitespace characters and a newline.  
+
+ * `INPUT:` Define a single line of stdinput. Not newline terminated.
+
+ * `INPUT_FILE:` Supply a relative or absolute filepath to a `.ins` file if using `INPUT` directives
+ becomes too cumbersome.
+
+ * `CHECK:` Define a single line of stdouput that the program is expected to output. Not newline terminated.
+
+Finally, an arbitrary number of `INPUT` adn `CHECK` directives may be supplied in a file, and an `INPUT` and
+`INPUT_FILE` directive may not co-exist. 
+```
+// This is a commnent.
+// INPUT:a
+
+procedure main() returns integer {
+  character c;
+  c <- std_input;
+  c -> std_output; 
+}
+
+// CHECK:a
+```
 ### Configuration
 The configuration file drives the testing process by specifying which
 executables to test, how to run a test, and what files to test with. Currently,
@@ -39,92 +65,50 @@ greater detail shortly:
    input file.
 
 #### Preparing Tests
-A test consists of at least two files: the first is the input and the other is
-the expected output. They should be named identically except that their
-extensions should be `.in` and `.out` (e.g. `example.in` and `example.out`).
-A third file can be included: an input stream with extension `.ins` (e.g.
-`example.ins`). This file becomes stdin to automate tests that make use of
-input. Because the tool is meant to test multiple student's solutions, a
-directory tree has been devised to keep these files separate.
 ```
-+-- tests
-    +-- input
-    |   +-- packagename
-    |   |   +-- subpackagename1
-    |   |   |   +-- input1.in
-    |   |   |   +-- ...
-    |   |   +-- subpackagename2
-    |   |   |   +-- ...
-    |   |   +-- inputx.in
-    |   +-- ...
-    +-- output
-    |   +-- packagename
-    |   |   +-- subpackagename1
-    |   |   |   +-- input1.out
-    |   |   |   +-- ...
-    |   |   +-- subpackagename2
-    |   |   |   +-- ...
-    |   |   +-- inputx.in
-    |   +-- ...
-    +-- inStream
-        +-- packagename
-        |   +-- subpackagename1
-        |   |   +-- input1.ins
-        |   |   +-- ...
-        |   +-- subpackagename2
-        |   |   +-- ...
-        |   +-- inputx.ins
-        +-- ...
+└── tests 
+  ├── Config.json
+  └── testfiles
+      ├── package1
+      │   ├── io
+      │   │   ├── stdin.test
+      │   │   ├── stdin.ins
+      │   │   └── stdout.test
+      │   └── vectors
+      │       └── vec.test
+      └── package2
+          ├── hard-tests
+          │   ├── filter.test
+          │   ├── matrix.test
+          │   └── tuple.test
+          └── top_level.test
 ```
-The `input`, `output`, and `inStream` directories don't need to be together,
-but it is generally a good idea to have a folder containing these three
-folders. Inside `input`, `output`, and `inStream` there will be only test
-package folders. Packages should be used for **student IDs or group IDs**.
-Inside the input folder you should place files with the extension `.in`;
-likewise, files with the extension `.out` go in the output directory and files
-with the extension `.ins` go in the input stream directory. You can further
-choose to subdivide files into subpackages for your own organisation, but
-successes and failures, while shown for each subpackage, will be attributed
-to the overall package.
 
-Note that not every test requires an input stream. You only need to create
-a `.in` and `.out` file for this test and do not need to include an empty
-`.ins` file.
+All `.test` files are organized in a hierarchy of a single *Module* composed of
+one or more *Packages*, which are further composed of *SubPackages*. In the example
+above, the `io` and `vectors` are subpackages of `package1` and `hard-tests` is a
+subpackage of `package2`. The file `top_level.test` which is not nested in a subpackage
+will have one impliciltly created for it.
 
-For example, my CCID is `braedy`. This is a theoretical directory tree for my
-data tests:
+Submissions typically require one *Package* per student or group, with the directory appropriately named to **student IDs or group IDs**. This is for marking purposes. For example, if my CCID is `braedy`, then my directory tree may look like this for an invididual assignment.
 ```
-+-- tests
-    +-- input
-    |   +-- braedy
-    |       +-- data
-    |           +-- basic
-    |           |   +-- declarations.in
-    |           |   +-- definitions.in
-    |           +-- advanced
-    |               +-- expressions.in
-    +-- output
-    |   +-- braedy
-    |       +-- data
-    |           +-- basic
-    |           |   +-- declarations.out
-    |           |   +-- definitions.out
-    |           +-- advanced
-    |              +-- expressions.out
-    +-- inStream
-        +-- braedy
-            +-- data
-                +-- advanced
-                    +-- expressions.ins
+└── tests 
+  ├── Config.json
+  └── testfiles
+      └── braedy
+          ├── cool-tests
+          │   ├── edgecase1.test
+          │   └── edgecase2.test
+          └── basic.test
 ```
+
+<br>
 
 #### Preparing a Configuration File
 The configuration file is a JSON file with a specific format.
 ```json
 {
-  "inDir": "<path_to_input>",
-  "outDir": "<path_to_output>",
-  "inStrDir": "<path_to_input_streams>",
+  "testDir": "<path_to_input>",
   "testedExecutablePaths": {
     "ccid_or_groupid": "<path_to_executable>"
   },

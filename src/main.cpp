@@ -9,7 +9,7 @@
 int main(int argc, char **argv) {
 
 #if defined(DEBUG)
-  std::cout << "415 Tester running in DEBUG mode" << std::endl;
+  std::cout << "415 Tester running in DEBUG mode..." << std::endl;
 #endif
   
   // Build the config and exit if it fails.

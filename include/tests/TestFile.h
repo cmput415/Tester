@@ -1,6 +1,7 @@
 #ifndef TESTER_TEST_FILE_H
 #define TESTER_TEST_FILE_H
 
+// #include "TestParser.h"
 #include <filesystem>
 #include <vector>
 #include <fstream>
@@ -12,6 +13,14 @@ namespace fs = std::filesystem;
 
 namespace tester {
 
+enum ErrorState {
+  NoError,
+  DirectiveConflict,
+  MaxInputStreamExceeded,
+  FileError,
+  RuntimeError
+};
+
 class TestFile {
 public:
   
@@ -19,39 +28,38 @@ public:
   TestFile() = delete;
 
   // construct Testfile from path to .test file. 
-  TestFile(const fs::path& path) : testPath(path) {
-    // TODO: construct TestFileParser
-    // fillInputStreamFile();
-    // fillCheckLines();
-  }
+  TestFile(const fs::path& path);
+  ~TestFile();
 
-  // Delete the temporary .ins file created along with the class instance. 
-  ~TestFile() {
-    // TODO: delete allocated resources
-  }
-
+  // TODO: the getters and setters for this class are shallow abstractions, 
+  // consider changing the design. Until then, declare some members public...
+  
+  // getters
   fs::path getTestPath() { return testPath; }
   fs::path getInsPath() { return insPath; }
-
-  // Get read-only reference to the checklines vector
   const std::vector<std::string>& getCheckLines() const { return checkLines; }
+  ErrorState getErrorState() const { return errorState; }
+  const std::string &getErrorMessage() const { return errorMsg; }
+  
+  // setters 
+  void setTestPath(fs::path path) { testPath = path; }
+  void setInsPath(fs::path path) { insPath = path; }
+  void pushCheckLine(std::string line) { checkLines.push_back(line); }
+  void setErrorState(ErrorState error) { errorState = error; }
+  void setErrorMsg (std::string msg) { errorMsg = msg; } 
+ 
+  bool usesInputStream;
 
 private:
-
-  // keywords  
-  // Flags to indicate if each directive has been parsed 
-  bool hasInput, hasCheck, hasInputFile;
-
   // Test file breaks some convention or was unable to parse directives. 
-  bool badTest;
-  std::string testErrorMessage;
+  ErrorState errorState; 
+  std::string errorMsg;
 
   // Path for the .test (supplied in contructor) and .ins files (generated or supplied in INPUT_FILE). 
   fs::path testPath, insPath;
   
   // A vector containing contents of each CHECK directive in the .test file. 
-  std::vector<std::string> checkLines;
- 
+  std::vector<std::string> checkLines; 
 };
 
 } // namespace tester

@@ -18,14 +18,15 @@ bool isTestFile(const fs::path& path) {
 
 void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {  
 
-  for (const auto& file : fs::directory_iterator(subPackPath)) {
+  for (const fs::path& file : fs::directory_iterator(subPackPath)) {
     if (fs::exists(file) && isTestFile(file)) {
 
 #if defined(DEBUG)
   std::cout << "Found Testfile: " << file << std::endl;
 #endif
-
-      subPackage.push_back(std::make_unique<TestFile>(file));
+      auto testfile = std::make_unique<TestFile>(file);
+      // move ownership of the testfile to the subpackage
+      subPackage.push_back(std::move(testfile));
     }
   }
 }
