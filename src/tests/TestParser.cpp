@@ -22,7 +22,7 @@ ErrorState TestParser::matchInputDirective(std::string &line) {
     else if (!fullyContains(line, Constants::INPUT_DIRECTIVE)) {
         return ErrorState::NoError; // directive not found
     } 
-
+    
     size_t findIdx = line.find(Constants::INPUT_DIRECTIVE);
     std::string input =  line.substr(findIdx + Constants::INPUT_DIRECTIVE.length());
     insByteCount += input.length();
@@ -45,6 +45,7 @@ ErrorState TestParser::matchCheckDirective(std::string &line) {
 
     size_t findIdx = line.find(Constants::CHECK_DIRECTIVE);
     std::string checkLine = line.substr(findIdx + Constants::CHECK_DIRECTIVE.length());
+    std::cout << "moving check: " << checkLine << std::endl; 
     testfile.pushCheckLine(std::move(checkLine));
     foundCheck = true;
     
@@ -52,11 +53,12 @@ ErrorState TestParser::matchCheckDirective(std::string &line) {
 }
 
 ErrorState TestParser::matchInputFileDirective(std::string &line) {
+    
     if (foundInput) {
         return ErrorState::DirectiveConflict;
     }
-
-    size_t findIdx = line.find(Constants::INPUT_DIRECTIVE);
+    
+    size_t findIdx = line.find(Constants::INPUT_FILE_DIRECTIVE);
     if (findIdx != std::string::npos) {
         foundInputFile = true; 
         std::string parsedFileStr = 
@@ -64,7 +66,7 @@ ErrorState TestParser::matchInputFileDirective(std::string &line) {
         
         fs::path relPath = testfile.getTestPath().parent_path() / fs::path(parsedFileStr);
         fs::path absPath(parsedFileStr);
-
+        
         if (fs::exists(absPath)) {
             testfile.setInsPath(absPath);
         } else if (fs::exists(relPath)) {
@@ -93,8 +95,7 @@ int TestParser::parseTest() {
 
     std::string line;
     while (std::getline(testFileStream, line)) {
-        // updateCommentStack(line);
-        // if (inComment(line)) {
+        // TODO: updateCommentStack(line); if (inComment(line)) {
         if (1) {
             ErrorState error = matchDirectives(line);
             if (error != ErrorState::NoError) {
@@ -109,6 +110,9 @@ int TestParser::parseTest() {
     }
     if (foundInput || foundInputFile) {
         testfile.usesInputStream = true;
+    }
+    if (foundInputFile) {
+        testfile.usesInputFile = true;
     }
 
     testFileStream.close();

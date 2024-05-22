@@ -154,27 +154,20 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
       // Iterate over the tests.
       for (const std::unique_ptr<TestFile>& test : subPackage) {
         // Run the test and save the result.
-        std::cout << "TODO: RUN TEST:" << test->getTestPath().stem().string() << std::endl;
-        // TestResult result = runTest(test, toolChain, cfg.isQuiet());
+        TestResult result = runTest(test, toolChain, cfg.isQuiet());
         
-        // TODO: add test result
-        // results.addResult(exeName, tcName, subPackageName, result);
+        results.addResult(exeName, tcName, subPackageName, result);
 
-        // TODO: work with testresult 
-        // std::cout << "    " << test->getTestPath().stem().string() << ": "
-        //           << (result.pass ? "PASS" : "FAIL") << '\n';
-        std::cout << "    " << test->getTestPath().stem().string() << ": " << "PASS" << '\n';
-        // TODO: UNCOMMENT If we pass, note the pass.
-        // if (result.pass) {
-        //   ++packagePasses;
-        //   ++subPackagePasses;
-        // }
-        // If we fail, potentially print the diff.
-  //       else {
-	//   failed = true;
-  //         if (!cfg.isQuiet() && !result.error)
-  //           std::cout << '\n' << result.diff << '\n';
-	// }
+        std::cout << "    " << test->getTestPath().stem().string() << ": "
+                  << (result.pass ? "PASS" : "FAIL") << '\n';
+        if (result.pass) {
+          ++packagePasses;
+          ++subPackagePasses;
+        } else {
+	        failed = true;
+          if (!cfg.isQuiet() && !result.error)
+            std::cout << '\n' << result.diff << '\n';
+	      }
       }
 
       std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackage.size()

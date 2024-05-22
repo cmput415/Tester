@@ -31,6 +31,8 @@ public:
   TestFile(const fs::path& path);
   ~TestFile();
 
+  uint64_t id;
+  
   // TODO: the getters and setters for this class are shallow abstractions, 
   // consider changing the design. Until then, declare some members public...
   
@@ -47,10 +49,16 @@ public:
   void pushCheckLine(std::string line) { checkLines.push_back(line); }
   void setErrorState(ErrorState error) { errorState = error; }
   void setErrorMsg (std::string msg) { errorMsg = msg; } 
- 
-  bool usesInputStream;
+  
+  // if test has any input and if test uses input file specifically
+  bool usesInputStream, usesInputFile;
+
+protected:
+  static uint64_t nextId;
 
 private:
+  // for UID generation
+  
   // Test file breaks some convention or was unable to parse directives. 
   ErrorState errorState; 
   std::string errorMsg;

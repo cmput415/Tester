@@ -16,7 +16,7 @@ public:
       foundCheck(false), insByteCount(0)
   {
 #if defined(DEBUG)
-  std::cout << "Constructing Test Parser" << std::endl;
+  // std::cout << "Constructing Test Parser" << std::endl;
 #endif
     parseTest();
   };

@@ -29,54 +29,65 @@ namespace tester {
 
 TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolChain, bool quiet) {
 
+#if defined(DEBUG)
+
+  // std::cout << "Supplied Input Stream:" << std::endl; 
+  // std::string line;
+  // std::ifstream ins(test->getInsPath());
+  
+  // while (ins.good()) {
+  //   std::getline(ins, line);
+  //   std::cout << line << std::endl;
+  // } 
+
+  // std::cout << "Expected Output:" << std::endl; 
+  // for (auto& line: test->getCheckLines()) {
+  //   std::cout << line << std::endl;
+  // }
+
+#endif
   // Try to build the test. If there's a problem running a command, then we assume failure.
-  // ExecutionOutput eo("");
-  // try {
-  //     eo = toolChain.build(pm.in, pm.inStream);
-  // }
-  // catch (const CommandException &ce) {
-  //     if (!quiet) {
-  //         std::cout << "Command error: " << ce.what() << '\n';
-  //         std::cout << "output " << eo.getOutputFile() << std::endl;
-  //     }
-  //     return TestResult(pm.in, false, true, "");
-  // }
+  ExecutionOutput eo("");
+  try {
+      eo = toolChain.build(test->getTestPath(), test->getInsPath());
+  }
+  catch (const CommandException &ce) {
+      if (!quiet) {
+          std::cout << "Command error: " << ce.what() << '\n';
+          std::cout << "output " << eo.getOutputFile() << std::endl;
+      }
+      return TestResult(test->getTestPath(), false, true, "");
+  }
 
-  // // Get the lines from the reference file.
-  // std::vector<std::string> expLines;
-  // getFileLines(pm.out, expLines);
+  // TODO: test error tests
+  bool isErrorTest = false;
+  const std::vector<std::string> &checkLines = test->getCheckLines();
+  if (checkLines.size() == 1 && checkLines[0].find("Error") != std::string::npos) {
+    isErrorTest = true;
+  }
 
-  // /* Check to see if this an error test. The expected output must contain
-  //  * exactly one line and the substring "Error".
-  //  */
-  // bool isErrorTest = false;
-  // if (expLines.size() == 1 && expLines[0].find("Error") != std::string::npos) {
-  //   isErrorTest = true;
-  //   expLines = {expLines[0]};
-  // }
+  // Get the lines from the output file.
+  std::vector<std::string> genLines;
 
-  // // Get the lines from the output file.
-  // std::vector<std::string> genLines;
+  if (!isErrorTest) { // Is not an error test.
+    getFileLines(eo.getOutputFile(), genLines);
+  }
+  else { // Is an error test.
+    getFileLines(eo.getErrorFile(), genLines);
+    if (!genLines.empty())
+      genLines = {genLines[0].substr(0, genLines[0].find(':'))};
+  }
 
-  // if (!isErrorTest) { // Is not an error test.
-  //   getFileLines(eo.getOutputFile(), genLines);
-  // }
-  // else { // Is an error test.
-  //   getFileLines(eo.getErrorFile(), genLines);
-  //   if (!genLines.empty())
-  //     genLines = {genLines[0].substr(0, genLines[0].find(':'))};
-  // }
+  dtl::Diff<std::string> diff(checkLines, genLines);
+  diff.compose();
+  diff.composeUnifiedHunks();
 
-  // dtl::Diff<std::string> diff(expLines, genLines);
-  // diff.compose();
-  // diff.composeUnifiedHunks();
-
-  // // We failed the test.
-  // if (!diff.getUniHunks().empty()) {
-  //   std::stringstream ss;
-  //   diff.printUnifiedFormat(ss);
-  //   return TestResult(pm.in, false, false, ss.str());
-  // }
+  // We failed the test.
+  if (!diff.getUniHunks().empty()) {
+    std::stringstream ss;
+    diff.printUnifiedFormat(ss);
+    return TestResult(test->getTestPath(), false, false, ss.str());
+  }
 
   return TestResult(test->getTestPath(), true, false, "");
 }

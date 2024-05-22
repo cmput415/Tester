@@ -77,7 +77,7 @@ void fillModule(fs::path testsPath, TestModule& module) {
       package[packageKeyPrefix] = std::move(moduleSubpackage);
 
     // recursively fill the package with subpackages 
-    fillSubpackages(package, packagePath, "");
+    fillSubpackages(package, packagePath, packageKeyPrefix);
 
     // move the filled package into the test module.
     module[packageKeyPrefix] = std::move(package);
