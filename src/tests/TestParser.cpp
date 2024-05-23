@@ -10,20 +10,41 @@ bool fullyContains(const std::string &str, const std::string &substr) {
     return str.substr(pos, substr.length()) == substr; 
 }
 
+// determines if the filepath following a directive exists, if so returns it
+PathOrError TestParser::parsePathFromLine(
+    const std::string &line,
+    const std::string &directive
+) {
+    size_t findIdx = line.find(directive);
+    if (findIdx == std::string::npos) {
+        return ErrorState::FileError;
+    }
+
+    std::string parsedFilePath = line.substr(findIdx + directive.length());
+    fs::path relPath = testfile.getTestPath().parent_path() / fs::path(parsedFilePath);
+    fs::path absPath(parsedFilePath);
+
+    if (fs::exists(absPath))
+        return absPath;
+    else if (fs::exists(relPath)) {
+        return relPath;
+    } else {
+        std::cout << "Return File Error: 33: " << line << std::endl;
+        return ErrorState::FileError;
+    }  
+}
+
 ErrorState TestParser::matchInputDirective(std::string &line) {
     
-    if (!fullyContains(line, Constants::INPUT_DIRECTIVE)) {
-        return ErrorState::NoError;
-    }
-    
-    std::ofstream ins(testfile.getInsPath(), std::ios::app);  
-    if (!ins.is_open()) { 
-        return ErrorState::FileError;    
-    }
-    if (foundInputFile) {
+    if (!fullyContains(line, Constants::INPUT_DIRECTIVE))
+        return ErrorState::NoError;    
+    if (foundInputFile)
         return ErrorState::DirectiveConflict; // already found an INPUT_FILE
-    }
      
+    std::ofstream ins(testfile.getInsPath(), std::ios::app);  
+    if (!ins.is_open()) 
+        return ErrorState::FileError;
+    
     size_t findIdx = line.find(Constants::INPUT_DIRECTIVE);
     std::string input =  line.substr(findIdx + Constants::INPUT_DIRECTIVE.length());
     insByteCount += input.length();
@@ -40,9 +61,10 @@ ErrorState TestParser::matchInputDirective(std::string &line) {
 
 ErrorState TestParser::matchCheckDirective(std::string &line) {
 
-    if (!fullyContains(line, Constants::CHECK_DIRECTIVE)) {
+    if (!fullyContains(line, Constants::CHECK_DIRECTIVE))
         return ErrorState::NoError;
-    }
+    if (foundCheckFile)
+        return ErrorState::DirectiveConflict;
 
     size_t findIdx = line.find(Constants::CHECK_DIRECTIVE);
     std::string checkLine = line.substr(findIdx + Constants::CHECK_DIRECTIVE.length());
@@ -53,38 +75,58 @@ ErrorState TestParser::matchCheckDirective(std::string &line) {
 }
 
 ErrorState TestParser::matchInputFileDirective(std::string &line) {
-    
-    size_t findIdx = line.find(Constants::INPUT_FILE_DIRECTIVE);
-    if (findIdx != std::string::npos) {
-        
-        if (foundInput) {
-            std::cout << "Throw DirectiveConflict in line: " << line << std::endl; 
-            return ErrorState::DirectiveConflict;
-        } 
-        
-        foundInputFile = true; 
-        std::string parsedFileStr = 
-            line.substr(findIdx + Constants::INPUT_FILE_DIRECTIVE.length());
-        
-        fs::path relPath = testfile.getTestPath().parent_path() / fs::path(parsedFileStr);
-        fs::path absPath(parsedFileStr);
-        
-        if (fs::exists(absPath)) {
-            testfile.setInsPath(absPath);
-        } else if (fs::exists(relPath)) {
-            testfile.setInsPath(relPath);
-        } else {
-            return ErrorState::FileError;
-        }
+
+    if (!fullyContains(line, Constants::INPUT_FILE_DIRECTIVE)) {
+        return ErrorState::NoError;
+    }     
+    if (foundInput) {
+        std::cout << "Throw DirectiveConflict in line: " << line << std::endl; 
+        return ErrorState::DirectiveConflict;
+    } 
+
+    PathOrError pathOrError = parsePathFromLine(line, Constants::INPUT_FILE_DIRECTIVE);
+    if (std::holds_alternative<fs::path>(pathOrError)) {
+        testfile.setInsPath(std::get<fs::path>(pathOrError));
+        foundInputFile = true;
+        return ErrorState::NoError;
+    } 
+    return std::get<ErrorState>(pathOrError); 
+}
+
+//
+ErrorState TestParser::matchCheckFileDirective(std::string &line) {
+
+    if (!fullyContains(line, Constants::CHECK_FILE_DIRECTIVE))
+        return ErrorState::NoError;
+    if (foundCheck)
+        return ErrorState::DirectiveConflict;
+
+    PathOrError pathOrError = parsePathFromLine(line, Constants::CHECK_FILE_DIRECTIVE);
+    if (std::holds_alternative<ErrorState>(pathOrError))
+        return std::get<ErrorState>(pathOrError);
+
+    fs::path checkFilePath = std::get<fs::path>(pathOrError);
+    std::ifstream checkFileStream(checkFilePath);
+    if (!checkFileStream.is_open())
+        return ErrorState::FileError;
+
+    std::string checkLine; 
+    while (std::getline(checkFileStream, checkLine)) {
+        testfile.pushCheckLine(checkLine);
     }
+    foundCheckFile = true;
     return ErrorState::NoError;
 }
 
 ErrorState TestParser::matchDirectives(std::string &line) {
     ErrorState error;
+
+    // Look for each of 4 directives 
     if ((error = matchInputDirective(line)) != ErrorState::NoError) return error;
     if ((error = matchCheckDirective(line)) != ErrorState::NoError) return error;
     if ((error = matchInputFileDirective(line)) != ErrorState::NoError) return error;
+    if ((error = matchCheckFileDirective(line)) != ErrorState::NoError) return error;
+    
     return ErrorState::NoError;
 }
 
@@ -108,7 +150,7 @@ int TestParser::parseTest() {
             }
         } 
     }
-    if (!foundCheck) {
+    if (!foundCheck && !foundCheckFile) {
         testfile.pushCheckLine(std::move(""));
     }
     if (foundInput || foundInputFile) {

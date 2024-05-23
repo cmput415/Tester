@@ -4,10 +4,13 @@
 #include "TestFile.h"
 #include "Constants.h"
 #include <filesystem>
+#include <variant>
 
 namespace fs = std::filesystem;
 
 namespace tester {
+
+using PathOrError = std::variant<fs::path, ErrorState>;
 
 class TestParser {
 public:
@@ -29,15 +32,18 @@ private:
   TestFile &testfile;
     
   // track state of parse
-  bool foundInput, foundInputFile, foundCheck;
+  bool foundInput, foundInputFile, foundCheck, foundCheckFile;
 
   // current input stream size
   uint32_t insByteCount;
+
+  PathOrError parsePathFromLine(const std::string &line, const std::string &directive);
 
   // match methods
   ErrorState matchInputDirective(std::string &line);
   ErrorState matchCheckDirective(std::string &line);
   ErrorState matchInputFileDirective(std::string &line);
+  ErrorState matchCheckFileDirective(std::string &line);
   ErrorState matchDirectives(std::string &line);
 };
 

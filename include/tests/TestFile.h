@@ -39,6 +39,7 @@ public:
   // getters
   fs::path getTestPath() { return testPath; }
   fs::path getInsPath() { return insPath; }
+  fs::path getCheckFilePath() { return checkFilePath; }
   const std::vector<std::string>& getCheckLines() const { return checkLines; }
   ErrorState getErrorState() const { return errorState; }
   const std::string &getErrorMessage() const { return errorMsg; }
@@ -46,6 +47,8 @@ public:
   // setters 
   void setTestPath(fs::path path) { testPath = path; }
   void setInsPath(fs::path path) { insPath = path; }
+  void setCheckFilePath(fs::path path) { checkFilePath = path; }
+
   void pushCheckLine(std::string line) { checkLines.push_back(line); }
   void setErrorState(ErrorState error) { errorState = error; }
   void setErrorMsg (std::string msg) { errorMsg = msg; } 
@@ -64,7 +67,7 @@ private:
   std::string errorMsg;
 
   // Path for the .test (supplied in contructor) and .ins files (generated or supplied in INPUT_FILE). 
-  fs::path testPath, insPath;
+  fs::path testPath, insPath, checkFilePath;
   
   // A vector containing contents of each CHECK directive in the .test file. 
   std::vector<std::string> checkLines; 
