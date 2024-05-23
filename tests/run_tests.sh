@@ -2,13 +2,21 @@
 
 PROJECT_BASE="../"
 
+echo "Project Base: $PROJECT_BASE"
+
 if [ -f $PROJECT_BASE/bin/tester ]; then
   echo "Tester binary found"
 else
   echo "Building the Tester"
+  
+  # make directories
   mkdir -p "$PROJECT_BASE/build"
   cd "$PROJECT_BASE/build"
-  cmake ..
+  
+  echo "Working in directory:"
+  pwd
+
+  cmake $PROJECT_BASE
   make
   cd -
 fi
