@@ -7,10 +7,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: build tester
-        run: mkdir build
-          cd build
-          cmake ..
-          make
+        run: mkdir build\ 
+          && cd build\
+          && cmake ..\
+          && make 
 
       - name: run tests
         run: tests/run_tests.sh
