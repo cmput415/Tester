@@ -84,9 +84,17 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
 
   // We failed the test.
   if (!diff.getUniHunks().empty()) {
-    std::stringstream ss;
-    diff.printUnifiedFormat(ss);
-    return TestResult(test->getTestPath(), false, false, ss.str());
+    // std::stringstream ss;
+    // diff.printUnifiedFormat(ss);
+    std::cout << "Expected lines:" << "(" << test->getCheckLines().size() << ")" << std::endl;
+    for (auto& line: test->getCheckLines()) {
+      std::cout << line << std::endl;
+    }
+    std::cout << "Recieved:" << std::endl;
+    for (auto& line: genLines) {
+      std::cout << line << std::endl;
+    }
+    return TestResult(test->getTestPath(), false, false, "");
   }
 
   return TestResult(test->getTestPath(), true, false, "");

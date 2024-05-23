@@ -1,0 +1,25 @@
+{
+  "testDir": "./ctests",
+  "testedExecutablePaths": {
+    "clang": "/usr/bin/clang",
+    "gcc": "/usr/bin/gcc" 
+  },
+  "toolchains": {
+    "LLVM-GNU": [
+      {
+        "stepName": "compile",
+        "executablePath": "$EXE",
+          "arguments": ["$INPUT", "-o", "$OUTPUT"],
+        "output": "test.o"
+      },
+      {
+        "stepName": "run",
+        "executablePath": "$INPUT",
+        "arguments": [],
+        "output": "-",
+        "usesInStr": true,
+        "allowError": true
+      }
+    ] 
+  }
+}
