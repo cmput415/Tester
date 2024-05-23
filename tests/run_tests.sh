@@ -1,6 +1,7 @@
 #!/bin/bash
 
-PROJECT_BASE="../"
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+PROJECT_BASE="$SCRIPT_DIR/.."
 
 echo "Project Base: $PROJECT_BASE"
 
@@ -13,15 +14,17 @@ else
   mkdir -p "$PROJECT_BASE/build"
   cd "$PROJECT_BASE/build"
   
-  echo "Working in directory:"
-  pwd
-
+  # cmake
   cmake $PROJECT_BASE
   make
   cd -
 fi
 
-$PROJECT_BASE/bin/tester ./TestConfig.json
+# we need to be in the test dir to run tests
+cd $SCRIPT_DIR
+
+# run C tests
+$PROJECT_BASE/bin/tester $SCRIPT_DIR/TestConfig.json
 
 status=$?
 
