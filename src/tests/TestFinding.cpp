@@ -11,9 +11,11 @@ bool hasTestFiles(const fs::path& path) {
 }
 
 bool isTestFile(const fs::path& path) {
-  if (fs::exists(path) &&
-    // TODO: remove this bandaid solution 
-    (path.extension() == ".test" || path.extension() == ".c")) {
+  if (fs::exists(path) 
+    && !fs::is_directory(path)
+    && path.extension() != ".ins" 
+    && path.extension() != ".out"
+  ) {
     return true;
   }
   return false; 

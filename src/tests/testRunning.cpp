@@ -80,12 +80,16 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
 
   dtl::Diff<std::string> diff(checkLines, genLines);
   diff.compose();
-  diff.composeUnifiedHunks();
+  diff.composeUnifiedHunks(); 
+    
+  
 
   // We failed the test.
   if (!diff.getUniHunks().empty()) {
     // std::stringstream ss;
     // diff.printUnifiedFormat(ss);
+
+    // DEBUG STUFF    
     std::cout << "Expected lines:" << "(" << test->getCheckLines().size() << ")" << std::endl;
     for (auto& line: test->getCheckLines()) {
       std::cout << line << std::endl;
@@ -94,6 +98,7 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
     for (auto& line: genLines) {
       std::cout << line << std::endl;
     }
+
     return TestResult(test->getTestPath(), false, false, "");
   }
 

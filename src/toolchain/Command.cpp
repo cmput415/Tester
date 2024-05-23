@@ -73,6 +73,8 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
 
   // If we're provided with a input stream file we need to replace STDIN.
   if (!input.empty()) {
+
+    // std::cout << "TRY TO OPEN: " << input << std::endl;
     // Open up the file we'd like to use.
     int fd = open(input.c_str(), O_RDONLY, NULL);
 

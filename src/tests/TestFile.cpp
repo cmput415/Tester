@@ -16,15 +16,15 @@ namespace tester {
 uint64_t TestFile::nextId = 0;
 
 TestFile::TestFile(const fs::path& path) 
-  : usesInputStream(false), testPath(path), id(++nextId) {
+  :  id(++nextId), usesInputStream(false), testPath(path) {
 
   // create a unique temporary file to use as the inputs stream path 
   std::string fileInsPath = stripFileExtension(testPath.filename());  
   insPath = fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".ins");
 
-  if (fs::exists(insPath) && fs::file_size(insPath) != 0 ) {
-    std::cerr << "Temp file already exists..." << std::endl;
-  }
+  std::ofstream ofs(insPath);
+  ofs.close();
+  
 
   // invoke the parser
   TestParser parser(*this);
