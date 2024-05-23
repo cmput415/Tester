@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-../bin/tester ./TestConfig.json
+bin/tester ./TestConfig.json
 
 status=$?
 
