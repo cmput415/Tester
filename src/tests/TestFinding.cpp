@@ -11,8 +11,11 @@ bool hasTestFiles(const fs::path& path) {
 }
 
 bool isTestFile(const fs::path& path) {
-  if (fs::exists(path) && path.extension() == ".test")
+  if (fs::exists(path) &&
+    // TODO: remove this bandaid solution 
+    (path.extension() == ".test" || path.extension() == ".c")) {
     return true;
+  }
   return false; 
 }
 
