@@ -6,11 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: build tester
-        run: mkdir build\ 
-          && cd build\
-          && cmake ..\
-          && make 
-
-      - name: run tests
+    
+      - name: build and run tester
         run: tests/run_tests.sh
