@@ -11,22 +11,23 @@ bool fullyContains(const std::string &str, const std::string &substr) {
 }
 
 ErrorState TestParser::matchInputDirective(std::string &line) {
-
+    
+    if (!fullyContains(line, Constants::INPUT_DIRECTIVE)) {
+        return ErrorState::NoError;
+    }
+    
     std::ofstream ins(testfile.getInsPath(), std::ios::app);  
     if (!ins.is_open()) { 
         return ErrorState::FileError;    
     }
-    else if (foundInputFile) {
+    if (foundInputFile) {
         return ErrorState::DirectiveConflict; // already found an INPUT_FILE
     }
-    else if (!fullyContains(line, Constants::INPUT_DIRECTIVE)) {
-        return ErrorState::NoError; // directive not found
-    } 
-    
+     
     size_t findIdx = line.find(Constants::INPUT_DIRECTIVE);
     std::string input =  line.substr(findIdx + Constants::INPUT_DIRECTIVE.length());
     insByteCount += input.length();
-
+    
     if (insByteCount > Constants::MAX_INPUT_BYTES) {
         return ErrorState::MaxInputStreamExceeded;
     }
@@ -45,7 +46,6 @@ ErrorState TestParser::matchCheckDirective(std::string &line) {
 
     size_t findIdx = line.find(Constants::CHECK_DIRECTIVE);
     std::string checkLine = line.substr(findIdx + Constants::CHECK_DIRECTIVE.length());
-    std::cout << "moving check: " << checkLine << std::endl; 
     testfile.pushCheckLine(std::move(checkLine));
     foundCheck = true;
     
@@ -54,12 +54,14 @@ ErrorState TestParser::matchCheckDirective(std::string &line) {
 
 ErrorState TestParser::matchInputFileDirective(std::string &line) {
     
-    if (foundInput) {
-        return ErrorState::DirectiveConflict;
-    }
-    
     size_t findIdx = line.find(Constants::INPUT_FILE_DIRECTIVE);
     if (findIdx != std::string::npos) {
+        
+        if (foundInput) {
+            std::cout << "Throw DirectiveConflict in line: " << line << std::endl; 
+            return ErrorState::DirectiveConflict;
+        } 
+        
         foundInputFile = true; 
         std::string parsedFileStr = 
             line.substr(findIdx + Constants::INPUT_FILE_DIRECTIVE.length());
@@ -99,6 +101,7 @@ int TestParser::parseTest() {
         if (1) {
             ErrorState error = matchDirectives(line);
             if (error != ErrorState::NoError) {
+                std::cout << "Found Error: " << error << std::endl; 
                 testfile.setErrorState(error);
                 testfile.setErrorMsg("Generic Error"); 
                 break;
