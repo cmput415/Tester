@@ -2,7 +2,11 @@
 
 namespace tester {
 
-// returns true iff substring is contained fully within str
+/**
+ * @param str the line being operated on
+ * @param substr the line to determine if exists in str fully
+ * @returns true if substr is fully within str 
+*/
 bool fullyContains(const std::string &str, const std::string &substr) {
     size_t pos = str.find(substr);
     if (pos == std::string::npos)
@@ -10,7 +14,11 @@ bool fullyContains(const std::string &str, const std::string &substr) {
     return str.substr(pos, substr.length()) == substr; 
 }
 
-// determines if the filepath following a directive exists, if so returns it
+/**
+ * @param line a single line from the test file to parse
+ * @param directive which directive we attempt to match
+ * @returns a std::variant of either a path or an error type 
+*/
 PathOrError TestParser::parsePathFromLine(
     const std::string &line,
     const std::string &directive
@@ -29,11 +37,14 @@ PathOrError TestParser::parsePathFromLine(
     else if (fs::exists(relPath)) {
         return relPath;
     } else {
-        std::cout << "Return File Error: 33: " << line << std::endl;
         return ErrorState::FileError;
     }  
 }
 
+/**
+ * @param line the line from testfile being parsed
+ * @returns An error state describing the error, if one exists 
+*/
 ErrorState TestParser::matchInputDirective(std::string &line) {
     
     if (!fullyContains(line, Constants::INPUT_DIRECTIVE))
@@ -59,6 +70,10 @@ ErrorState TestParser::matchInputDirective(std::string &line) {
     return ErrorState::NoError;
 }
 
+/**
+ * @param line the line from testfile being parsed
+ * @returns An error state describing the error, if one exists 
+*/
 ErrorState TestParser::matchCheckDirective(std::string &line) {
 
     if (!fullyContains(line, Constants::CHECK_DIRECTIVE))
@@ -74,15 +89,16 @@ ErrorState TestParser::matchCheckDirective(std::string &line) {
     return ErrorState::NoError;
 }
 
+/**
+ * @param line the line from testfile being parsed
+ * @returns An error state describing the error, if one exists
+*/
 ErrorState TestParser::matchInputFileDirective(std::string &line) {
 
-    if (!fullyContains(line, Constants::INPUT_FILE_DIRECTIVE)) {
+    if (!fullyContains(line, Constants::INPUT_FILE_DIRECTIVE))
         return ErrorState::NoError;
-    }     
-    if (foundInput) {
-        std::cout << "Throw DirectiveConflict in line: " << line << std::endl; 
+    if (foundInput)
         return ErrorState::DirectiveConflict;
-    } 
 
     PathOrError pathOrError = parsePathFromLine(line, Constants::INPUT_FILE_DIRECTIVE);
     if (std::holds_alternative<fs::path>(pathOrError)) {
@@ -93,7 +109,10 @@ ErrorState TestParser::matchInputFileDirective(std::string &line) {
     return std::get<ErrorState>(pathOrError); 
 }
 
-//
+/**
+ * @param line the line from testfile being parsed
+ * @returns An error state describing the error, if one exists
+*/
 ErrorState TestParser::matchCheckFileDirective(std::string &line) {
 
     if (!fullyContains(line, Constants::CHECK_FILE_DIRECTIVE))
@@ -118,6 +137,10 @@ ErrorState TestParser::matchCheckFileDirective(std::string &line) {
     return ErrorState::NoError;
 }
 
+/**
+ * @brief for each line in the testfile, attempt to parse and match one of the
+ * several directives. Should only be called if the parser knows we are in a comment.
+*/
 ErrorState TestParser::matchDirectives(std::string &line) {
     ErrorState error;
 
@@ -130,10 +153,14 @@ ErrorState TestParser::matchDirectives(std::string &line) {
     return ErrorState::NoError;
 }
 
+/**
+ * @brief open up the testfile and begin matching directives in each line, updating
+ * the state of the testfile with resource paths and other useful data. 
+*/
 int TestParser::parseTest() {
     std::ifstream testFileStream(testfile.getTestPath());
     if (!testFileStream.is_open()) {
-        std::cout << "Failed to open the testfile" << std::endl; 
+        std::cerr << "Failed to open the testfile" << std::endl; 
         return -1;
     }
 

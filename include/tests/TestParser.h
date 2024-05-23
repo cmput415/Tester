@@ -18,9 +18,6 @@ public:
     : testfile(testfile), foundInput(false), foundInputFile(false), 
       foundCheck(false), insByteCount(0)
   {
-#if defined(DEBUG)
-  // std::cout << "Constructing Test Parser" << std::endl;
-#endif
     parseTest();
   };
 
@@ -37,10 +34,11 @@ private:
   // current input stream size
   uint32_t insByteCount;
 
+  // helper method to return the path in a FILE directive if it is good
   PathOrError parsePathFromLine(const std::string &line, const std::string &directive);
 
-  // match methods
-  ErrorState matchInputDirective(std::string &line);
+  // methods below look for INPUT, CHECK, INPUT_FILE, CHECK_FILE directive in a lines  
+  ErrorState matchInputDirective(std::string &line); 
   ErrorState matchCheckDirective(std::string &line);
   ErrorState matchInputFileDirective(std::string &line);
   ErrorState matchCheckFileDirective(std::string &line);
