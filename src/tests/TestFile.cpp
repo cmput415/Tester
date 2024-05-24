@@ -16,7 +16,9 @@ namespace tester {
 uint64_t TestFile::nextId = 0;
 
 TestFile::TestFile(const fs::path& path) 
-  :  id(++nextId), usesInputStream(false), testPath(path) {
+  :  id(++nextId), usesInputStream(false), testPath(path), 
+    usesInputFile(false), errorState(ErrorState::NoError)
+  {
 
   // create a unique temporary file to use as the inputs stream path 
   std::string fileInsPath = stripFileExtension(testPath.filename());  
@@ -25,14 +27,8 @@ TestFile::TestFile(const fs::path& path)
   std::ofstream ofs(insPath);
   ofs.close();
   
-
   // invoke the parser
-  TestParser parser(*this);
-
-#if defined(DEBUG)
-  // std::cout << "insPath: " << insPath << std::endl;
-#endif 
-
+  auto parser = std::make_unique<TestParser>(*this);
 }
 
 TestFile::~TestFile() {

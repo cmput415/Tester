@@ -1,0 +1,35 @@
+procedure main() returns integer {
+    real[*] x = [17.6];
+    real[*] y = as<real[*]>(x);
+    real[2] t = [1,2];
+
+    x -> std_output;
+    '\n' -> std_output;
+
+    y -> std_output;
+    '\n' -> std_output;
+    
+    t = as<real[*]>([true, false]);
+    t -> std_output;
+    '\n' -> std_output;
+    
+    y = as<real[*]>(['a']);
+    y -> std_output;
+    '\n' -> std_output;
+    
+    y = as<real[*]>([45]);
+    y -> std_output;
+    '\n' -> std_output;
+    
+    y = as<real[*]>([79.8]);
+    y -> std_output;
+    '\n' -> std_output;
+    
+    return 0;
+}
+CHECK:[17.6]
+CHECK:[17.6]
+CHECK:[1 0]
+CHECK:[97]
+CHECK:[45]
+CHECK:[79.8]

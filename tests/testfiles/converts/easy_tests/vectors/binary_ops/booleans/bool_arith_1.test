@@ -1,0 +1,9 @@
+procedure main() returns integer {
+    boolean[*] a = [true, false];
+    boolean[*] b = [false, true];
+    
+    a and b -> std_output;
+    return 0;
+}
+
+CHECK:[F F]

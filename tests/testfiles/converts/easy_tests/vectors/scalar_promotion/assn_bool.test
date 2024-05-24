@@ -1,0 +1,10 @@
+procedure main() returns integer {
+    boolean[3] x = [true, false, true];
+    x = false;
+
+    x -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:[F F F]

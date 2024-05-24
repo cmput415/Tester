@@ -16,7 +16,8 @@ class TestParser {
 public:
   TestParser(TestFile &testfile) 
     : testfile(testfile), foundInput(false), foundInputFile(false), 
-      foundCheck(false), insByteCount(0)
+      foundCheck(false), foundCheckFile(false), inLineComment(false), 
+      inBlockComment(false), inString(false), insByteCount(0)
   {
     parseTest();
   };
@@ -31,9 +32,21 @@ private:
   // track state of parse
   bool foundInput, foundInputFile, foundCheck, foundCheckFile;
 
+  // track comment state
+  bool inLineComment, inBlockComment, inString; 
+
   // current input stream size
   uint32_t insByteCount;
 
+  // determine if we are in a comment while parsing
+  void trackCommentState(const std::string &line);  
+  void pushCommentState(std::string &line);
+  void popCommentState(const std::string &line);
+
+  // modify reference to string to contain only characters in a comment. Return
+  // true if modified, false otherwise. 
+  bool inComment(std::string &line);
+  
   // helper method to return the path in a FILE directive if it is good
   PathOrError parsePathFromLine(const std::string &line, const std::string &directive);
 
@@ -43,6 +56,7 @@ private:
   ErrorState matchInputFileDirective(std::string &line);
   ErrorState matchCheckFileDirective(std::string &line);
   ErrorState matchDirectives(std::string &line);
+
 };
 
 }; // namespace tester

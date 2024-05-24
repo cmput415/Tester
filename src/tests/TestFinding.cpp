@@ -26,12 +26,15 @@ void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {
   for (const fs::path& file : fs::directory_iterator(subPackPath)) {
     if (fs::exists(file) && isTestFile(file)) {
 
-#if defined(DEBUG)
-  std::cout << "Found Testfile: " << file << std::endl;
-#endif
-      auto testfile = std::make_unique<TestFile>(file);
-      // move ownership of the testfile to the subpackage
-      subPackage.push_back(std::move(testfile));
+      try {
+        auto testfile = std::make_unique<TestFile>(file);
+        // move ownership of the testfile to the subpackage
+        subPackage.push_back(std::move(testfile));
+      } catch (const std::exception& e) {
+        std::cerr << "Exception caught: " << e.what() << std::endl;
+      } catch (...) {
+        std::cerr << "Unknown Exception Caught..." << std::endl;
+      }
     }
   }
 }
@@ -58,10 +61,6 @@ void fillSubpackages(Package& package, const fs::path& packPath, const std::stri
 
 // 
 void fillModule(fs::path testsPath, TestModule& module) {
-
-#if defined(DEBUG)
-  std::cout << "Filling the test module at path: " << testsPath.string() << std::endl;
-#endif
 
   for (const auto& dir : fs::directory_iterator(testsPath)) {
 

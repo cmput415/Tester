@@ -1,0 +1,28 @@
+procedure main() returns integer {
+    tuple(integer[*, *], integer[*]) t1 = ([[2,2]], [2]);
+    tuple(integer[*, *], integer[*]) t2 = ([[2,2]], [2]);
+
+    t1 != t2 -> std_output;
+    '\n' -> std_output;
+
+    t2 = ([[2,2]], [3]);
+
+    t1 != t2 -> std_output;
+    '\n' -> std_output;
+    
+    t2 = ([[2,3]], [2]);
+
+    t1 != t2 -> std_output;
+    '\n' -> std_output;
+
+    t2 = ([[3,2]], [2]);
+
+    t1 != t2 -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:F
+CHECK:T
+CHECK:T
+CHECK:T

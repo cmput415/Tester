@@ -1,0 +1,24 @@
+procedure main() returns integer {
+    boolean[*] b = [true, false];
+    integer[*] i = [1,2,3,4,5,6,7,8,9,10];
+    character[*] c = ['a', '\n', '\0', '6'];
+    real[*] r = [1.0, .2, 0.3];
+
+    length(b) -> std_output;
+    '\n' -> std_output;
+
+    length(c) -> std_output;
+    '\n' -> std_output;
+
+    length(i) -> std_output;
+    '\n' -> std_output;
+
+    length(r) -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:2
+CHECK:4
+CHECK:10
+CHECK:3

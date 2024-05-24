@@ -1,0 +1,10 @@
+procedure main() returns integer {
+    real[*] b = [1.2, 3.4, 0.2, 109.5];
+    real[*] b2 = [4.2, 31.4, 0.02, 106.1];
+
+    b - b2 -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:[-3 -28 0.18 3.4]

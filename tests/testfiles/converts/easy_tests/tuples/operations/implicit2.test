@@ -1,0 +1,11 @@
+procedure main() returns integer {
+    ([[1, 4], [9, 0]], [0.4]) == ([[1.1, 4.4], [9.8, 0.007]], [1]) -> std_output;
+    '\n' -> std_output;
+
+     ([[1, 4], [9, 0]], [1.0]) == ([[1.0, 4.0], [9.0, 0.0]], [1]) -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:F
+CHECK:T

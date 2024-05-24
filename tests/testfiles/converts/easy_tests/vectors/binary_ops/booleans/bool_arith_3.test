@@ -1,0 +1,8 @@
+procedure main() returns integer {
+    boolean[*] a = [true, false];
+    boolean[*] b = [false, true];
+    a xor b -> std_output;
+    return 0;
+}
+
+CHECK:[T T]
