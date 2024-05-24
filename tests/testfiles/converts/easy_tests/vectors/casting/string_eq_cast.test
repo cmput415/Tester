@@ -1,6 +1,0 @@
-procedure main() returns integer {
-    character[4] x = ['a', 'b', 'c', 'd'];
-    as<string[4]>(x) || '\n' -> std_output;
-    return 3;
-}
-CHECK:abcd

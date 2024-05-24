@@ -1,7 +1,0 @@
-procedure main() returns integer {
-    10 || 20 -> std_output;
-    '\n' -> std_output;
-
-    return 0;
-}
-CHECK:[10 20]

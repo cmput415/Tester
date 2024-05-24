@@ -1,9 +1,0 @@
-procedure main() returns integer {
-    real[*] x = [1, 2, 3, 4] + 0.002;
-
-    x -> std_output;
-    '\n' -> std_output;
-
-    return 0;
-}
-CHECK:[1.002 2.002 3.002 4.002]

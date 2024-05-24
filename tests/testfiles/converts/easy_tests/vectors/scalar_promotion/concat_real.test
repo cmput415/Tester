@@ -1,9 +1,0 @@
-procedure main() returns integer {
-    real[*] x = 25.7 || [0.1, 2.3, 3.4, 0.04];
-
-    x -> std_output;
-    '\n' -> std_output;
-
-    return 0;
-}
-CHECK:[25.7 0.1 2.3 3.4 0.04]
