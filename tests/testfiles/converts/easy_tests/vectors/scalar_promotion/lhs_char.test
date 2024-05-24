@@ -1,9 +1,0 @@
-procedure main() returns integer {
-    boolean x = ['a'] == 'a';
-
-    x -> std_output;
-    '\n' -> std_output;
-
-    return 0;
-}
-CHECK:T

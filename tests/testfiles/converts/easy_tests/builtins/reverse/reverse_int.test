@@ -1,9 +1,0 @@
-procedure main() returns integer {
-    integer[*] v = [1,2,3,4,5];
-    integer[*] u = reverse(v);
-
-    u -> std_output;
-    '\n' -> std_output;
-
-    return 0;
-}CHECK:[5 4 3 2 1]

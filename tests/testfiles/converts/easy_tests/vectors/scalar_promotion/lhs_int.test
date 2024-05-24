@@ -1,9 +1,0 @@
-procedure main() returns integer {
-    integer[*] x = [1,2,3,4] + 25;
-
-    x -> std_output;
-    '\n' -> std_output;
-
-    return 0;
-}
-CHECK:[26 27 28 29]

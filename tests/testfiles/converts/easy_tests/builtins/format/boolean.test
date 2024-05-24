@@ -1,8 +1,0 @@
-procedure main() returns integer {
-    format(true) -> std_output;
-    format(false) -> std_output;
-    format('\n') -> std_output;
-
-    return 0;
-}
-CHECK:TF

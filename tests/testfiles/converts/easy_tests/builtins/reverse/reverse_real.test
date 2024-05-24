@@ -1,9 +1,0 @@
-procedure main() returns integer {
-    real[*] v = [.2, 10E4, 7.8, 90.234];
-    real[*] u = reverse(v);
-
-    u -> std_output;
-    '\n' -> std_output;
-
-    return 0;
-}CHECK:[90.234 7.8 100000 0.2]

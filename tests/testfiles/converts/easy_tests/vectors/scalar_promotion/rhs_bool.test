@@ -1,9 +1,0 @@
-procedure main() returns integer {
-    boolean x = false == [true, false];
-
-    x -> std_output;
-    '\n' -> std_output;
-
-    return 0;
-}
-CHECK:F

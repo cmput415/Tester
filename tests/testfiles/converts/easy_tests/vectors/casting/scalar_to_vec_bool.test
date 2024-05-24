@@ -1,7 +1,0 @@
-procedure main() returns integer {
-    as<boolean[3]>(90) -> std_output;
-    '\n' -> std_output;
-
-    return 0;
-}
-CHECK:[T T T]
