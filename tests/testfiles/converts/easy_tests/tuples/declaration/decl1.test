@@ -1,0 +1,12 @@
+procedure main() returns integer {
+    tuple(integer[3, 1], boolean[3]) v = ([[1]], [true]);
+
+    v.1 -> std_output;
+    '\n' -> std_output;
+
+    v.2 -> std_output;
+    '\n' -> std_output;
+    return 0;
+}
+CHECK:[[1] [0] [0]]
+CHECK:[T F F]

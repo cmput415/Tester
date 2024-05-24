@@ -1,0 +1,8 @@
+procedure main() returns integer {
+    boolean[3] v = [b in [true, false, true] | b or true];
+
+    v -> std_output;
+    '\n' -> std_output;
+    return 0;
+}
+CHECK:[T T T]

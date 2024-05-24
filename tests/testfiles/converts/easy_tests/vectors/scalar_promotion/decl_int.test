@@ -1,0 +1,9 @@
+procedure main() returns integer {
+    integer[5] x = 10;
+
+    x -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:[10 10 10 10 10]

@@ -1,0 +1,9 @@
+procedure main() returns integer {
+    boolean[*] v = [true, false];
+    boolean[*] u = reverse(v);
+
+    u -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}CHECK:[F T]

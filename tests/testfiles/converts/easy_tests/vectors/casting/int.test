@@ -1,0 +1,30 @@
+procedure main() returns integer {
+    integer[*] x = [176];
+    integer[*] y = as<integer[*]>(x);
+    integer[2] t = [1,2];
+
+    x -> std_output;
+    '\n' -> std_output;
+    
+    y -> std_output;
+    '\n' -> std_output;
+    
+    t = as<integer[*]>([true, false]);
+    t -> std_output;
+    '\n' -> std_output;
+    
+    y = as<integer[*]>(['a']);
+    y -> std_output;
+    '\n' -> std_output;
+    
+    y = as<integer[*]>([17.6]);
+    y -> std_output;
+    '\n' -> std_output;
+   
+    return 0;
+}
+CHECK:[176]
+CHECK:[176]
+CHECK:[1 0]
+CHECK:[97]
+CHECK:[17]

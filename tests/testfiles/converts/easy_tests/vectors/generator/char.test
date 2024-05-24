@@ -1,0 +1,8 @@
+procedure main() returns integer {
+    character[4] v = [c in ['a', 'x', '0', '9'] | c];
+
+    v -> std_output;
+    '\n' -> std_output;
+    return 0;
+}
+CHECK:[a x 0 9]

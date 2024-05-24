@@ -1,0 +1,9 @@
+procedure main() returns integer {
+    character[*] x = 'z' || ['a', 'b'];
+
+    x -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:[z a b]

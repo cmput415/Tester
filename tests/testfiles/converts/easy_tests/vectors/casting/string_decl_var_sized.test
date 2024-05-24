@@ -1,0 +1,9 @@
+procedure main() returns integer {
+    integer x = 4;
+    string[x] u = as<string>(['a', 'z', '7', '*']);
+
+    as<string>(u) || '\n' -> std_output;
+
+    return 0;
+}
+CHECK:az7*

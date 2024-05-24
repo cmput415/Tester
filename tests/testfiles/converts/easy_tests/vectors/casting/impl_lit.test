@@ -1,0 +1,10 @@
+procedure main() returns integer {
+    real[*] u = [1,2,3,4,5];
+
+    u -> std_output;
+    '\n' -> std_output;
+
+
+    return 0;
+}
+CHECK:[1 2 3 4 5]

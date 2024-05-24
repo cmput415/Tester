@@ -1,0 +1,19 @@
+procedure main() returns integer {
+    boolean[*] x = true and [true, false, true];
+    boolean[*] y = true or [true, false, false, false];
+    boolean[*] z = false or [true, false, false, false];
+
+    x -> std_output;
+    '\n' -> std_output;
+
+    y -> std_output;
+    '\n' -> std_output;
+
+    z -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:[T F T]
+CHECK:[T T T T]
+CHECK:[T F F F]

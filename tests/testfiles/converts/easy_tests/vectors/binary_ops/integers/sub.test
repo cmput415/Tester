@@ -1,0 +1,10 @@
+procedure main() returns integer {
+    integer[*] b = (-5)..5;
+    integer[*] b2 = -b; 
+
+    b - b2 -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:[-10 -8 -6 -4 -2 0 2 4 6 8 10]

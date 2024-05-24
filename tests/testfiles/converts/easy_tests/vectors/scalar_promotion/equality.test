@@ -1,0 +1,13 @@
+procedure main() returns integer {
+    integer[3] a; 
+
+    a == 0 -> std_output;
+    '\n' -> std_output;
+
+    0 != a -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:T
+CHECK:F

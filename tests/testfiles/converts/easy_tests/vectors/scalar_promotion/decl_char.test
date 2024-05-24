@@ -1,0 +1,9 @@
+procedure main() returns integer {
+    character[5] x = 'a';
+
+    x -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:[a a a a a]

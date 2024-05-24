@@ -1,0 +1,9 @@
+procedure main() returns integer {
+    integer u = length([2]);
+
+    u -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:1

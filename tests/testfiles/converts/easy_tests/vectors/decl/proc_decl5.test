@@ -1,0 +1,9 @@
+procedure test(integer x, integer[x] x2) {
+    x2 -> std_output;
+  }
+
+procedure main() returns integer{
+  call test(5, [1,2,3,4,5]);
+  return 0;
+}
+CHECK:[1 2 3 4 5]

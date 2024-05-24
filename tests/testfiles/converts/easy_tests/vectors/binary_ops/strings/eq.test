@@ -1,0 +1,16 @@
+procedure main() returns integer {
+    string b =  as<string>(['a', 'b', '\n', '\0']);
+    string b2 = as<string>(['1', 'Z', '\b', '*']);
+
+    b == b2 -> std_output;
+    '\n' -> std_output;
+    b == b -> std_output;
+    '\n' -> std_output;
+    b2 == b2 -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:F
+CHECK:T
+CHECK:T

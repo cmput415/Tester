@@ -153,6 +153,77 @@ ErrorState TestParser::matchDirectives(std::string &line) {
     return ErrorState::NoError;
 }
 
+
+/**
+ * @brief parse the current line to determine if we are in a line comment,
+ * block comment, or a string. We only want to match directives when we are
+ * certain we are in a commment. Works for C and Gazprea style comments. 
+ */
+void TestParser::trackCommentState(const std::string &line) {
+
+    inLineComment = false; // reset line comment
+    
+    // iterate over characters in the line    
+    for (unsigned int i = 0; i < line.length(); i++) {
+        if (!inString && !inBlockComment && (i + 1) < line.length() && 
+            line[i] == '/' && line[i + 1] == '/')
+        {
+            inLineComment = true;
+            break;
+        }
+
+        if (!inString && !inLineComment && (i + 1) < line.length() 
+        && line[i] == '/' && line[i + 1] == '*')
+        {
+            inBlockComment = true;
+            ++i; // skip the * in /*
+            continue;
+        }
+
+        if (!inString && inBlockComment && (i + 1) < line.length() && 
+            line[i] == '*' && line[i + 1] == '/')
+        {
+            inBlockComment = false;
+            ++i; // Skip the next '/' character
+            continue;
+        }
+
+        if (line[i] == '"' && 
+            !inBlockComment && 
+            (!inString || (i > 0 && line[i - 1] != '\\')))
+        {
+            inString = !inString; // toggle string state & handle escape characters
+        }
+    }
+}
+
+// TODOS
+void TestParser::popCommentState(const std::string &line) {}
+void TestParser::pushCommentState(std::string &line) {}
+
+// TODO: finish comment parsing improvement
+bool TestParser::inComment(std::string &line) {
+    
+    // iterate over characters in the line    
+    size_t lineCommentPos = line.find('//');
+
+    // TODO: add !inString and !inBlockComment 
+    if (lineCommentPos != std::string::npos) {
+        line = line.substr(lineCommentPos); 
+        return true;
+    }
+        
+    size_t startBlockCommentPos = line.find("/*");        
+    size_t endBlockCommentPos = line.find("*/");
+
+    if (startBlockCommentPos != std::string::npos) {
+        inBlockComment = true;
+    }
+    if (endBlockCommentPos != std::string::npos) {
+        inBlockComment = false;
+    } 
+}
+
 /**
  * @brief open up the testfile and begin matching directives in each line, updating
  * the state of the testfile with resource paths and other useful data. 
@@ -166,8 +237,17 @@ int TestParser::parseTest() {
 
     std::string line;
     while (std::getline(testFileStream, line)) {
-        // TODO: updateCommentStack(line); if (inComment(line)) {
-        if (1) {
+        trackCommentState(line);
+        // pushCommentState(line); 
+        // if (inComment()) { do stuff }
+        if (inBlockComment) {
+            // only consider the substring before the block terminator, if it exists in the line
+            size_t pos = line.find("*/");
+            if (pos != std::string::npos) {
+                line = line.substr(0, pos); 
+            }
+        } 
+        if (inLineComment || inBlockComment) {
             ErrorState error = matchDirectives(line);
             if (error != ErrorState::NoError) {
                 std::cout << "Found Error: " << error << std::endl; 

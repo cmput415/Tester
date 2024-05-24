@@ -1,0 +1,10 @@
+procedure main() returns integer {
+    integer[*] v = [1];
+    integer[*] u = reverse(v);
+
+    u -> std_output;
+    '\n' -> std_output;
+
+    return 0;
+}
+CHECK:[1]

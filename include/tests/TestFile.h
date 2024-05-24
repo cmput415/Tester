@@ -32,10 +32,7 @@ public:
   ~TestFile();
 
   uint64_t id;
-  
-  // TODO: the getters and setters for this class are shallow abstractions, 
-  // consider changing the design. Until then, declare some members public...
-  
+   
   // getters
   fs::path getTestPath() { return testPath; }
   fs::path getInsPath() { return insPath; }
@@ -60,15 +57,13 @@ protected:
   static uint64_t nextId;
 
 private:
-  // for UID generation
+   // Path for the .test (supplied in contructor) and .ins files (generated or supplied in INPUT_FILE). 
+  fs::path testPath, insPath, checkFilePath;
   
   // Test file breaks some convention or was unable to parse directives. 
   ErrorState errorState; 
   std::string errorMsg;
-
-  // Path for the .test (supplied in contructor) and .ins files (generated or supplied in INPUT_FILE). 
-  fs::path testPath, insPath, checkFilePath;
-  
+ 
   // A vector containing contents of each CHECK directive in the .test file. 
   std::vector<std::string> checkLines; 
 };

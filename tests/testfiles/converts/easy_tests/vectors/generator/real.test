@@ -1,0 +1,8 @@
+procedure main() returns integer {
+    real[3] v = [i in [1.2, 2.3, 3.4] | i ^ i];
+
+    v -> std_output;
+    '\n' -> std_output;
+    return 0;
+}
+CHECK:[1.24456 6.79163 64.1252]
