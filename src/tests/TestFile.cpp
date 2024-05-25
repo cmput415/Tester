@@ -21,11 +21,15 @@ TestFile::TestFile(const fs::path& path)
   {
 
   // create a unique temporary file to use as the inputs stream path 
-  std::string fileInsPath = stripFileExtension(testPath.filename());  
+  std::string fileInsPath = stripFileExtension(testPath.filename()); 
   insPath = fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".ins");
+  outPath = fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".out");
 
-  std::ofstream ofs(insPath);
-  ofs.close();
+  std::ofstream makeInsFile(insPath);
+  std::ofstream makeOutFile(outPath);
+  
+  makeInsFile.close();
+  makeOutFile.close(); 
   
   // invoke the parser
   auto parser = std::make_unique<TestParser>(*this);

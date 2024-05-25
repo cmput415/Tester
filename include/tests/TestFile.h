@@ -17,6 +17,7 @@ enum ErrorState {
   NoError,
   DirectiveConflict,
   MaxInputStreamExceeded,
+  MaxOutputStreamExceeded,
   FileError,
   RuntimeError
 };
@@ -36,7 +37,7 @@ public:
   // getters
   fs::path getTestPath() { return testPath; }
   fs::path getInsPath() { return insPath; }
-  fs::path getCheckFilePath() { return checkFilePath; }
+  fs::path getOutPath() { return outPath; }
   const std::vector<std::string>& getCheckLines() const { return checkLines; }
   ErrorState getErrorState() const { return errorState; }
   const std::string &getErrorMessage() const { return errorMsg; }
@@ -44,7 +45,7 @@ public:
   // setters 
   void setTestPath(fs::path path) { testPath = path; }
   void setInsPath(fs::path path) { insPath = path; }
-  void setCheckFilePath(fs::path path) { checkFilePath = path; }
+  void setCheckFilePath(fs::path path) { outPath = path; }
 
   void pushCheckLine(std::string line) { checkLines.push_back(line); }
   void setErrorState(ErrorState error) { errorState = error; }
@@ -58,7 +59,7 @@ protected:
 
 private:
    // Path for the .test (supplied in contructor) and .ins files (generated or supplied in INPUT_FILE). 
-  fs::path testPath, insPath, checkFilePath;
+  fs::path testPath, insPath, outPath;
   
   // Test file breaks some convention or was unable to parse directives. 
   ErrorState errorState; 

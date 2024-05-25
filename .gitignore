@@ -8,4 +8,7 @@ bin/
 cmake-build*/
 .idea/
 .vscode
+
+#misc
 todo.md
+tests/testfiles/
