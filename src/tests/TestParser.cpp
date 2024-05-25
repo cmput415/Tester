@@ -101,12 +101,6 @@ ErrorState TestParser::matchCheckDirective(std::string &line) {
     foundCheck = true;
     
     return ErrorState::NoError;
-
-    //CHECK:
-    //CHECK:
-    //CHECK:a
-    //----------
-    //CHECK:b
 }
 
 /**
