@@ -47,7 +47,7 @@ PathOrError TestParser::parsePathFromLine(
 */
 ErrorState TestParser::matchInputDirective(std::string &line) {
     
-    if (!fullyContains(line, Constants::INPUT_DIRECTIVE))
+    if (!fullyContains(line, Directive::INPUT))
         return ErrorState::NoError;    
     if (foundInputFile)
         return ErrorState::DirectiveConflict; // already found an INPUT_FILE
@@ -56,11 +56,11 @@ ErrorState TestParser::matchInputDirective(std::string &line) {
     if (!ins.is_open()) 
         return ErrorState::FileError;
     
-    size_t findIdx = line.find(Constants::INPUT_DIRECTIVE);
-    std::string input =  line.substr(findIdx + Constants::INPUT_DIRECTIVE.length());
+    size_t findIdx = line.find(Directive::INPUT);
+    std::string input =  line.substr(findIdx + Directive::INPUT.length());
     insByteCount += input.length();
     
-    if (insByteCount > Constants::MAX_INPUT_BYTES) {
+    if (insByteCount > Directive::MAX_INPUT_BYTES) {
         return ErrorState::MaxInputStreamExceeded;
     }
     
@@ -76,14 +76,23 @@ ErrorState TestParser::matchInputDirective(std::string &line) {
 */
 ErrorState TestParser::matchCheckDirective(std::string &line) {
 
-    if (!fullyContains(line, Constants::CHECK_DIRECTIVE))
+    if (!fullyContains(line, Directive::CHECK))
         return ErrorState::NoError;
     if (foundCheckFile)
         return ErrorState::DirectiveConflict;
+    
+    std::ofstream out(testfile.getOutPath(), std::ios::app);  
+    if (!out.is_open()) 
+        return ErrorState::FileError;
 
-    size_t findIdx = line.find(Constants::CHECK_DIRECTIVE);
-    std::string checkLine = line.substr(findIdx + Constants::CHECK_DIRECTIVE.length());
-    testfile.pushCheckLine(std::move(checkLine));
+    size_t findIdx = line.find(Directive::CHECK);
+    std::string checkLine = line.substr(findIdx + Directive::CHECK.length());
+
+    if (fs::file_size(testfile.getOutPath()) != 0) {
+        out << '\n';
+    }
+    out << checkLine; 
+    
     foundCheck = true;
     
     return ErrorState::NoError;
@@ -95,12 +104,12 @@ ErrorState TestParser::matchCheckDirective(std::string &line) {
 */
 ErrorState TestParser::matchInputFileDirective(std::string &line) {
 
-    if (!fullyContains(line, Constants::INPUT_FILE_DIRECTIVE))
+    if (!fullyContains(line, Directive::INPUT_FILE))
         return ErrorState::NoError;
     if (foundInput)
         return ErrorState::DirectiveConflict;
 
-    PathOrError pathOrError = parsePathFromLine(line, Constants::INPUT_FILE_DIRECTIVE);
+    PathOrError pathOrError = parsePathFromLine(line, Directive::INPUT_FILE);
     if (std::holds_alternative<fs::path>(pathOrError)) {
         testfile.setInsPath(std::get<fs::path>(pathOrError));
         foundInputFile = true;
@@ -115,12 +124,12 @@ ErrorState TestParser::matchInputFileDirective(std::string &line) {
 */
 ErrorState TestParser::matchCheckFileDirective(std::string &line) {
 
-    if (!fullyContains(line, Constants::CHECK_FILE_DIRECTIVE))
+    if (!fullyContains(line, Directive::CHECK_FILE))
         return ErrorState::NoError;
     if (foundCheck)
         return ErrorState::DirectiveConflict;
 
-    PathOrError pathOrError = parsePathFromLine(line, Constants::CHECK_FILE_DIRECTIVE);
+    PathOrError pathOrError = parsePathFromLine(line, Directive::CHECK_FILE);
     if (std::holds_alternative<ErrorState>(pathOrError))
         return std::get<ErrorState>(pathOrError);
 
@@ -155,74 +164,46 @@ ErrorState TestParser::matchDirectives(std::string &line) {
 
 
 /**
- * @brief parse the current line to determine if we are in a line comment,
- * block comment, or a string. We only want to match directives when we are
- * certain we are in a commment. Works for C and Gazprea style comments. 
+ * @brief Alter the reference to line to be the substring of itself that is
+ * contained with in a comment. Use comment state in class instance to track.   
  */
-void TestParser::trackCommentState(const std::string &line) {
+void TestParser::trackCommentState(std::string &line) {
 
+    std::string result;
     inLineComment = false; // reset line comment
-    
-    // iterate over characters in the line    
+
     for (unsigned int i = 0; i < line.length(); i++) {
-        if (!inString && !inBlockComment && (i + 1) < line.length() && 
-            line[i] == '/' && line[i + 1] == '/')
-        {
+
+        if (!inString && !inBlockComment && (i + 1) < line.length()
+                      && line[i] == '/' && line[i + 1] == '/') {
             inLineComment = true;
+            result += line.substr(i + 2);
             break;
-        }
-
-        if (!inString && !inLineComment && (i + 1) < line.length() 
-        && line[i] == '/' && line[i + 1] == '*')
-        {
+        } 
+        else if (!inString && !inLineComment && (i + 1) < line.length() 
+                           && line[i] == '/' && line[i + 1] == '*') {
             inBlockComment = true;
-            ++i; // skip the * in /*
+            ++i; // skip the * in '/*'
             continue;
         }
-
-        if (!inString && inBlockComment && (i + 1) < line.length() && 
-            line[i] == '*' && line[i + 1] == '/')
-        {
+        else if (!inString && inBlockComment && (i + 1) < line.length()
+                           && line[i] == '*' && line[i + 1] == '/') {
             inBlockComment = false;
-            ++i; // Skip the next '/' character
+            ++i; // skip the / in '*/'
             continue;
         }
-
-        if (line[i] == '"' && 
-            !inBlockComment && 
-            (!inString || (i > 0 && line[i - 1] != '\\')))
-        {
-            inString = !inString; // toggle string state & handle escape characters
+        else if (line[i] == '"' && !inBlockComment && (!inString || (i > 0 && line[i - 1] != '\\'))) {
+            inString = !inString;
         }
-    }
-}
 
-// TODOS
-void TestParser::popCommentState(const std::string &line) {}
-void TestParser::pushCommentState(std::string &line) {}
-
-// TODO: finish comment parsing improvement
-bool TestParser::inComment(std::string &line) {
-    
-    // iterate over characters in the line    
-    size_t lineCommentPos = line.find('//');
-
-    // TODO: add !inString and !inBlockComment 
-    if (lineCommentPos != std::string::npos) {
-        line = line.substr(lineCommentPos); 
-        return true;
-    }
-        
-    size_t startBlockCommentPos = line.find("/*");        
-    size_t endBlockCommentPos = line.find("*/");
-
-    if (startBlockCommentPos != std::string::npos) {
-        inBlockComment = true;
-    }
-    if (endBlockCommentPos != std::string::npos) {
-        inBlockComment = false;
+        // while we are in a block comment store characters in result
+        if (inBlockComment) {
+            result += line[i];
+        }
     } 
+    line = result;
 }
+
 
 /**
  * @brief open up the testfile and begin matching directives in each line, updating
@@ -237,17 +218,10 @@ int TestParser::parseTest() {
 
     std::string line;
     while (std::getline(testFileStream, line)) {
+        
         trackCommentState(line);
-        // pushCommentState(line); 
-        // if (inComment()) { do stuff }
-        if (inBlockComment) {
-            // only consider the substring before the block terminator, if it exists in the line
-            size_t pos = line.find("*/");
-            if (pos != std::string::npos) {
-                line = line.substr(0, pos); 
-            }
-        } 
-        if (inLineComment || inBlockComment) {
+         
+        if (!line.empty()) {
             ErrorState error = matchDirectives(line);
             if (error != ErrorState::NoError) {
                 std::cout << "Found Error: " << error << std::endl; 

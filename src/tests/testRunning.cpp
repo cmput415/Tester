@@ -29,23 +29,6 @@ namespace tester {
 
 TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolChain, bool quiet) {
 
-#if defined(DEBUG)
-
-  // std::cout << "Supplied Input Stream:" << std::endl; 
-  // std::string line;
-  // std::ifstream ins(test->getInsPath());
-  
-  // while (ins.good()) {
-  //   std::getline(ins, line);
-  //   std::cout << line << std::endl;
-  // } 
-
-  // std::cout << "Expected Output:" << std::endl; 
-  // for (auto& line: test->getCheckLines()) {
-  //   std::cout << line << std::endl;
-  // }
-
-#endif
   // Try to build the test. If there's a problem running a command, then we assume failure.
   ExecutionOutput eo("");
   try {
@@ -59,42 +42,30 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
       return TestResult(test->getTestPath(), false, true, "");
   }
 
-  // TODO: test error tests
-  bool isErrorTest = false;
+  // lines to check  
   const std::vector<std::string> &checkLines = test->getCheckLines();
-  if (checkLines.size() == 1 && checkLines[0].find("Error") != std::string::npos) {
-    isErrorTest = true;
-  }
-
-  // Get the lines from the output file.
   std::vector<std::string> genLines;
 
-  if (!isErrorTest) { // Is not an error test.
-    getFileLines(eo.getOutputFile(), genLines);
-  }
-  else { // Is an error test.
-    getFileLines(eo.getErrorFile(), genLines);
-    if (!genLines.empty())
-      genLines = {genLines[0].substr(0, genLines[0].find(':'))};
-  }
+  // TODO: investigate why ExecutionOutput instances are created by passing stdoutPath as stderrPath 
+  getFileLines(eo.getErrorFile(), genLines);
+
+
+  std::cout << "Gen File:" << eo.getErrorFile() << std::endl;
+  std::cout << "Out File:" << test->getOutPath() << std::endl; 
 
   dtl::Diff<std::string> diff(checkLines, genLines);
   diff.compose();
-  diff.composeUnifiedHunks(); 
-    
-  
+  diff.composeUnifiedHunks();  
 
   // We failed the test.
   if (!diff.getUniHunks().empty()) {
-    // std::stringstream ss;
-    // diff.printUnifiedFormat(ss);
 
-    // DEBUG STUFF    
+    // DEBUG
     std::cout << "Expected lines:" << "(" << test->getCheckLines().size() << ")" << std::endl;
     for (auto& line: test->getCheckLines()) {
       std::cout << line << std::endl;
     }
-    std::cout << "Recieved:" << std::endl;
+    std::cout << "Received lines:" << "(" << genLines.size() << ")" << std::endl;
     for (auto& line: genLines) {
       std::cout << line << std::endl;
     }

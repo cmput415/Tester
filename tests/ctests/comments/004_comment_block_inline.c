@@ -2,8 +2,7 @@
 // This test is dangerous because the INPUT parser can easily consume the
 // block comment terminator '*/' since it lies on the same line. 
 
-// TODO: use block comment
-// INPUT:a
+/*INPUT:a*/
 
 #include <stdio.h>
 
