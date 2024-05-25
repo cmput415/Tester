@@ -21,7 +21,7 @@ void dumpFile(const fs::path& filePath) {
     std::cerr << "Error opening file: " << filePath << std::endl;
     return;
   }
-  std::cout << "-----" << std::endl;
+  std::cout << ">>>" << std::endl;
   char ch;
   while (file.get(ch)) {
     if (ch == ' ') {
@@ -32,6 +32,7 @@ void dumpFile(const fs::path& filePath) {
   }
 
   file.close();
+  std::cout << "<<<" << std::endl;
 }
 
 std::pair<bool, std::string> diffFiles(const fs::path& file1, const fs::path& file2) {
@@ -99,6 +100,7 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
 
   std::pair<bool, std::string> diff = diffFiles(eo.getErrorFile(), test->getOutPath());
   if (diff.first) {
+    dumpFile(test->getInsPath());
     dumpFile(test->getOutPath());
     dumpFile(eo.getErrorFile());
     return TestResult(test->getTestPath(), false, false, diff.second); 
