@@ -6,6 +6,7 @@
 
 #include "dtl/dtl.hpp"
 
+#include <tuple>
 #include <fstream>
 #include <sstream>
 
@@ -13,13 +14,67 @@
 // can find the actual functions at the bottom of the file.
 namespace {
 
-void getFileLines(fs::path fp, std::vector<std::string> &lines) {
-    std::ifstream fs(fp);
-    std::string buf;
-    while (fs.good()) {
-        std::getline(fs, buf);
-        lines.push_back(buf);
+void dumpFile(const fs::path& filePath) {
+  
+  std::ifstream file(filePath);
+  if (!file.is_open()) {
+    std::cerr << "Error opening file: " << filePath << std::endl;
+    return;
+  }
+  std::cout << "-----" << std::endl;
+  char ch;
+  while (file.get(ch)) {
+    if (ch == ' ') {
+      std::cout << '*';
+    } else {
+      std::cout << ch;
     }
+  }
+
+  file.close();
+}
+
+std::pair<bool, std::string> diffFiles(const fs::path& file1, const fs::path& file2) {
+
+  std::string diffStr = "";  
+  std::ifstream ifs1(file1);
+  std::ifstream ifs2(file2);
+
+  if (!ifs1.is_open() || !ifs2.is_open()) {
+    std::cerr << "Error opening files." << std::endl;
+    return std::make_pair(false, "");
+  }
+
+  std::string line1, line2;
+  bool diff = false;
+  int lineNum = 1;
+
+  while (std::getline(ifs1, line1) && std::getline(ifs2, line2)) {
+    if (line1 != line2) {
+      diffStr += "Line " + std::to_string(lineNum) + ":\n";
+      diffStr += "- " + line1 + "\n";
+      diffStr += "+ " + line2 + "\n";
+      diff = true;
+    }
+    lineNum++;
+  }
+
+  // check for remaining lines in either file
+  while (std::getline(ifs1, line1)) {
+    diffStr += "Line " + std::to_string(lineNum) + ":\n";
+    diffStr += "- " + line1 + "\n"; 
+    diff = true;
+    lineNum++; 
+  }
+
+  while (std::getline(ifs2, line2)) {
+    diffStr += "Line " + std::to_string(lineNum) + ":\n";
+    diffStr += "+ " + line1 + "\n"; 
+    diff = true;
+    lineNum++;
+  }
+
+  return std::make_pair(diff, std::move(diffStr));
 }
 
 } // End anonymous namespace
@@ -42,37 +97,13 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
       return TestResult(test->getTestPath(), false, true, "");
   }
 
-  // lines to check  
-  const std::vector<std::string> &checkLines = test->getCheckLines();
-  std::vector<std::string> genLines;
-
-  // TODO: investigate why ExecutionOutput instances are created by passing stdoutPath as stderrPath 
-  getFileLines(eo.getErrorFile(), genLines);
-
-
-  std::cout << "Gen File:" << eo.getErrorFile() << std::endl;
-  std::cout << "Out File:" << test->getOutPath() << std::endl; 
-
-  dtl::Diff<std::string> diff(checkLines, genLines);
-  diff.compose();
-  diff.composeUnifiedHunks();  
-
-  // We failed the test.
-  if (!diff.getUniHunks().empty()) {
-
-    // DEBUG
-    std::cout << "Expected lines:" << "(" << test->getCheckLines().size() << ")" << std::endl;
-    for (auto& line: test->getCheckLines()) {
-      std::cout << line << std::endl;
-    }
-    std::cout << "Received lines:" << "(" << genLines.size() << ")" << std::endl;
-    for (auto& line: genLines) {
-      std::cout << line << std::endl;
-    }
-
-    return TestResult(test->getTestPath(), false, false, "");
+  std::pair<bool, std::string> diff = diffFiles(eo.getErrorFile(), test->getOutPath());
+  if (diff.first) {
+    dumpFile(test->getOutPath());
+    dumpFile(eo.getErrorFile());
+    return TestResult(test->getTestPath(), false, false, diff.second); 
   }
-
+  
   return TestResult(test->getTestPath(), true, false, "");
 }
 

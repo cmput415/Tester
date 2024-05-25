@@ -45,7 +45,7 @@ public:
   // setters 
   void setTestPath(fs::path path) { testPath = path; }
   void setInsPath(fs::path path) { insPath = path; }
-  void setCheckFilePath(fs::path path) { outPath = path; }
+  void setOutPath(fs::path path) { outPath = path; }
 
   void pushCheckLine(std::string line) { checkLines.push_back(line); }
   void setErrorState(ErrorState error) { errorState = error; }

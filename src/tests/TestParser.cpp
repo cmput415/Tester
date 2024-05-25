@@ -88,14 +88,25 @@ ErrorState TestParser::matchCheckDirective(std::string &line) {
     size_t findIdx = line.find(Directive::CHECK);
     std::string checkLine = line.substr(findIdx + Directive::CHECK.length());
 
-    if (fs::file_size(testfile.getOutPath()) != 0) {
-        out << '\n';
+    if (fs::file_size(testfile.getOutPath()) == 0) {
+        if (foundCheck) {
+            out << "\n";
+        } else {
+            out << checkLine;
+        } 
+    } else {
+        out << "\n" << checkLine; 
     }
-    out << checkLine; 
     
     foundCheck = true;
     
     return ErrorState::NoError;
+
+    //CHECK:
+    //CHECK:
+    //CHECK:a
+    //----------
+    //CHECK:b
 }
 
 /**
@@ -130,20 +141,11 @@ ErrorState TestParser::matchCheckFileDirective(std::string &line) {
         return ErrorState::DirectiveConflict;
 
     PathOrError pathOrError = parsePathFromLine(line, Directive::CHECK_FILE);
-    if (std::holds_alternative<ErrorState>(pathOrError))
-        return std::get<ErrorState>(pathOrError);
-
-    fs::path checkFilePath = std::get<fs::path>(pathOrError);
-    std::ifstream checkFileStream(checkFilePath);
-    if (!checkFileStream.is_open())
-        return ErrorState::FileError;
-
-    std::string checkLine; 
-    while (std::getline(checkFileStream, checkLine)) {
-        testfile.pushCheckLine(checkLine);
-    }
-    foundCheckFile = true;
-    return ErrorState::NoError;
+    if (std::holds_alternative<fs::path>(pathOrError))
+        testfile.setOutPath(std::get<fs::path>(pathOrError));
+        foundCheckFile = true;
+        return ErrorState::NoError;
+    return std::get<ErrorState>(pathOrError); 
 }
 
 /**
