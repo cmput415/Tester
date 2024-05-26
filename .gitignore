@@ -12,3 +12,4 @@ cmake-build*/
 #misc
 todo.md
 tests/testfiles/
+local_tests

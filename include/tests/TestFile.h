@@ -13,11 +13,11 @@ namespace fs = std::filesystem;
 
 namespace tester {
 
-enum ErrorState {
+enum ParseError {
   NoError,
   DirectiveConflict,
-  MaxInputStreamExceeded,
-  MaxOutputStreamExceeded,
+  MaxInputBytesExceeded,
+  MaxOutputBytesExceeded,
   FileError,
   RuntimeError
 };
@@ -38,8 +38,7 @@ public:
   fs::path getTestPath() { return testPath; }
   fs::path getInsPath() { return insPath; }
   fs::path getOutPath() { return outPath; }
-  const std::vector<std::string>& getCheckLines() const { return checkLines; }
-  ErrorState getErrorState() const { return errorState; }
+  ParseError getErrorState() const { return errorState; }
   const std::string &getErrorMessage() const { return errorMsg; }
   
   // setters 
@@ -47,12 +46,11 @@ public:
   void setInsPath(fs::path path) { insPath = path; }
   void setOutPath(fs::path path) { outPath = path; }
 
-  void pushCheckLine(std::string line) { checkLines.push_back(line); }
-  void setErrorState(ErrorState error) { errorState = error; }
+  void setErrorState(ParseError error) { errorState = error; }
   void setErrorMsg (std::string msg) { errorMsg = msg; } 
   
   // if test has any input and if test uses input file specifically
-  bool usesInputStream, usesInputFile;
+  bool usesInputStream, usesInputFile, usesOut;
 
 protected:
   static uint64_t nextId;
@@ -62,11 +60,9 @@ private:
   fs::path testPath, insPath, outPath;
   
   // Test file breaks some convention or was unable to parse directives. 
-  ErrorState errorState; 
+  ParseError errorState; 
   std::string errorMsg;
  
-  // A vector containing contents of each CHECK directive in the .test file. 
-  std::vector<std::string> checkLines; 
 };
 
 } // namespace tester

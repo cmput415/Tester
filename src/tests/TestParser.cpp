@@ -25,7 +25,7 @@ PathOrError TestParser::parsePathFromLine(
 ) {
     size_t findIdx = line.find(directive);
     if (findIdx == std::string::npos) {
-        return ErrorState::FileError;
+        return ParseError::FileError;
     }
 
     std::string parsedFilePath = line.substr(findIdx + directive.length());
@@ -37,7 +37,7 @@ PathOrError TestParser::parsePathFromLine(
     else if (fs::exists(relPath)) {
         return relPath;
     } else {
-        return ErrorState::FileError;
+        return ParseError::FileError;
     }  
 }
 
@@ -45,50 +45,45 @@ PathOrError TestParser::parsePathFromLine(
  * @param line the line from testfile being parsed
  * @returns An error state describing the error, if one exists 
 */
-ErrorState TestParser::matchInputDirective(std::string &line) {
+ParseError TestParser::matchInputDirective(std::string &line) {
     
     if (!fullyContains(line, Directive::INPUT))
-        return ErrorState::NoError;    
+        return ParseError::NoError;    
     if (foundInputFile)
-        return ErrorState::DirectiveConflict; // already found an INPUT_FILE
+        return ParseError::DirectiveConflict; // already found an INPUT_FILE
      
     std::ofstream ins(testfile.getInsPath(), std::ios::app);  
     if (!ins.is_open()) 
-        return ErrorState::FileError;
+        return ParseError::FileError;
     
     size_t findIdx = line.find(Directive::INPUT);
     std::string input =  line.substr(findIdx + Directive::INPUT.length());
-    insByteCount += input.length();
-    
-    if (insByteCount > Directive::MAX_INPUT_BYTES) {
-        return ErrorState::MaxInputStreamExceeded;
-    }
-    
+     
     ins << input << std::endl; // implicit newline 
     foundInput = true; 
 
-    return ErrorState::NoError;
+    return ParseError::NoError;
 }
 
 /**
  * @param line the line from testfile being parsed
  * @returns An error state describing the error, if one exists 
 */
-ErrorState TestParser::matchCheckDirective(std::string &line) {
+ParseError TestParser::matchCheckDirective(std::string &line) {
 
     if (!fullyContains(line, Directive::CHECK))
-        return ErrorState::NoError;
+        return ParseError::NoError;
     if (foundCheckFile)
-        return ErrorState::DirectiveConflict;
+        return ParseError::DirectiveConflict;
     
     std::ofstream out(testfile.getOutPath(), std::ios::app);  
     if (!out.is_open()) 
-        return ErrorState::FileError;
+        return ParseError::FileError;
 
     size_t findIdx = line.find(Directive::CHECK);
     std::string checkLine = line.substr(findIdx + Directive::CHECK.length());
 
-    if (fs::file_size(testfile.getOutPath()) == 0) {
+    if (fs::is_empty(testfile.getOutPath())) {
         if (foundCheck) {
             out << "\n";
         } else {
@@ -100,62 +95,62 @@ ErrorState TestParser::matchCheckDirective(std::string &line) {
     
     foundCheck = true;
     
-    return ErrorState::NoError;
+    return ParseError::NoError;
 }
 
 /**
  * @param line the line from testfile being parsed
  * @returns An error state describing the error, if one exists
 */
-ErrorState TestParser::matchInputFileDirective(std::string &line) {
+ParseError TestParser::matchInputFileDirective(std::string &line) {
 
     if (!fullyContains(line, Directive::INPUT_FILE))
-        return ErrorState::NoError;
+        return ParseError::NoError;
     if (foundInput)
-        return ErrorState::DirectiveConflict;
+        return ParseError::DirectiveConflict;
 
     PathOrError pathOrError = parsePathFromLine(line, Directive::INPUT_FILE);
     if (std::holds_alternative<fs::path>(pathOrError)) {
         testfile.setInsPath(std::get<fs::path>(pathOrError));
         foundInputFile = true;
-        return ErrorState::NoError;
+        return ParseError::NoError;
     } 
-    return std::get<ErrorState>(pathOrError); 
+    return std::get<ParseError>(pathOrError); 
 }
 
 /**
  * @param line the line from testfile being parsed
  * @returns An error state describing the error, if one exists
 */
-ErrorState TestParser::matchCheckFileDirective(std::string &line) {
+ParseError TestParser::matchCheckFileDirective(std::string &line) {
 
     if (!fullyContains(line, Directive::CHECK_FILE))
-        return ErrorState::NoError;
+        return ParseError::NoError;
     if (foundCheck)
-        return ErrorState::DirectiveConflict;
+        return ParseError::DirectiveConflict;
 
     PathOrError pathOrError = parsePathFromLine(line, Directive::CHECK_FILE);
     if (std::holds_alternative<fs::path>(pathOrError))
         testfile.setOutPath(std::get<fs::path>(pathOrError));
         foundCheckFile = true;
-        return ErrorState::NoError;
-    return std::get<ErrorState>(pathOrError); 
+        return ParseError::NoError;
+    return std::get<ParseError>(pathOrError); 
 }
 
 /**
  * @brief for each line in the testfile, attempt to parse and match one of the
  * several directives. Should only be called if the parser knows we are in a comment.
 */
-ErrorState TestParser::matchDirectives(std::string &line) {
-    ErrorState error;
+ParseError TestParser::matchDirectives(std::string &line) {
+    ParseError error;
 
     // Look for each of 4 directives 
-    if ((error = matchInputDirective(line)) != ErrorState::NoError) return error;
-    if ((error = matchCheckDirective(line)) != ErrorState::NoError) return error;
-    if ((error = matchInputFileDirective(line)) != ErrorState::NoError) return error;
-    if ((error = matchCheckFileDirective(line)) != ErrorState::NoError) return error;
+    if ((error = matchInputDirective(line)) != ParseError::NoError) return error;
+    if ((error = matchCheckDirective(line)) != ParseError::NoError) return error;
+    if ((error = matchInputFileDirective(line)) != ParseError::NoError) return error;
+    if ((error = matchCheckFileDirective(line)) != ParseError::NoError) return error;
     
-    return ErrorState::NoError;
+    return ParseError::NoError;
 }
 
 
@@ -214,12 +209,12 @@ int TestParser::parseTest() {
 
     std::string line;
     while (std::getline(testFileStream, line)) {
-        
-        trackCommentState(line);
-         
+
+        // mutate current line to be only the substring contained in a comment. 
+        trackCommentState(line); 
         if (!line.empty()) {
-            ErrorState error = matchDirectives(line);
-            if (error != ErrorState::NoError) {
+            ParseError error = matchDirectives(line);
+            if (error != ParseError::NoError) {
                 std::cout << "Found Error: " << error << std::endl; 
                 testfile.setErrorState(error);
                 testfile.setErrorMsg("Generic Error"); 
@@ -227,14 +222,21 @@ int TestParser::parseTest() {
             }
         } 
     }
-    if (!foundCheck && !foundCheckFile) {
-        testfile.pushCheckLine(std::move(""));
-    }
+
+    // set final flags to update test state
     if (foundInput || foundInputFile) {
         testfile.usesInputStream = true;
-    }
-    if (foundInputFile) {
+    } if (foundInputFile) {
         testfile.usesInputFile = true;
+    } if (foundCheck | foundCheckFile) {
+        testfile.usesOut = true;
+    }
+
+    // check if input directives have exceeded maximum
+    if (fs::file_size(testfile.getInsPath()) > Directive::MAX_INPUT_BYTES) {
+        testfile.setErrorState(ParseError::MaxInputBytesExceeded);
+    } else if (fs::file_size(testfile.getOutPath()) > Directive::MAX_OUTPUT_BYTES) {
+        testfile.setErrorState(ParseError::MaxOutputBytesExceeded);
     }
 
     testFileStream.close();

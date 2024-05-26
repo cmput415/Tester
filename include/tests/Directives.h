@@ -13,6 +13,7 @@ namespace Directive {
 
   // other constants
   inline const uint32_t MAX_INPUT_BYTES = 1025;
+  inline const uint32_t MAX_OUTPUT_BYTES = 1025;
 }
 
 #endif // DIRECTIVES_H

@@ -34,18 +34,17 @@ int main(int argc, char **argv) {
 
     // Run our tests.
     failed = t.runTests();
-    return 0; 
 
     // Save or print the summary.
-    std::string summary = t.getTestSummary();
-    if (cfg.hasSummaryPath()) {
-      std::ofstream sumFile(cfg.getSummaryPath());
-      sumFile << summary;
-      std::cout << "Summary saved to file: " << cfg.getSummaryPath() << '\n';
-    }
-    else {
-      std::cout << "Summary:\n" << summary;
-    }
+    // std::string summary = t.getTestSummary();
+    // if (cfg.hasSummaryPath()) {
+    //   std::ofstream sumFile(cfg.getSummaryPath());
+    //   sumFile << summary;
+    //   std::cout << "Summary saved to file: " << cfg.getSummaryPath() << '\n';
+    // }
+    // else {
+    //   std::cout << "Summary:\n" << summary;
+    // }
 
   }
   catch (const std::runtime_error &e) {

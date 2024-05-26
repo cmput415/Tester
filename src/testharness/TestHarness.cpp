@@ -13,10 +13,6 @@ namespace tester {
 
 // Builds TestSet during object creation.
 TestHarness::TestHarness(const Config &cfg) : cfg(cfg), results(), module() {
-
-#if defined(DEBUG)
-  std::cout << "Construcing Test Harness..." << std::endl;
-#endif
   // Build the test set.
   fillModule(cfg.getTestDirPath(), module);  
 }
@@ -74,7 +70,6 @@ std::string TestHarness::getTestSummary() const {
         // Iterate over the results.
         for (const auto &result : packageResults) {
           if (result.pass) {
-            assert(!result.error && "Test passed with error.");
             ++passes;
           }
         }
@@ -133,45 +128,51 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
 
   // Stat tracking for toolchain tests.
   unsigned int toolChainCount = 0, toolChainPasses = 0;
+  // track invalid tests
+  std::vector<fs::path> invalidTests;
 
-  // Iterate the packages.
+  // Iterate over each package.
   for (const auto& [packageName, package]: module) {
-    // Print the package name.
+    
     std::cout << "Entering package: " << packageName << '\n';
-
-    // Stat tracking for package tests.
     unsigned int packageCount = 0, packagePasses = 0;
 
+    // Iterate over each subpackage
     for (const auto& [subPackageName, subPackage] : package) {
+
       std::cout << "  Entering subpackage: " << subPackageName << '\n';
+      unsigned int subPackagePasses = 0, subPackageSize = subPackage.size();
+
+      // Iterate over each test in the package
+      for (const std::unique_ptr<TestFile>& test : subPackage) {
+        
+        if (test->getErrorState() == ParseError::NoError) {
+
+          TestResult result = runTest(test, toolChain, cfg); 
+          results.addResult(exeName, tcName, subPackageName, result);
+
+          std::cout << "    " << test->getTestPath().stem().string() << ": "
+                    << (result.pass ? "PASS" : "FAIL") << '\n';
+          if (result.pass) {
+            ++packagePasses;
+            ++subPackagePasses;
+          } else {
+            failed = true;
+            if (!cfg.isQuiet() && !result.error)
+              std::cout << '\n' << result.diff << '\n';
+          }
+        } else {
+          std::cout << "    " << test->getTestPath().stem().string() << ": "
+                    << "INVALID" << '\n';
+          --subPackageSize;
+          invalidTests.push_back(test->getTestPath()); 
+        }
+      }
+      std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackageSize
+                << '\n';
 
       // Track how many tests we run.
-      packageCount += subPackage.size();
-
-      // Count how many passes we get.
-      unsigned int subPackagePasses = 0;
-
-      // Iterate over the tests.
-      for (const std::unique_ptr<TestFile>& test : subPackage) {
-        // Run the test and save the result.
-        TestResult result = runTest(test, toolChain, cfg.isQuiet());
-        
-        results.addResult(exeName, tcName, subPackageName, result);
-
-        std::cout << "    " << test->getTestPath().stem().string() << ": "
-                  << (result.pass ? "PASS" : "FAIL") << '\n';
-        if (result.pass) {
-          ++packagePasses;
-          ++subPackagePasses;
-        } else {
-	        failed = true;
-          if (!cfg.isQuiet() && !result.error)
-            std::cout << '\n' << result.diff << '\n';
-	      }
-      }
-
-      std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackage.size()
-                << '\n';
+      packageCount += subPackageSize;
     }
 
     // Update the toolchain stats from the package stats.
@@ -182,6 +183,15 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
   }
 
   std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount << "\n\n";
+  std::cout << "Skipped " << invalidTests.size() << " / " 
+            << toolChainCount + invalidTests.size() << "\n"; 
+  
+  for (auto& test: invalidTests) {
+    std::cout << "  Skipped: " << test.stem().string() 
+              << " With error: " << "1" << "\n";
+  }
+  std::cout << "\n";
+
   return failed;
 }
 

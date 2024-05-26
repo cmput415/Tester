@@ -30,6 +30,7 @@ Config::Config(int argc, char **argv) : timeout(2l) {
 
   // Add quiet flag to not print out diffs.
   CLI::Option *quietFlag = app.add_flag("-q,--quiet", quiet, "Quiet mode, don't print fail diffs");
+  CLI::Option *verboseFlag = app.add_flag("-v,--verbose", verbose, "Verbose mode, dump files for failed tests");
 
   // ---- These flags are for grading.
   // Set file to put grading output into.

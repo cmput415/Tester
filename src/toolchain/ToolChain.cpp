@@ -26,17 +26,12 @@ ExecutionOutput ToolChain::build(const fs::path &testPath, const fs::path &input
   for (const Command &c : commands) {
     eo = c.execute(ei);
 
-    /* If the SUT did not produce output, it may be because it found an error.
-     * If the err file exists, use that instead.
-     */
-    std::error_code ec;
-    std::uintmax_t olen = std::filesystem::file_size(eo.getOutputFile(), ec);
-    if (olen == static_cast<std::uintmax_t>(-1) || olen == 0) {
-        if (std::filesystem::exists(eo.getErrorFile(), ec)) {
-            // Break the command pipe and return the current output
-            return eo;
-        }
+    int rv = eo.getReturnValue();
+    if (rv != 0) {
+      std::cout << "  Command terminated with error: " << rv << std::endl;
+      return eo;
     }
+    
     ei = ExecutionInput(
         eo.getOutputFile(),
         ei.getInputStreamFile(),

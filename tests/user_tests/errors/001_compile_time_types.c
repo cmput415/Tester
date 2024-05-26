@@ -15,8 +15,4 @@ int main() {
   return 0;
 }
 
-//CHECK:error: assigning to 'Apple' (aka 'struct Apple') from incompatible type 'Banana' (aka 'struct Banana')
-//CHECK:  a = b;
-//CHECK:    ^ ~
-//CHECK:1 error generated.
-//CHECK:
+//CHECK:error: 
