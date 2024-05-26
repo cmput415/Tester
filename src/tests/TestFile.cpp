@@ -16,9 +16,9 @@ namespace tester {
 uint64_t TestFile::nextId = 0;
 
 TestFile::TestFile(const fs::path& path) 
-  :  id(++nextId), usesInputStream(false), testPath(path), 
-    usesInputFile(false), errorState(ErrorState::NoError)
-  {
+  : id(++nextId), usesInputStream(false), usesInputFile(false), usesOut(false), testPath(path),
+    errorState(ParseError::NoError)
+{
 
   // create a unique temporary file to use as the inputs stream path 
   std::string fileInsPath = stripFileExtension(testPath.filename()); 

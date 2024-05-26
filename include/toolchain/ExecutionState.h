@@ -46,15 +46,19 @@ public:
 
   // Creates output to a subprocess execution.
   explicit ExecutionOutput(fs::path outputPath, fs::path errorPath = "") :
-      outputPath(std::move(outputPath)), errorPath(std::move(errorPath)) { }
+      outputPath(std::move(outputPath)), errorPath(std::move(errorPath)), rv(0) { }
 
   // Gets output file.
   fs::path getOutputFile() const { return outputPath; }
   fs::path getErrorFile() const { return errorPath; }
+  
+  int getReturnValue() const { return rv; }
+  void setReturnValue(int returnValue) { rv = returnValue; }
 
 private:
   fs::path outputPath;
   fs::path errorPath;
+  int rv;
 };
 
 } // End namespace tester

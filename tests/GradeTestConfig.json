@@ -1,7 +1,9 @@
 {
-  "testDir": "./ctests",
+  "testDir": "grade_tests/",
   "testedExecutablePaths": {
-    "clang": "/usr/bin/clang"
+    "team1": "/usr/bin/clang",
+    "team2": "/usr/bin/clang",
+    "team3": "/usr/bin/clang"
   },
   "toolchains": {
     "LLVM": [
@@ -29,3 +31,4 @@
     ] 
   }
 }
+

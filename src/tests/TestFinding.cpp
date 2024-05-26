@@ -2,14 +2,6 @@
 
 namespace tester {
 
-bool hasTestFiles(const fs::path& path) {
-    for (const auto& entry : fs::recursive_directory_iterator(path)) {
-        if (fs::is_regular_file(entry.status()))
-            return true;
-    }
-    return false;
-}
-
 bool isTestFile(const fs::path& path) {
   if (fs::exists(path) 
     && !fs::is_directory(path)
@@ -19,6 +11,14 @@ bool isTestFile(const fs::path& path) {
     return true;
   }
   return false; 
+}
+
+bool hasTestFiles(const fs::path& path) {
+  for (const auto& entry : fs::recursive_directory_iterator(path)) {
+    if (isTestFile(entry))
+        return true;
+  }
+  return false;
 }
 
 void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {  
@@ -31,10 +31,8 @@ void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {
         // move ownership of the testfile to the subpackage
         subPackage.push_back(std::move(testfile));
       } catch (const std::exception& e) {
-        std::cerr << "Exception caught: " << e.what() << std::endl;
-      } catch (...) {
-        std::cerr << "Unknown Exception Caught..." << std::endl;
-      }
+        std::cerr << "Exception creating TestFile: " << e.what() << std::endl;
+      }   
     }
   }
 }

@@ -22,10 +22,15 @@ file:
 tester [options] <path_to_config_file>
 ```
 Currently there are a few options available.
+ 
   * `-q`, `--quiet`: Quiet mode, don't print diffs, only shows failures/
     successes
+  
   * `--summary <path_to_file>`: Writes the final summary to the file rather than
     stdout
+
+  * `--file <path_to_test_file_or_dir>` Override the test paths in the configuration and run one
+  test (or directory) specifically. Great for debugging. Perserves intermediate toolchain files.
 
 If you forget this, you can always use `-h` or `--help` to see info.
 

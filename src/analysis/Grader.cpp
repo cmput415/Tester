@@ -9,8 +9,8 @@ namespace {
 namespace tester {
 
 Grader::Grader(const Config &cfg) : cfg(cfg), tests(), analysis() {
-  // TODO: add new findTests interface
   // findTests(cfg.getInDirPath(), cfg.getOutDirPath(), cfg.getInStrDirPath(), tests);
+  fillModule(cfg.getTestDirPath(), tests);  
   buildResults();
   analyseResults();
 }
@@ -69,7 +69,7 @@ void Grader::buildResults() {
         size_t passCount = 0;
         for (const auto &subpackages : tests[attacker]) {
           for (const auto &test : subpackages.second) {
-            if (runTest(test, tc, true).pass)
+            if (runTest(test, tc, cfg).pass)
               ++passCount;
 
             // Status showing. Flushing every iteration isn't "ideal" but 1) I like seeing progress
@@ -106,13 +106,14 @@ void Grader::analyseResults() {
       for (const auto &rateTable : passRates) {
         cells.emplace_back(rateTable.get().getCrossCell(defender, attacker));
       }
-
+    
       // Add to the summaries.
       totalPassRate.addPassRate(defender, attacker, cells);
       totalFailRate.addFailRate(defender, attacker, totalPassRate.getCrossCell(defender, attacker));
     }
   }
 
+  std::cout << "Build Attack Table" << std::endl;
   // Build attack table.
   auto &offense = analysis.addTable<OffensivePointsTable>("offensive","Offensive Points Summary");
   for (const std::string &attacker : names)
@@ -120,6 +121,7 @@ void Grader::analyseResults() {
     offense.addAttacker(attacker, totalFailRate.getAttackerRange(attacker),
                         totalFailRate.getDefenderNameRange());
 
+  std::cout << "Build Defense Table" << std::endl;
   // Build defense table.
   auto &defense = analysis.addTable<DefensivePointsTable>("defensive", "Defensive Points Summary");
   for (const std::string &defender : names)
@@ -144,6 +146,7 @@ void Grader::analyseResults() {
                            totalPassRate.getAttackerRange(solution),
                            totalPassRate.getDefenderNameRange());
 
+  std::cout << "Build Summary Table" << std::endl;
   // Build the summary table.
   auto &pointSum = analysis.addTable<PointSummaryTable>("points", "Points Summary");
   for (const std::string &solution : names)
@@ -154,13 +157,16 @@ void Grader::analyseResults() {
                           totalPassRate.getCrossCell(solution, solution),
                           coverage.getCellByName(solution));
 
+  std::cout << "Build Final Summary Table" << std::endl;
   // Build the final summary table.
-  auto &finalSum = analysis.addTable<FinalSummaryTable>("final", "Final Summary");
-  for (const std::string &solution : names)
-    // Don't put the solution into the final summary. It's impossible.
-    if (solution != "solution")
-      finalSum.addSummary(solution, pointSum.getSummary(solution), pointSum.getSummaryRange(),
-                          totalPassRate.getCrossCell(solution, "solution"));
+  // auto &finalSum = analysis.addTable<FinalSummaryTable>("final", "Final Summary");
+  // for (const std::string &solution : names)
+  //   // Don't put the solution into the final summary. It's impossible.
+  //   if (solution != "solution")
+  //     finalSum.addSummary(solution, pointSum.getSummary(solution), pointSum.getSummaryRange(),
+  //                         totalPassRate.getCrossCell(solution, "solution"));
+  
+  std::cout << "Finished Final Summary Table" << std::endl;
 }
 
 } // End namespace tester
