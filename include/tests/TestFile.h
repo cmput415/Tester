@@ -22,6 +22,9 @@ enum ParseError {
   RuntimeError
 };
 
+// forward declaration
+class TestParser;
+
 class TestFile {
 public:
   
@@ -35,11 +38,11 @@ public:
   uint64_t id;
    
   // getters
-  fs::path getTestPath() { return testPath; }
-  fs::path getInsPath() { return insPath; }
-  fs::path getOutPath() { return outPath; }
+  fs::path getTestPath() const { return testPath; }
+  fs::path getInsPath() const { return insPath; }
+  fs::path getOutPath() const { return outPath; }
   ParseError getErrorState() const { return errorState; }
-  const std::string &getErrorMessage() const { return errorMsg; }
+  std::string getErrorMessage() const;
   
   // setters 
   void setTestPath(fs::path path) { testPath = path; }
@@ -50,7 +53,9 @@ public:
   void setErrorMsg (std::string msg) { errorMsg = msg; } 
   
   // if test has any input and if test uses input file specifically
-  bool usesInputStream, usesInputFile, usesOut;
+  bool usesInputStream, usesInputFile, usesOutStream, usesOutFile;
+
+  friend class TestParser;
 
 protected:
   static uint64_t nextId;

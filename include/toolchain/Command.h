@@ -5,6 +5,7 @@
 
 #include "toolchain/ExecutionState.h"
 #include "ExecutionState.h"
+#include "Colors.h"
 
 #include <filesystem>
 #include <future>
@@ -39,10 +40,12 @@ public:
   // Ostream operator.
   friend std::ostream &operator<<(std::ostream&, const Command&);
 
+  // TODO: move back to private 
+  std::string buildCommand(const ExecutionInput &input, const ExecutionOutput &output) const;
+
 private:
   // Builds out best guess of the underlying command run by exec. Also adds a "redirect" as if
   // we were executing in the shell. In truth we're doing manual stream redirection.
-  std::string buildCommand(const ExecutionInput &input, const ExecutionOutput &output) const;
 
   // Resolves magic parameters to values.
   fs::path resolveArg(const ExecutionInput &ei, const ExecutionOutput &eo, std::string arg) const;
