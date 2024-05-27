@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
   if (cfg.hasGradePath()) {
     tester::Grader grader(cfg);
     std::ofstream svFile(cfg.getGradePath());
-    grader.dump(svFile);
+    // grader.dump(svFile);
     return 0;
   }
 

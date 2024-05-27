@@ -4,7 +4,6 @@
 #include "config/Config.h"
 #include "toolchain/CommandException.h"
 #include "toolchain/ExecutionState.h"
-
 #include "dtl/dtl.hpp"
 
 #include <tuple>

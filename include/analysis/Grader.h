@@ -1,10 +1,9 @@
 #ifndef TESTER_GRADER_H
 #define TESTER_GRADER_H
 
-#include "analysis/spreadsheet/Sheet.h"
-#include "analysis/spreadsheet/Table.h"
 #include "config/Config.h"
 #include "tests/Util.h"
+#include "csv/csv.h"
 
 #include <ostream>
 #include <string>
@@ -20,7 +19,7 @@ public:
   // Construct with output file path.
   explicit Grader(const Config &cfg);
 
-  void dump(std::ostream &os) const { analysis.dumpSV(os); }
+  // void dump(std::ostream &os) const { analysis.dumpSV(os); }
 
 private:
   // Build the results to produce our sheet.
@@ -36,15 +35,8 @@ private:
   // Our tests.
   TestModule tests;
 
-  // The sheet that our analysis goes into.
-  Sheet analysis;
-
   // The filtered (must have exe and tests) names of all solutions that will be tested.
-  std::vector<std::string> names;
-
-  // The vector of pass rate tables.
-  typedef std::reference_wrapper<tester::ToolchainPassRateTable> ToolChainPassRateTableRef;
-  std::vector<ToolChainPassRateTableRef> passRates;
+  std::vector<std::string> names; 
 };
 
 } // End namespace tester
