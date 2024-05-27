@@ -24,7 +24,7 @@ fi
 cd $SCRIPT_DIR
 
 # run C tests
-$PROJECT_BASE/bin/tester $SCRIPT_DIR/LocalTestConfig.json
+$PROJECT_BASE/bin/tester $SCRIPT_DIR/UserTestConfig.json
 
 status=$?
 
