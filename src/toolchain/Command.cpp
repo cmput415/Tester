@@ -19,6 +19,9 @@
 
 namespace {
 
+#if __linux__ || __APPLE__
+
+
 void becomeCommand(const std::string &exe, const std::vector<std::string> &trueArgs,
                    const std::string &runtime, const std::string &output,
                    const std::string &input) {
@@ -70,8 +73,6 @@ void becomeCommand(const std::string &exe, const std::vector<std::string> &trueA
 
   // If we're provided with a input stream file we need to replace STDIN.
   if (!input.empty()) {
-
-    // std::cout << "TRY TO OPEN: " << input << std::endl;
     // Open up the file we'd like to use.
     int fd = open(input.c_str(), O_RDONLY, NULL);
 
@@ -139,7 +140,8 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
   }
 
   // We didn't stop monitoring because of an error, so we have two options: successful exit or
-  // timeout. If we timed out, we need to kill the subprocess.
+  // timeout.
+  // If we timed out, we need to kill the subprocess.
   // Also check if closing is already set. This would mean that the above loop stopped because we
   // exited successfully, but in the meantime there was a timeout (this race condition is impossible
   // to remove, but we can handle it). This means that the child has already been reaped so we
@@ -170,7 +172,16 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
   promise.set_value_at_thread_exit(static_cast<unsigned int>(status));
 }
 
+#elif _WIN32 || _WIN64
+void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
+                const std::string &exe, const std::vector<std::string> &trueArgs,
+                const std::string &runtime, const std::string &output) {
+  throw std::runtime_error("Don't know how to run commands on Windows.");
+}
+#endif
+
 } // End anonymous namespace.
+
 
 namespace tester {
 
@@ -241,7 +252,7 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   ExecutionOutput eo(output, stdoutPath);
 
   // Always remove old output files so we know if a new one was created
-  std::error_code ec;  
+  std::error_code ec;
   std::filesystem::remove(output, ec);
   std::filesystem::remove(stdoutPath, ec);
 
@@ -292,7 +303,9 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
   // Finally get the result of the thread.
   int rv = future.get();
-  
+
+// If we're on a POSIX system then we need to decompose the return value appropriately.
+#if __linux__ || __APPLE__
   // If we exited "normally" we need to check the return code. If the return code is 0, all is well.
   if (WIFEXITED(rv)) {
     // Get the exit status
@@ -300,23 +313,39 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
     // If the return code is not 0 and we do not allow errors, we failed in some
     // manner. Raise a custom exception.
-    if (rv != 0 && !allowError) {
+    if (rv != 0 && !allowError)
       throw FailException("Subcommand returned status code " + std::to_string(rv)
                           + ":\n  " + buildCommand(ei, eo));
-    }
-  } else if (WIFSIGNALED(rv)) {
-    // If we exited due to a signal we can dump the signal and throw an exception.
-    rv = WTERMSIG(rv);
-    if (rv != 0 && !allowError) {
-      throw FailException("Subcommand terminated by signal " + std::to_string(rv)
-                        + ":\n  " + buildCommand(ei, eo));
-    }
-  } else {
-    throw std::runtime_error("Subcommand terminated in an unknown fashion:\n  " + buildCommand(ei, eo));
   }
 
+  // If we exited due to a signal we can dump the signal and throw an exception.
+  else if (WIFSIGNALED(rv)) {
+    rv = WTERMSIG(rv);
+    throw FailException("Subcommand terminated by signal " + std::to_string(rv)
+                        + ":\n  " + buildCommand(ei, eo));
+  }
+
+  // We have some other status of the process. Throw a more generic error that will pass itself
+  // all the way out of the program. This needs to be handled.
+  else
+    throw std::runtime_error("Subcommand terminated in an unknown fashion:\n  " + buildCommand(ei, eo));
+
+// Best guess at decoding status code on Windows.
+#elif _WIN32 || _WIN64
+  LPDWORD status_code;
+  bool success = GetExitCodeThread(handle, &status_code);
+  if (!success)
+    throw std::runtime_eror("Failed to get Windows process exit code.");
+
+  if (status_code != 0)
+    throw FailException("Subcommand returned status code " + std::to_string(rv)
+                        + ":\n  " + command);
+#else
+  // We don't know how to get status on this platform... throw generic error.
+  throw std::runtime_error("We don't know how to get status on this platform.")
+#endif
+
   // Tell the toolchain about our output.
-  eo.setReturnValue(rv);
   return eo;
 }
 
