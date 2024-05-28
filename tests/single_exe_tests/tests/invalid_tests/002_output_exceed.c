@@ -1,4 +1,4 @@
-//CHECK_FILE:output_exceed.out
+//CHECK_FILE:./out-stream/output_exceed.out
 
 #include <stdio.h>
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-PROJECT_BASE="$SCRIPT_DIR/.."
+PROJECT_BASE="$SCRIPT_DIR/../.."
 
 echo "Project Base: $PROJECT_BASE"
 
@@ -23,15 +23,21 @@ fi
 # we need to be in the test dir to run tests
 cd $SCRIPT_DIR
 
-# run C tests
-$PROJECT_BASE/bin/tester $SCRIPT_DIR/UserTestConfig.json
+$PROJECT_BASE/bin/tester $SCRIPT_DIR/GradeConfig.json --grade $SCRIPT_DIR/grades.json
 
 status=$?
 
 if [ $status -eq 0 ]; then
   echo "Passed tests with status: $status"
+  if [ -e $SCRIPT_DIR/grades.json ]; then
+    echo "Grade JSON successfuly created"
+    exit 0 
+  else
+    echo "Failed to output grade JSON"
+    exit 1
+  fi
 else
   echo "Failed tester with exit status: $status"
 fi
 
-exit $status
+exit 1

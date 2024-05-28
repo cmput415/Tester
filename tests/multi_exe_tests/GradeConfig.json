@@ -1,5 +1,5 @@
 {
-  "testDir": "grade_tests/",
+  "testDir": "tests",
   "testedExecutablePaths": {
     "team1": "/usr/bin/clang",
     "team2": "/usr/bin/clang",

@@ -1,0 +1,70 @@
+[
+  {
+    "results": [
+      {
+        "attacker": "team1",
+        "defender": "team1",
+        "passCount": 3,
+        "testCount": 3,
+        "timings": []
+      },
+      {
+        "attacker": "team2",
+        "defender": "team1",
+        "passCount": 2,
+        "testCount": 2,
+        "timings": []
+      },
+      {
+        "attacker": "team3",
+        "defender": "team1",
+        "passCount": 1,
+        "testCount": 1,
+        "timings": []
+      },
+      {
+        "attacker": "team1",
+        "defender": "team2",
+        "passCount": 3,
+        "testCount": 3,
+        "timings": []
+      },
+      {
+        "attacker": "team2",
+        "defender": "team2",
+        "passCount": 2,
+        "testCount": 2,
+        "timings": []
+      },
+      {
+        "attacker": "team3",
+        "defender": "team2",
+        "passCount": 1,
+        "testCount": 1,
+        "timings": []
+      },
+      {
+        "attacker": "team1",
+        "defender": "team3",
+        "passCount": 3,
+        "testCount": 3,
+        "timings": []
+      },
+      {
+        "attacker": "team2",
+        "defender": "team3",
+        "passCount": 2,
+        "testCount": 2,
+        "timings": []
+      },
+      {
+        "attacker": "team3",
+        "defender": "team3",
+        "passCount": 1,
+        "testCount": 1,
+        "timings": []
+      }
+    ],
+    "toolchain": "LLVM"
+  }
+]

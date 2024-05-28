@@ -1,4 +1,4 @@
-//INPUT_FILE:input_exceed.ins
+//INPUT_FILE:./in-stream/input_exceed.ins
 
 #include <stdio.h>
 
