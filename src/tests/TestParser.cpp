@@ -231,8 +231,10 @@ int TestParser::parseTest() {
         testfile.usesInputStream = true;
     } if (foundInputFile) {
         testfile.usesInputFile = true;
-    } if (foundCheck | foundCheckFile) {
-        testfile.usesOut = true;
+    } if (foundCheck || foundCheckFile) {
+        testfile.usesOutStream = true;
+    } if (foundCheckFile) {
+        testfile.usesOutFile = true;
     }
 
     // check if input directives have exceeded maximum

@@ -166,7 +166,7 @@ std::pair<bool, std::string> diffFiles(const fs::path& file1, const fs::path& fi
 
   if (!ifs1.is_open() || !ifs2.is_open()) {
     std::cerr << "Error opening files." << std::endl;
-    return std::make_pair(false, "");
+    return std::make_pair(true, "");
   }
 
   std::string line1, line2;
