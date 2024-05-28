@@ -8,15 +8,13 @@ namespace {
 
 namespace tester {
 
-Grader::Grader(const Config &cfg) : cfg(cfg), tests() {
+Grader::Grader(const Config &cfg) : cfg(cfg), tests(), results(JSON::array()) {
   fillModule(cfg.getTestDirPath(), tests);  
   buildResults();
   analyseResults();
 }
 
 void Grader::buildResults() {
-  // auto &counts = analysis.addTable<TestCountTable>("counts", "Test Counts");
-
   // Use this loop for multiple purposes. Create the test counts, but also build up the vector of
   // test package names that have executables (theoretically this should be all of them).
   for (const auto &testPackage : tests) {
@@ -34,20 +32,17 @@ void Grader::buildResults() {
     size_t count = 0;
     for (const auto &subpackage : testPackage.second)
       count += subpackage.second.size();
-    // counts.addTestCount(name, count);
   }
 
   // Start running tests. Make a pass rate table for each toolchain.
   for (const auto &toolChain : cfg.getToolChains()) {
     // Table strings.
     std::string toolChainName = toolChain.first;
-    std::string tableName = toolChainName + "PassRate";
-    std::string tableTitle = "Pass Rate (" + toolChainName + ")";
 
-    // Make our table.
-    // auto &passRate = analysis.addTable<ToolchainPassRateTable>(tableName, tableTitle);
-    // passRate.reserve(names);
-    // passRates.emplace_back(passRate);
+    JSON toolChainJson = {
+      {"toolchain", toolChain.first},
+      {"results", JSON::array()} 
+    };
 
     // Get the toolchain and start running tests. Run over names twice since it's nxn.
     ToolChain tc = toolChain.second;
@@ -60,29 +55,46 @@ void Grader::buildResults() {
       else
         tc.setTestedRuntime("");
 
-
       // Iterate over attackers.
       for (const std::string &attacker : names) {
-        std::cout << toolChainName << '-' << attacker << '-' << defender << ':';
+        // std::cout << toolChainName << '-' << attacker << '-' << defender << ':';
+        std::cout << "==== " << toolChainName << " "<< attacker << " (attacker) V.S " << defender << " (defender)"<< "\n";
         // Iterate over subpackages and the contained tests from the attacker, tracking pass count.
-        size_t passCount = 0;
+        
+        JSON attackDefenseJson = {
+          {"attacker", attacker},
+          {"defender", defender},
+          {"testCount", 0},
+          {"passCount", 0},
+          {"timings", JSON::array()}
+        };
+
+        size_t passCount = 0, testCount = 0;
         for (const auto &subpackages : tests[attacker]) {
           for (const auto &test : subpackages.second) {
-            if (runTest(test, tc, cfg).pass)
-              ++passCount;
-
-            // Status showing. Flushing every iteration isn't "ideal" but 1) I like seeing progress
-            // visually, 2) run time is dominated by the toolchain. Flushing doesn't hurt.
-            std::cout << '.';
+            
+            TestResult result = runTest(test, tc, cfg); 
+            
+            if (result.pass) {
+              std::cout << ".";
+              passCount++;
+            } else if (result.error) {
+              std::cout << "x";
+            }
             std::cout.flush();
+            testCount++;  
           }
         }
-        std::cout << '\n';
 
-        // Save the pass rate.
-        // passRate.addPassRate(defender, attacker, passCount, counts.getTestCount(attacker));
+        attackDefenseJson["passCount"] = passCount;
+        attackDefenseJson["testCount"] = testCount;
+        toolChainJson["results"].push_back(attackDefenseJson);
+        
+        std::cout << '\n';
       }
     }
+
+    results.push_back(toolChainJson);
   }
 }
 
@@ -98,7 +110,11 @@ void Grader::buildResults() {
 */
 void Grader::analyseResults() {
 
+  // for (auto& attacker: names) {
+  //   for (auto& defender: names) {
 
+  //   }
+  // }
   // // Make the summary tables.
   // auto &totalPassRate = analysis.addTable<TotalPassRateTable>("passSummary", "Pass Rate Summary");
   // auto &totalFailRate = analysis.addTable<TotalFailRateTable>("failSummary", "Fail Rate Summary");

@@ -22,6 +22,9 @@ enum ParseError {
   RuntimeError
 };
 
+// forward declaration
+class TestParser;
+
 class TestFile {
 public:
   
@@ -51,6 +54,8 @@ public:
   
   // if test has any input and if test uses input file specifically
   bool usesInputStream, usesInputFile, usesOut;
+
+  friend class TestParser;
 
 protected:
   static uint64_t nextId;

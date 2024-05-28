@@ -23,7 +23,17 @@ fi
 # we need to be in the test dir to run tests
 cd $SCRIPT_DIR
 
-exit 0
+echo "Tests passed."
+
+status=$?
+
+if [ $status -eq 0 ]; then
+  echo "Passed tests with status: $status"
+else
+  echo "Failed tester with exit status: $status"
+fi
+
+exit $status
 
 # TODO: Determine how to assess the output of a grading run
 # in CI.

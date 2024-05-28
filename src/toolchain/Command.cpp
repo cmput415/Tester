@@ -346,6 +346,7 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 #endif
 
   // Tell the toolchain about our output.
+  eo.setReturnValue(rv);
   return eo;
 }
 

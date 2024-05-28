@@ -20,8 +20,8 @@ int main(int argc, char **argv) {
   // Grading means we don't run the tests like normal. Break early.
   if (cfg.hasGradePath()) {
     tester::Grader grader(cfg);
-    std::ofstream svFile(cfg.getGradePath());
-    // grader.dump(svFile);
+    std::ofstream jsonOutput(cfg.getGradePath());
+    grader.dump(jsonOutput);
     return 0;
   }
 

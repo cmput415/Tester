@@ -5,20 +5,18 @@
 
 int main(int argc, char **argv) {
   
-  char line1[25];
-  char line2[25];
-  
-  // read line 1
-  if (fgets(line1, sizeof(line1), stdin) != NULL) {
-    printf("%s", line1);
-  }
+  char a, b;
+  char nl;
 
-  // read line 2
-  if (fgets(line2, sizeof(line2), stdin) != NULL) {
-    printf("%s", line2);
-  }
-  
-  printf("c\n");
+  scanf("%c", &a);
+  scanf("%c", &nl); // consume nl
+  scanf("%c", &b);
+  scanf("%c", &nl); // consume nl
+
+  printf("%c\n", a);
+  printf("%c\n", b);
+
+  printf("c");
   return 0;
 }
 

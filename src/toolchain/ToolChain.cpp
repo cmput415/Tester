@@ -28,7 +28,6 @@ ExecutionOutput ToolChain::build(const fs::path &testPath, const fs::path &input
 
     int rv = eo.getReturnValue();
     if (rv != 0) {
-      std::cout << "  Command terminated with error: " << rv << std::endl;
       return eo;
     }
     

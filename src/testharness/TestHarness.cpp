@@ -151,8 +151,9 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
           TestResult result = runTest(test, toolChain, cfg); 
           results.addResult(exeName, tcName, subPackageName, result);
 
-          std::cout << "    " << test->getTestPath().stem().string() << ": "
-                    << (result.pass ? "PASS" : "FAIL") << '\n';
+          std::cout << "    " << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET) : (Colors::RED + "[FAIL]" + Colors::RESET)) 
+            << " " << test->getTestPath().stem().string() << '\n';
+ 
           if (result.pass) {
             ++packagePasses;
             ++subPackagePasses;

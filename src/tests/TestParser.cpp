@@ -14,6 +14,16 @@ bool fullyContains(const std::string &str, const std::string &substr) {
     return str.substr(pos, substr.length()) == substr; 
 }
 
+void TestParser::insLineToFile(fs::path filePath, std::string line, bool firstInsert) {
+    
+    std::ofstream out(filePath, std::ios::app);
+    
+    if (!firstInsert) {
+        out << "\n";
+    }
+    out << line;
+}
+
 /**
  * @param line a single line from the test file to parse
  * @param directive which directive we attempt to match
@@ -51,17 +61,17 @@ ParseError TestParser::matchInputDirective(std::string &line) {
         return ParseError::NoError;    
     if (foundInputFile)
         return ParseError::DirectiveConflict; // already found an INPUT_FILE
-     
-    std::ofstream ins(testfile.getInsPath(), std::ios::app);  
-    if (!ins.is_open()) 
-        return ParseError::FileError;
     
     size_t findIdx = line.find(Directive::INPUT);
-    std::string input =  line.substr(findIdx + Directive::INPUT.length());
-     
-    ins << input << std::endl; // implicit newline 
-    foundInput = true; 
+    std::string inputLine =  line.substr(findIdx + Directive::INPUT.length());
 
+    try {
+        insLineToFile(testfile.getInsPath(), inputLine, !foundInput);
+    } catch (...) {
+        return ParseError::FileError;
+    } 
+
+    foundInput = true; 
     return ParseError::NoError;
 }
 
@@ -76,25 +86,16 @@ ParseError TestParser::matchCheckDirective(std::string &line) {
     if (foundCheckFile)
         return ParseError::DirectiveConflict;
     
-    std::ofstream out(testfile.getOutPath(), std::ios::app);  
-    if (!out.is_open()) 
-        return ParseError::FileError;
-
     size_t findIdx = line.find(Directive::CHECK);
     std::string checkLine = line.substr(findIdx + Directive::CHECK.length());
 
-    if (fs::is_empty(testfile.getOutPath())) {
-        if (foundCheck) {
-            out << "\n";
-        } else {
-            out << checkLine;
-        } 
-    } else {
-        out << "\n" << checkLine; 
+    try {
+        insLineToFile(testfile.getOutPath(), checkLine, !foundCheck);
+    } catch (...) {
+        return ParseError::FileError;
     }
-    
-    foundCheck = true;
-    
+
+    foundCheck = true; 
     return ParseError::NoError;
 }
 
@@ -130,10 +131,12 @@ ParseError TestParser::matchCheckFileDirective(std::string &line) {
         return ParseError::DirectiveConflict;
 
     PathOrError pathOrError = parsePathFromLine(line, Directive::CHECK_FILE);
-    if (std::holds_alternative<fs::path>(pathOrError))
+    if (std::holds_alternative<fs::path>(pathOrError)) {
         testfile.setOutPath(std::get<fs::path>(pathOrError));
         foundCheckFile = true;
         return ParseError::NoError;
+    }
+
     return std::get<ParseError>(pathOrError); 
 }
 

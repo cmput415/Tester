@@ -5,6 +5,7 @@
 #include "tests/Util.h"
 #include "testharness/ResultManager.h"
 #include "toolchain/ToolChain.h"
+#include "Colors.h"
 
 #include <string>
 #include <map>

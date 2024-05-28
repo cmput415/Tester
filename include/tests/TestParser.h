@@ -43,6 +43,9 @@ private:
   
   // helper method to return the path in a FILE directive if it is good
   PathOrError parsePathFromLine(const std::string &line, const std::string &directive);
+  
+  // helper method to insert a newline prefixed line to a file
+  void insLineToFile(fs::path filePath, std::string line, bool firstInsert);
 
   // methods below look for INPUT, CHECK, INPUT_FILE, CHECK_FILE directive in a lines  
   ParseError matchInputDirective(std::string &line); 
