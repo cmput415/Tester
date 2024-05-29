@@ -25,7 +25,7 @@ fi
 cd $SCRIPT_DIR
 
 # run C tests
-$PROJECT_BASE/bin/tester $TEST_CONFIG
+$PROJECT_BASE/bin/tester $TEST_CONFIG --timeout 5
 
 status=$?
 
