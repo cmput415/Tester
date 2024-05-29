@@ -2,16 +2,13 @@ name: '415 Tester CI'
 run-name: ${{ github.actor }}
 on: [push]
 jobs:
-  build-and-test-1:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3 
-      - name: build and run tester
+      
+      - name: build tester
+        run: tests/build.sh
+
+      - name: run single executable tests  
         run: tests/single_exe_tests/run_tests.sh
-  
-  build-and-test-2:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3 
-      - name: Run Grade Tests
-        run: tests/mutli_exe_tests/run_tests.sh

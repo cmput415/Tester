@@ -1,10 +1,7 @@
 #!/bin/bash
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-PROJECT_BASE="$SCRIPT_DIR/../.."
-TEST_CONFIG="$SCRIPT_DIR/BasicConfig.json"
-
-echo "Project Base: $PROJECT_BASE"
+PROJECT_BASE="$SCRIPT_DIR/.."
 
 if [ -f $PROJECT_BASE/bin/tester ]; then
   echo "Tester binary found"
@@ -21,12 +18,6 @@ else
   cd -
 fi
 
-# we need to be in the test dir to run tests
-cd $SCRIPT_DIR
-
-# run C tests
-$PROJECT_BASE/bin/tester $TEST_CONFIG --timeout 5
-
 status=$?
 
 if [ $status -eq 0 ]; then
@@ -36,3 +27,4 @@ else
 fi
 
 exit $status
+
