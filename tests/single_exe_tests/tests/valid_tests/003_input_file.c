@@ -1,4 +1,4 @@
-// INPUT_FILE:./003_input_file.ins
+// INPUT_FILE:./in-stream/003_input_file.ins
 
 #include <stdio.h>
 

@@ -6,4 +6,4 @@ int main() {
     return 0;
 }
 
-// CHECK_FILE:009_tab_newline.out
+// CHECK_FILE:./out-stream/009_tab_newline.out

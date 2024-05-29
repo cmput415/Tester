@@ -107,93 +107,90 @@ std::string TestHarness::getTestSummary() const {
 }
 
 bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
-  bool failed = false;
+    bool failed = false;
 
-  // Get the toolchain to use.
-  ToolChain toolChain = cfg.getToolChain(tcName);
+    // Get the toolchain to use.
+    ToolChain toolChain = cfg.getToolChain(tcName);
 
-  // Set the toolchain's exe to be tested.
-  const fs::path &exe = cfg.getExecutablePath(exeName);
-  std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
-  toolChain.setTestedExecutable(exe);
+    // Set the toolchain's exe to be tested.
+    const fs::path& exe = cfg.getExecutablePath(exeName);
+    std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
+    toolChain.setTestedExecutable(exe);
 
-  // If we have a runtime, set that as well.
-  if (cfg.hasRuntime(exeName))
-    toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
-  else
-    toolChain.setTestedRuntime("");
+    // If we have a runtime, set that as well.
+    if (cfg.hasRuntime(exeName))
+        toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
+    else
+        toolChain.setTestedRuntime("");
 
-  // Say which toolchain.
-  std::cout << "With toolchain: " << tcName << " -> " <<  toolChain.getBriefDescription() << '\n';
+    // Say which toolchain.
+    std::cout << "With toolchain: " << tcName << " -> " << toolChain.getBriefDescription() << '\n';
 
-  // Stat tracking for toolchain tests.
-  unsigned int toolChainCount = 0, toolChainPasses = 0;
-  // track invalid tests
-  std::vector<fs::path> invalidTests;
+    // Stat tracking for toolchain tests.
+    unsigned int toolChainCount = 0, toolChainPasses = 0;
 
-  // Iterate over each package.
-  for (const auto& [packageName, package]: module) {
-    
-    std::cout << "Entering package: " << packageName << '\n';
-    unsigned int packageCount = 0, packagePasses = 0;
+    // Track invalid tests
+    std::vector<TestFile*> invalidTests;
 
-    // Iterate over each subpackage
-    for (const auto& [subPackageName, subPackage] : package) {
+    // Iterate over each package.
+    for (const auto& [packageName, package] : module) {
+        std::cout << "Entering package: " << packageName << '\n';
+        unsigned int packageCount = 0, packagePasses = 0;
 
-      std::cout << "  Entering subpackage: " << subPackageName << '\n';
-      unsigned int subPackagePasses = 0, subPackageSize = subPackage.size();
+        // Iterate over each subpackage
+        for (const auto& [subPackageName, subPackage] : package) {
+            std::cout << "  Entering subpackage: " << subPackageName << '\n';
+            unsigned int subPackagePasses = 0, subPackageSize = subPackage.size();
 
-      // Iterate over each test in the package
-      for (const std::unique_ptr<TestFile>& test : subPackage) {
-        
-        if (test->getErrorState() == ParseError::NoError) {
+            // Iterate over each test in the package
+            for (const std::unique_ptr<TestFile>& test : subPackage) {
+                if (test->getErrorState() == ParseError::NoError) {
+                    TestResult result = runTest(test, toolChain, cfg);
+                    results.addResult(exeName, tcName, subPackageName, result);
 
-          TestResult result = runTest(test, toolChain, cfg); 
-          results.addResult(exeName, tcName, subPackageName, result);
+                    std::cout << "    " << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET) : (Colors::RED + "[FAIL]" + Colors::RESET))
+                              << " " << test->getTestPath().stem().string() << '\n';
 
-          std::cout << "    " << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET) : (Colors::RED + "[FAIL]" + Colors::RESET)) 
-            << " " << test->getTestPath().stem().string() << '\n';
- 
-          if (result.pass) {
-            ++packagePasses;
-            ++subPackagePasses;
-          } else {
-            failed = true;
-            if (!cfg.isQuiet() && !result.error)
-              std::cout << '\n' << result.diff << '\n';
-          }
-        } else {
-          std::cout << "    " << test->getTestPath().stem().string() << ": "
-                    << "INVALID" << '\n';
-          --subPackageSize;
-          invalidTests.push_back(test->getTestPath()); 
+                    if (result.pass) {
+                        ++packagePasses;
+                        ++subPackagePasses;
+                    } else {
+                        failed = true;
+                        if (!cfg.isQuiet() && !result.error)
+                            std::cout << '\n' << result.diff << '\n';
+                    }
+                } else {
+                    std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET)
+                              << " " << test->getTestPath().stem().string() << '\n';
+                    --subPackageSize;
+                    invalidTests.push_back(test.get());
+                }
+            }
+            std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackageSize << '\n';
+
+            // Track how many tests we run.
+            packageCount += subPackageSize;
         }
-      }
-      std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackageSize
-                << '\n';
 
-      // Track how many tests we run.
-      packageCount += subPackageSize;
+        // Update the toolchain stats from the package stats.
+        toolChainPasses += packagePasses;
+        toolChainCount += packageCount;
+
+        std::cout << " Package passed " << packagePasses << " / " << packageCount << '\n';
     }
 
-    // Update the toolchain stats from the package stats.
-    toolChainPasses += packagePasses;
-    toolChainCount += packageCount;
+    std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount << "\n\n";
+    std::cout << "Invalid " << invalidTests.size() << " / "
+              << toolChainCount + invalidTests.size() << "\n";
 
-    std::cout << " Package passed " << packagePasses<< " / " << packageCount << '\n';
-  }
+    for (const TestFile* test : invalidTests) {
+        std::cout << "  Skipped: " << test->getTestPath().filename().stem() << std::endl
+                  << "  Error: " << Colors::YELLOW << test->getErrorMessage() << Colors::RESET << "\n";
+    }
+    std::cout << "\n";
 
-  std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount << "\n\n";
-  std::cout << "Skipped " << invalidTests.size() << " / " 
-            << toolChainCount + invalidTests.size() << "\n"; 
-  
-  for (auto& test: invalidTests) {
-    std::cout << "  Skipped: " << test.stem().string() 
-              << " With error: " << "1" << "\n";
-  }
-  std::cout << "\n";
-
-  return failed;
+    return failed;
 }
+
 
 } // End namespace tester
