@@ -11,4 +11,4 @@ jobs:
         run: tests/build.sh
 
       - name: run single executable tests  
-        run: tests/single_exe_tests/run_tests.sh
+        run: tests/single_exe_tests/run.sh
