@@ -30,8 +30,6 @@ int main(int argc, char **argv) {
     // Build our tester.
     tester::TestHarness t(cfg);
     
-    std::cout << t.getTestInfo() << '\n';
-
     // Run our tests.
     failed = t.runTests();
 
