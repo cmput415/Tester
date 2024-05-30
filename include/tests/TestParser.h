@@ -39,8 +39,8 @@ private:
   uint32_t insByteCount, outByteCount;
 
   // determine if we are in a comment while parsing
-  void trackCommentState(std::string &line); 
-  
+  void trackCommentState(std::string &line);
+
   // helper method to return the path in a FILE directive if it is good
   PathOrError parsePathFromLine(const std::string &line, const std::string &directive);
   
