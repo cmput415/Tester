@@ -110,7 +110,7 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
                 const std::string &runtime, const std::string &output,
                 const std::string &input) {
 
-  // Do the actual fork.
+  // auto start = std::chrono::high_resolution_clock::now();
   pid_t childId = fork();
 
   // We're the child process, we want to replace our process image with the shell running the
@@ -125,6 +125,7 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
 
   // Initial attempt to wait.
   closing = waitpid(childId, &status, WNOHANG);
+  // auto end = std::chrono::high_resolution_clock::now();  
 
   // Our busy loop, continually asking about the status of the child.
   while (closing == 0 && !killVar.load()) {
@@ -167,7 +168,8 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
       throw std::runtime_error("Problem waiting on killed subprocess. Check for zombie processes.");
     }
   }
-
+  // std::chrono::duration<double> elapsed = end - start;
+  // std::cout << "Child Process Execution Time for executable: " << exe << " " << elapsed.count() << " seconds." << std::endl; 
   // Set our return value and let the thread end.
   promise.set_value_at_thread_exit(static_cast<unsigned int>(status));
 }
@@ -304,8 +306,6 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   // Finally get the result of the thread.
   int rv = future.get();
 
-// If we're on a POSIX system then we need to decompose the return value appropriately.
-#if __linux__ || __APPLE__
   // If we exited "normally" we need to check the return code. If the return code is 0, all is well.
   if (WIFEXITED(rv)) {
     // Get the exit status
@@ -329,21 +329,6 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   // all the way out of the program. This needs to be handled.
   else
     throw std::runtime_error("Subcommand terminated in an unknown fashion:\n  " + buildCommand(ei, eo));
-
-// Best guess at decoding status code on Windows.
-#elif _WIN32 || _WIN64
-  LPDWORD status_code;
-  bool success = GetExitCodeThread(handle, &status_code);
-  if (!success)
-    throw std::runtime_eror("Failed to get Windows process exit code.");
-
-  if (status_code != 0)
-    throw FailException("Subcommand returned status code " + std::to_string(rv)
-                        + ":\n  " + command);
-#else
-  // We don't know how to get status on this platform... throw generic error.
-  throw std::runtime_error("We don't know how to get status on this platform.")
-#endif
 
   // Tell the toolchain about our output.
   eo.setReturnValue(rv);
