@@ -1,0 +1,93 @@
+{
+  "results": [
+    {
+      "toolchain": "LLVM",
+      "toolchainResults": [
+        {
+          "defender": "team1",
+          "defenderResults": [
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": []
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": []
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": []
+            }
+          ]
+        },
+        {
+          "defender": "team2",
+          "defenderResults": [
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": []
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": []
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": []
+            }
+          ]
+        },
+        {
+          "defender": "team3",
+          "defenderResults": [
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": []
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": []
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "testSummary": [
+    {
+      "team": "team1",
+      "testCount": 3
+    },
+    {
+      "team": "team2",
+      "testCount": 2
+    },
+    {
+      "team": "team3",
+      "testCount": 1
+    }
+  ],
+  "title": "415 Grades"
+}
