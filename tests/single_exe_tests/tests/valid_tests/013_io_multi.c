@@ -11,7 +11,6 @@ int main(int argc, char **argv) {
   scanf("%c", &a);
   scanf("%c", &nl); // consume nl
   scanf("%c", &b);
-  scanf("%c", &nl); // consume nl
 
   printf("%c\n", a);
   printf("%c\n", b);
@@ -23,4 +22,3 @@ int main(int argc, char **argv) {
 // CHECK:a
 // CHECK:b
 // CHECK:c
-// CHECK:

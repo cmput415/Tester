@@ -13,6 +13,8 @@ namespace Colors {
         MAGENTA = "\033[35m",
         CYAN = "\033[36m",
         WHITE = "\033[37m",
+        BLACK = "\033[30m",
+        BG_WHITE = "\033[47m",
         RESET = "\033[0m";
 }
 

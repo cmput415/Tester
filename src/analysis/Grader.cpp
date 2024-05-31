@@ -9,7 +9,7 @@ namespace {
 namespace tester {
 
 Grader::Grader(const Config &cfg) : cfg(cfg), tests(), outputJson(JSON::object()) {
-  fillModule(cfg.getTestDirPath(), tests);  
+  fillModule(cfg, tests);  
   buildResults();
 }
 
