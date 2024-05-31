@@ -25,5 +25,3 @@ int main() {
 
 // CHECK:a
 // CHECK:bc
-// check the implicit newline spit out by printf with %s
-// CHECK:

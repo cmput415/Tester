@@ -15,9 +15,8 @@ bool fullyContains(const std::string &str, const std::string &substr) {
 }
 
 void TestParser::insLineToFile(fs::path filePath, std::string line, bool firstInsert) {
-    
-    std::ofstream out(filePath, std::ios::app);
-    
+    // open in append mode since otherwise multi-line checks and inputs would over-write themselves. 
+    std::ofstream out(filePath, std::ios::app); 
     if (!firstInsert) {
         out << "\n";
     }
@@ -129,7 +128,7 @@ ParseError TestParser::matchCheckFileDirective(std::string &line) {
         return ParseError::NoError;
     if (foundCheck)
         return ParseError::DirectiveConflict;
-
+    
     PathOrError pathOrError = parsePathFromLine(line, Directive::CHECK_FILE);
     if (std::holds_alternative<fs::path>(pathOrError)) {
         testfile.setOutPath(std::get<fs::path>(pathOrError));
@@ -152,7 +151,7 @@ ParseError TestParser::matchDirectives(std::string &line) {
     if ((error = matchCheckDirective(line)) != ParseError::NoError) return error;
     if ((error = matchInputFileDirective(line)) != ParseError::NoError) return error;
     if ((error = matchCheckFileDirective(line)) != ParseError::NoError) return error;
-    
+
     return ParseError::NoError;
 }
 
@@ -167,11 +166,10 @@ void TestParser::trackCommentState(std::string &line) {
     inLineComment = false; // reset line comment
 
     for (unsigned int i = 0; i < line.length(); i++) {
-
         if (!inString && !inBlockComment && (i + 1) < line.length()
                       && line[i] == '/' && line[i + 1] == '/') {
             inLineComment = true;
-            result += line.substr(i + 2);
+            result += line.substr(i + 2); // save whatever comes after the line comment
             break;
         } 
         else if (!inString && !inLineComment && (i + 1) < line.length() 
@@ -186,10 +184,13 @@ void TestParser::trackCommentState(std::string &line) {
             ++i; // skip the / in '*/'
             continue;
         }
-        else if (line[i] == '"' && !inBlockComment && (!inString || (i > 0 && line[i - 1] != '\\'))) {
+        else if (line[i] == '"' && !inBlockComment) {
+            // check if it was an escaped double qoute
+            if ((i > 0 && line[i - 1] == '\\')) {
+                continue;
+            }
             inString = !inString;
         }
-
         // while we are in a block comment store characters in result
         if (inBlockComment) {
             result += line[i];
@@ -218,7 +219,6 @@ int TestParser::parseTest() {
         if (!line.empty()) {
             ParseError error = matchDirectives(line);
             if (error != ParseError::NoError) {
-                std::cout << "Found Error: " << error << std::endl; 
                 testfile.setErrorState(error);
                 testfile.setErrorMsg("Generic Error"); 
                 break;
@@ -226,18 +226,13 @@ int TestParser::parseTest() {
         } 
     }
 
-    // set final flags to update test state
-    if (foundInput || foundInputFile) {
-        testfile.usesInputStream = true;
-    } if (foundInputFile) {
-        testfile.usesInputFile = true;
-    } if (foundCheck || foundCheckFile) {
-        testfile.usesOutStream = true;
-    } if (foundCheckFile) {
-        testfile.usesOutFile = true;
-    }
+    // Set final flags to update test state
+    testfile.usesInputStream = (foundInput || foundInputFile);
+    testfile.usesInputFile = (foundInputFile);
+    testfile.usesOutStream = (foundCheck || foundCheckFile);
+    testfile.usesOutFile = foundCheckFile;
 
-    // check if input directives have exceeded maximum
+    // ck if input directives have exceeded maximum
     if (fs::file_size(testfile.getInsPath()) > Directive::MAX_INPUT_BYTES) {
         testfile.setErrorState(ParseError::MaxInputBytesExceeded);
     } else if (fs::file_size(testfile.getOutPath()) > Directive::MAX_OUTPUT_BYTES) {

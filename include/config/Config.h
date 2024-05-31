@@ -29,6 +29,7 @@ public:
   const fs::path &getSummaryPath() const { return summaryFilePath; }
   bool hasSummaryPath() const { return !summaryFilePath.empty(); }
   const fs::path &getTestDirPath() const { return testDirPath; }
+  const fs::path &getDebugPath() const { return debugPath; }
 
   // Config map getters and convenience individual getters.
   const PathMap getExecutables() const { return executables; }
@@ -58,6 +59,7 @@ private:
   fs::path gradeFilePath;
   fs::path summaryFilePath;
   fs::path testDirPath;
+  fs::path debugPath;
 
   // Option file maps.
   PathMap executables;
@@ -65,7 +67,7 @@ private:
   ToolChains toolchains;
 
   // Option flags.
-  bool quiet, verbose;
+  bool quiet, verbose, debug;
 
   // The command timeout.
   int64_t timeout;

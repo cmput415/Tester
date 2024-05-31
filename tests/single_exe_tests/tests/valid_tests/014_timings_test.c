@@ -30,3 +30,4 @@ int main() {
 
 // CHECK:Child taking a nap.
 // CHECK:Parent has waited paitiently.
+// CHECK:

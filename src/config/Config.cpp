@@ -15,33 +15,27 @@ using JSON = nlohmann::json;
 namespace tester {
 
 Config::Config(int argc, char **argv) : timeout(2l) {
+  
   CLI::App app{"CMPUT 415 testing utility"};
 
-  // ---- These flags are necessary always.
-  // Add the internal config file path option.
   std::string configFilePath;
   app.add_option("configFile", configFilePath, "Path to the tester JSON configuration file.")
-      ->required()->check(CLI::ExistingFile);
+    ->required()->check(CLI::ExistingFile);
 
-  // ---- These flags are for regular testing.
-  // Set file to dump summary to instead of stdout.
   CLI::Option *summaryOpt = app.add_option("--summary", summaryFilePath,
       "Write the test summary to this file instead of stdout");
 
-  // Add quiet flag to not print out diffs.
-  CLI::Option *quietFlag = app.add_flag("-q,--quiet", quiet, "Quiet mode, don't print fail diffs");
-  CLI::Option *verboseFlag = app.add_flag("-v,--verbose", verbose, "Verbose mode, dump files for failed tests");
+  CLI::Option *quietFlag = app.add_flag("-q,--quiet", quiet,
+    "Quiet mode, don't print fail diffs");
 
-  // ---- These flags are for grading.
-  // Set file to put grading output into.
   CLI::Option *gradeOpt = app.add_option("--grade", gradeFilePath,
       "Perform grading analysis and output to this file");
+  
+  
+  app.add_option("--timeout", timeout, "Specify timeout length for EACH command in a toolchain."); 
+  app.add_option("--debug-path", debugPath, "Provide a sub-path to run the tester on.");
+  app.add_flag("-v,--verbose", verbose, "Verbose mode, dump files for failed tests");
 
-  // ---- These flags are optional always.
-  // Add a timeout flag that defaults to 2 seconds (see initialiser list).
-  app.add_option("--timeout", timeout, "Specify timeout length for EACH command in a toolchain.");
-
-  // If we're doing grading then it doesn't make sense to specify quiet or summary.
   gradeOpt->excludes(quietFlag)->excludes(summaryOpt);
 
   // Parse our command line options. This has the potential to throw CLI::ParseError, but we want it
