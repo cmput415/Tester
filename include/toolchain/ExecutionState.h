@@ -51,14 +51,15 @@ public:
   // Gets output file.
   fs::path getOutputFile() const { return outputPath; }
   fs::path getErrorFile() const { return errorPath; }
-  
+
   int getReturnValue() const { return rv; }
   void setReturnValue(int returnValue) { rv = returnValue; }
-
+  void setElapsedTime(double elapsed) { elapsedTime = elapsed; }
 private:
   fs::path outputPath;
   fs::path errorPath;
   int rv;
+  double elapsedTime; // seconds
 };
 
 } // End namespace tester

@@ -10,6 +10,8 @@
 #include <fstream>
 #include <sstream>
 
+#define ENFORCE_NL 0
+
 namespace {
 
 void dumpFile(const std::filesystem::path& filePath, bool showSpace=false) {
@@ -44,15 +46,19 @@ void dumpFile(const std::filesystem::path& filePath, bool showSpace=false) {
 }
 
 std::vector<std::string> readFileWithNewlines(const fs::path& filepath) {
-  // Typical solution with getline has a problem disambiutating between a file
-  // that ends with a newline and one that doesn't. This is a more granular method.
+
   std::ifstream file(filepath);
   std::vector<std::string> lines;
   if (!file.is_open()) {
-    std::cerr << "Error opening file: " << filepath << std::endl;
-    return lines;
+    throw std::runtime_error("Failed to open file.");
   }
 
+#if !ENFORCE_NL
+  std::string line;
+  while (getline(file, line)) {
+    lines.push_back(line);
+  }
+#else
   std::string currentLine;
   char ch;
   while (file.get(ch)) {
@@ -67,6 +73,7 @@ std::vector<std::string> readFileWithNewlines(const fs::path& filepath) {
   if (!currentLine.empty() || (file.eof() && ch == '\n')) {
     lines.push_back(currentLine);
   }
+#endif
 
   return lines;
 }
@@ -146,6 +153,7 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
 
   try {
     eo = toolChain.build(test);
+    // test->setExecutableDuration();
   } catch (const CommandException &ce) {
     // toolchain throws errors only when allowError is false in the config
     if (!cfg.isQuiet()) {
