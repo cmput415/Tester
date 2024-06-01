@@ -28,7 +28,6 @@ public:
   ToolChain(const ToolChain &tc) = default;
 
   // Runs the toolchain on a specified inputfile.
-  ExecutionOutput build(const fs::path &inputPath, const fs::path &inputStrPath) const;
   ExecutionOutput build(const std::unique_ptr<TestFile> &test) const;
 
   // Manipulate the executable to be tested.
