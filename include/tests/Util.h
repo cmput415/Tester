@@ -7,6 +7,7 @@
 #include "TestFile.h"
 #include "TestResult.h"
 #include "toolchain/ToolChain.h"
+#include "Colors.h"
 
 namespace tester {
 
@@ -15,10 +16,9 @@ typedef std::map<std::string, SubPackage> Package;
 typedef std::map<std::string, Package> TestModule;
 
 // test finding interface
-void fillModule(fs::path testsPath, TestModule& module);
+void fillModule(const Config &cfg, TestModule& module);
 
 TestResult runTest(
     const std::unique_ptr<TestFile> &test, const ToolChain &toolChain, const Config &cfg);
-
 } // namespace tester
 

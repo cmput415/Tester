@@ -1,0 +1,14 @@
+Test Summary,,,
+Team Name,team1,team2,team3
+Test Count,3,2,1
+D\A,team1,team2,team3,defensive points
+team1,1.0,0.5,1.0,4
+team2,1.0,0.5,1.0,4
+team3,1.0,0.5,1.0,4
+offensive points,2.0,2.5,2.0,0
+,,
+,,
+,,
+,,
+,,
+,,

@@ -10,195 +10,94 @@
 #include <fstream>
 #include <sstream>
 
-// Private namespace that holds utility functions for the functions that are actually exported. You
-// can find the actual functions at the bottom of the file.
-namespace { } // End anonymous namespace
-
-// void getErrorSubstr(std::string &line) {
-
-//   std::string errorUpper = "Error:", errorLower = "error:";
-
-//   size_t pos1 = line.find(errorUpper);
-//   size_t pos2 = line.find(errorLower);
-
-//   if (pos1 != std::string::npos) {
-//     line = line.substr(0, pos1 + errorUpper.length());
-//   } else if (pos2 != std::string::npos) {
-//     line = line.substr(0, pos2 + errorLower.length());
-//   } else {
-//     line = "";
-//   }
-// }
-
-// /**
-//  * @brief Tests that produce errors may contian some non-deterministic messages like PID that
-//  * we can not make checks for in advance. This method does a weaker partial match on the LHS of
-//  * the first occurence of the keyword Error: or error for bothl files.
-//  * 
-//  * @returns False if there is no difference, True otherwise. Wrapped in a std::pair with diff
-//  * string.
-//  *  
-//  * @example "MathError: line 8", "MathError: line 10" FALSE
-//  * @example "error: 10291 (segmentation fault)", "error: 10295 (segmentation fault)" FALSE
-//  * @example "TypError:", "MathError:" TRUE
-// */
-// std::pair<bool, std::string> diffErrorFiles(const fs::path& file1, const fs::path& file2) {
-  
-//   std::string diffStr = "";  
-//   std::ifstream ifs1(file1), ifs2(file2);
-
-//   if (!ifs1.is_open() || !ifs2.is_open()) {
-//     throw std::runtime_error("Failed to open file.");
-//   }
-
-//   std::string errorLineOne, errorLineTwo; 
-//   std::getline(ifs1, errorLineOne);
-//   std::getline(ifs2, errorLineTwo);
-
-//   getErrorSubstr(errorLineOne);
-//   getErrorSubstr(errorLineTwo);
-  
-//   if (errorLineOne == errorLineTwo && (errorLineOne != "" && errorLineTwo != "")) {
-//     return std::make_pair(false, "");
-//   } else {
-//     std::string diff = "+ " + errorLineOne + "\n- " + errorLineTwo;
-//     return std::make_pair(true, std::move(diff));
-//   }
-// }
-
-
-// bool testEmittedError(const fs::path& stdoutPath) {
-//   std::ifstream ifs(stdoutPath);
-//   if (!ifs.is_open()) {
-//     throw std::runtime_error("Failed to open output file.");
-//   }
-
-//   // std::string firstLine
-// }
-
-
-
-
-/*
-
-
-TestResult runTest(const PathMatch &pm, const ToolChain &toolChain, bool quiet) {
-  // Try to build the test. If there's a problem running a command, then we assume failure.
-  ExecutionOutput eo("");
-  try {
-      eo = toolChain.build(pm.in, pm.inStream);
-  }
-  catch (const CommandException &ce) {
-      if (!quiet) {
-          std::cout << "Command error: " << ce.what() << '\n';
-          std::cout << "output " << eo.getOutputFile() << std::endl;
-      }
-      return TestResult(pm.in, false, true, "");
-  }
-
-  // Get the lines from the reference file.
-  std::vector<std::string> expLines;
-  getFileLines(pm.out, expLines);
-
-  bool isErrorTest = false;
-  if (expLines.size() == 1 && expLines[0].find("Error") != std::string::npos) {
-    isErrorTest = true;
-    expLines = {expLines[0]};
-  }
-
-  // Get the lines from the output file.
-  std::vector<std::string> genLines;
-
-  if (!isErrorTest) { // Is not an error test.
-    getFileLines(eo.getOutputFile(), genLines);
-  }
-  else { // Is an error test.
-    getFileLines(eo.getErrorFile(), genLines);
-    if (!genLines.empty())
-      genLines = {genLines[0].substr(0, genLines[0].find(':'))};
-  }
-
-  dtl::Diff<std::string> diff(expLines, genLines);
-  diff.compose();
-  diff.composeUnifiedHunks();
-
-  // We failed the test.
-  if (!diff.getUniHunks().empty()) {
-    std::stringstream ss;
-    diff.printUnifiedFormat(ss);
-    return TestResult(pm.in, false, false, ss.str());
-  }
-
-  return TestResult(pm.in, true, false, "");
-}
-
-*/
+#define ENFORCE_NL 0
 
 namespace {
 
-void dumpFile(const fs::path& filePath) {
-  
-  std::ifstream file(filePath);
-  if (!file.is_open()) {
-    std::cerr << "Error opening file: " << filePath << std::endl;
-    return;
-  }
-  std::cout << "--->" << std::endl;
-  char ch;
-  while (file.get(ch)) {
-    if (ch == ' ') {
-      std::cout << '*';
-    } else {
-      std::cout << ch;
+void dumpFile(const std::filesystem::path& filePath, bool showSpace=false) {
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filePath << std::endl;
+        return;
     }
-  }
 
-  file.close();
-  std::cout << "<---" << std::endl;
+    // Print some meta-data about the file.
+    std::cout << "File Path: " << filePath << std::endl;
+    std::cout << "File Size: " << fs::file_size(filePath) << std::endl;
+    std::string delimiterStart = "====[ START FILE: " + filePath.stem().string() + " ]====";
+    std::string delimiterEnd = "====[ END FILE: " + filePath.stem().string() + " ]====";
+    std::cout << delimiterStart << std::endl;
+    
+    char ch;
+    bool lastCharIsNl = false;
+    while (file.get(ch)) {
+        if (ch == ' ' && showSpace) {
+            std::cout << '*';
+        } else {
+            std::cout << ch;
+        }
+        lastCharIsNl = (ch == '\n');
+    }
+    if (!lastCharIsNl) {
+      std::cout << Colors::BG_WHITE << Colors::BLACK << '%' << Colors::RESET << std::endl;
+    }
+    file.close();
+    std::cout << delimiterEnd << std::endl;
 }
 
+std::vector<std::string> readFileWithNewlines(const fs::path& filepath) {
+
+  std::ifstream file(filepath);
+  std::vector<std::string> lines;
+  if (!file.is_open()) {
+    throw std::runtime_error("Failed to open file.");
+  }
+
+#if !ENFORCE_NL
+  std::string line;
+  while (getline(file, line)) {
+    lines.push_back(line);
+  }
+#else
+  std::string currentLine;
+  char ch;
+  while (file.get(ch)) {
+    if (ch == '\n') {
+      lines.push_back(currentLine);
+      lines.push_back("\n");  // push newline as a separate string
+      currentLine.clear();
+    } else {
+      currentLine += ch;
+    }
+  }
+  if (!currentLine.empty() || (file.eof() && ch == '\n')) {
+    lines.push_back(currentLine);
+  }
+#endif
+
+  return lines;
+}
 
 std::pair<bool, std::string> diffFiles(const fs::path& file1, const fs::path& file2) {
+  
+  std::vector<std::string> lines1 = readFileWithNewlines(file1);
+  std::vector<std::string> lines2 = readFileWithNewlines(file2);
 
-  std::string diffStr = "";  
-  std::ifstream ifs1(file1);
-  std::ifstream ifs2(file2);
+  dtl::Diff<std::string> diff(lines1, lines2);
+  diff.compose();
+  dtl::Ses<std::string> ses = diff.getSes();
 
-  if (!ifs1.is_open() || !ifs2.is_open()) {
-    std::cerr << "Error opening files." << std::endl;
-    return std::make_pair(true, "");
-  }
+  std::string diffStr;
+  bool isDifferent = false;
 
-  std::string line1, line2;
-  bool diff = false;
-  int lineNum = 1;
-
-  while (std::getline(ifs1, line1) && std::getline(ifs2, line2)) {
-    if (line1 != line2) {
-      diffStr += "Line " + std::to_string(lineNum) + ":\n";
-      diffStr += "- " + line1 + "\n";
-      diffStr += "+ " + line2 + "\n";
-      diff = true;
+  for (const auto& sesElem : ses.getSequence()) {
+    if (sesElem.second.type != dtl::SES_COMMON) {
+      diffStr += sesElem.second.type == dtl::SES_ADD ? "+ " : "- ";
+      isDifferent = true;
     }
-    lineNum++;
   }
 
-  // check for remaining lines in either file
-  while (std::getline(ifs1, line1)) {
-    diffStr += "Line " + std::to_string(lineNum) + ":\n";
-    diffStr += "- " + line1 + "\n"; 
-    diff = true;
-    lineNum++; 
-  }
-
-  while (std::getline(ifs2, line2)) {
-    diffStr += "Line " + std::to_string(lineNum) + ":\n";
-    diffStr += "+ " + line1 + "\n"; 
-    diff = true;
-    lineNum++;
-  }
-
-  return std::make_pair(diff, std::move(diffStr));
+  return std::make_pair(isDifferent, std::move(diffStr));
 }
 
 /**
@@ -212,14 +111,12 @@ std::string getErrorString(const fs::path stdOutPath) {
     throw std::runtime_error("Failed to open the generated output file of the toolchain.");
   }
 
-
   std::string firstLine;
   if (!getline(ins, firstLine)) {
     return std::string("");  
   }
 
   if (firstLine.find("Error") != std::string::npos) {
-
     // expected output matches the spec, return first line
     size_t colonPos = firstLine.find(":");
     if (colonPos == std::string::npos) {
@@ -232,7 +129,18 @@ std::string getErrorString(const fs::path stdOutPath) {
   return std::string("");
 }
 
+void verboseDiffDump(const fs::path &testPath, const fs::path &expPath, const fs::path &genPath) {
+  std::cout << "\nTestfile source Dump:\n";
+  dumpFile(testPath);
+  std::cout << "\n";
+  std::cout << "Expected Output Dump:\n";
+  dumpFile(expPath, true);
+  std::cout << "\n";
+  std::cout << "Generated Output Dump:\n";
+  dumpFile(genPath, true); 
 }
+
+} // end anonymous namespace
 
 namespace tester {
 
@@ -244,7 +152,8 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
   const fs::path insPath = test->getInsPath();
 
   try {
-    eo = toolChain.build(testPath, test->getInsPath());
+    eo = toolChain.build(test);
+    // test->setExecutableDuration();
   } catch (const CommandException &ce) {
     // toolchain throws errors only when allowError is false in the config
     if (!cfg.isQuiet()) {
@@ -253,36 +162,32 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
     }
     return TestResult(testPath, false, true, "");
   }
-  
-  
-  // Error test that propogated here since allowError is true in the config. 
+
+  // if the test is an "error test" then the first lines follow a perscribed format.  
   std::string genErrorString = getErrorString(eo.getErrorFile());
   std::string expErrorString = getErrorString(test->getOutPath());
 
-  if (eo.getReturnValue() != 0 && !genErrorString.empty() && !expErrorString.empty()) {
- 
+  if (eo.getReturnValue() != 0 && !genErrorString.empty() && !expErrorString.empty()) { 
+    // Error test that propogated here since allowError is true in the config. 
     if (genErrorString == expErrorString) {
       return TestResult(testPath, true, true, "");
     }
-
-    std::cout << "Exp and Gen strings don't match" << std::endl;
+    if (cfg.isVerbose()) {
+      verboseDiffDump(test->getTestPath(), test->getOutPath(), eo.getErrorFile());  
+    }
     return TestResult(testPath, false, true, "");
 
   } else {
-
     // Not an error test. Match the generated and expected outputs with exact diff.
     std::pair<bool, std::string> diff = diffFiles(eo.getOutputFile(), test->getOutPath());
-    if (diff.first) {
-      std::cout << "Difference between expected and generated output" << std::endl;
-      dumpFile(test->getTestPath());
-      dumpFile(test->getOutPath());
-      dumpFile(eo.getErrorFile()); 
+    if (diff.first) { 
+      if (cfg.isVerbose()) {
+        verboseDiffDump(test->getTestPath(), test->getOutPath(), eo.getErrorFile()); 
+      }
       return TestResult(test->getTestPath(), false, false, ""); 
     }
-
     return TestResult(test->getTestPath(), true, false, "");
   }
-
 }
 
 } // End namespace tester

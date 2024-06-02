@@ -3,36 +3,32 @@
 namespace tester {
 
 bool isTestFile(const fs::path& path) {
-  if (fs::exists(path) 
-    && !fs::is_directory(path)
-    && path.extension() != ".ins" 
-    && path.extension() != ".out"
-  ) {
-    return true;
-  }
-  return false; 
+  return fs::exists(path) && !fs::is_directory(path) && path.extension() != ".ins" 
+                          && path.extension() != ".out";
 }
 
 bool hasTestFiles(const fs::path& path) {
   for (const auto& entry : fs::recursive_directory_iterator(path)) {
-    if (isTestFile(entry))
-        return true;
+    if (isTestFile(entry)) {
+      return true;
+    }
   }
   return false;
 }
 
-void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {  
+void addTestFileToSubPackage(SubPackage& subPackage, const fs::path& file) {
+  try {
+    auto testfile = std::make_unique<TestFile>(file);
+    subPackage.push_back(std::move(testfile));
+  } catch (const std::exception& e) {
+    std::cerr << "Exception creating TestFile: " << e.what() << std::endl;
+  }
+}
 
+void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {
   for (const fs::path& file : fs::directory_iterator(subPackPath)) {
-    if (fs::exists(file) && isTestFile(file)) {
-
-      try {
-        auto testfile = std::make_unique<TestFile>(file);
-        // move ownership of the testfile to the subpackage
-        subPackage.push_back(std::move(testfile));
-      } catch (const std::exception& e) {
-        std::cerr << "Exception creating TestFile: " << e.what() << std::endl;
-      }   
+    if (isTestFile(file)) {
+      addTestFileToSubPackage(subPackage, file);
     }
   }
 }
@@ -42,14 +38,12 @@ void fillSubpackages(Package& package, const fs::path& packPath, const std::stri
     for (const auto& file : fs::directory_iterator(packPath)) {
       if (fs::is_directory(file)) {
         std::string subpackageKey = parentKey + "." + file.path().stem().string();
-
         if (hasTestFiles(file)) {
           SubPackage subpackage;
           fillSubpackage(subpackage, file.path());
           package[subpackageKey] = std::move(subpackage);
         }
-
-        fillSubpackages(package, file, subpackageKey);
+        fillSubpackages(package, file.path(), subpackageKey);
       }
     }
   } catch (const fs::filesystem_error& e) {
@@ -57,33 +51,55 @@ void fillSubpackages(Package& package, const fs::path& packPath, const std::stri
   }
 }
 
-// 
-void fillModule(fs::path testsPath, TestModule& module) {
+void setupDebugModule(TestModule& module, const fs::path &debugPath) {
+  Package debugPackage;
+  SubPackage debugSubpackage;
+  std::string prefix("debugSubPackage");
 
-  for (const auto& dir : fs::directory_iterator(testsPath)) {
+  if (fs::is_directory(debugPath)) {
+    if (hasTestFiles(debugPath)) {
+      fillSubpackage(debugSubpackage, debugPath);
+      if (!debugSubpackage.empty()) {
+        debugPackage[prefix] = std::move(debugSubpackage);
+      }
+      fillSubpackages(debugPackage, debugPath, prefix);
+    }
+  } else if (fs::exists(debugPath) && isTestFile(debugPath)) {
+    addTestFileToSubPackage(debugSubpackage, debugPath);
+    debugPackage[prefix] = std::move(debugSubpackage);
+  } else {
+    throw std::runtime_error("Bad debug path supplied.");
+  }
 
+  module["debugPkg"] = std::move(debugPackage);
+}
+
+void fillModule(const Config &cfg, TestModule& module) {
+  const fs::path& debugPath = cfg.getDebugPath();
+  if (!debugPath.empty()) {
+    setupDebugModule(module, debugPath);
+    return;
+  }
+
+  const fs::path& testDirPath = cfg.getTestDirPath();
+  for (const auto& dir : fs::directory_iterator(testDirPath)) {
     if (!fs::is_directory(dir)) {
-      throw std::runtime_error("All toplevel files in module must be directories.");
-    }       
+      throw std::runtime_error("All top-level files in module must be directories.");
+    }
 
     const fs::path& packagePath = dir.path();
     const std::string& packageKeyPrefix = packagePath.filename().string();
 
-    // initialize an empty package for this student / team 
     Package package;
-
-    // initliaze some toplevel test files that have no subpackage in a default subpackage.
     SubPackage moduleSubpackage;
-    fillSubpackage(moduleSubpackage, packagePath); 
-    if (!moduleSubpackage.empty())
+    fillSubpackage(moduleSubpackage, packagePath);
+    if (!moduleSubpackage.empty()) {
       package[packageKeyPrefix] = std::move(moduleSubpackage);
+    }
 
-    // recursively fill the package with subpackages 
     fillSubpackages(package, packagePath, packageKeyPrefix);
-
-    // move the filled package into the test module.
     module[packageKeyPrefix] = std::move(package);
   }
 }
 
-}
+} // namespace tester

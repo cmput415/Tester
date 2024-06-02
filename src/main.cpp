@@ -29,8 +29,8 @@ int main(int argc, char **argv) {
   try {
     // Build our tester.
     tester::TestHarness t(cfg);
-    
-    std::cout << t.getTestInfo() << '\n';
+
+    std::cout << t.getTestInfo() << std::endl;
 
     // Run our tests.
     failed = t.runTests();

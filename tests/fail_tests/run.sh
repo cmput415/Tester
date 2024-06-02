@@ -14,7 +14,7 @@ all_passed=true
 
 for TEST_CONFIG in "${TEST_CONFIGS[@]}"; do
 
-  $PROJECT_BASE/bin/tester -v $TEST_CONFIG --timeout 10
+  $PROJECT_BASE/bin/tester $TEST_CONFIG --timeout 10
   status=$?
 
   if [ $status -ne 0 ]; then

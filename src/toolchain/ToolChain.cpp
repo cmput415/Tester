@@ -17,9 +17,9 @@ ToolChain::ToolChain(const JSON &json, int64_t timeout) {
     commands.emplace_back(step, timeout);
 }
 
-ExecutionOutput ToolChain::build(const fs::path &testPath, const fs::path &inputStrPath) const {
+ExecutionOutput ToolChain::build(const std::unique_ptr<TestFile> &test) const {
   // The current output and input contexts.
-  ExecutionInput ei(testPath, inputStrPath, testedExecutable, testedRuntime);
+  ExecutionInput ei(test->getTestPath(), test->getInsPath(), testedExecutable, testedRuntime);
   ExecutionOutput eo("");
 
   // Run the command, updating the contexts as we go.

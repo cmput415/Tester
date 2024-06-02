@@ -110,7 +110,6 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
                 const std::string &runtime, const std::string &output,
                 const std::string &input) {
 
-  // Do the actual fork.
   pid_t childId = fork();
 
   // We're the child process, we want to replace our process image with the shell running the
@@ -167,7 +166,6 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
       throw std::runtime_error("Problem waiting on killed subprocess. Check for zombie processes.");
     }
   }
-
   // Set our return value and let the thread end.
   promise.set_value_at_thread_exit(static_cast<unsigned int>(status));
 }
@@ -275,6 +273,7 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   std::atomic_bool kill(false);
 
   // Run the command in another thread.
+  auto start = std::chrono::high_resolution_clock::now(); // start recording timings
   std::thread thread = std::thread(
      runCommand,
      std::ref(promise), std::ref(kill), // Parent variables.
@@ -303,9 +302,8 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
   // Finally get the result of the thread.
   int rv = future.get();
+  auto end = std::chrono::high_resolution_clock::now();
 
-// If we're on a POSIX system then we need to decompose the return value appropriately.
-#if __linux__ || __APPLE__
   // If we exited "normally" we need to check the return code. If the return code is 0, all is well.
   if (WIFEXITED(rv)) {
     // Get the exit status
@@ -330,22 +328,9 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
   else
     throw std::runtime_error("Subcommand terminated in an unknown fashion:\n  " + buildCommand(ei, eo));
 
-// Best guess at decoding status code on Windows.
-#elif _WIN32 || _WIN64
-  LPDWORD status_code;
-  bool success = GetExitCodeThread(handle, &status_code);
-  if (!success)
-    throw std::runtime_eror("Failed to get Windows process exit code.");
-
-  if (status_code != 0)
-    throw FailException("Subcommand returned status code " + std::to_string(rv)
-                        + ":\n  " + command);
-#else
-  // We don't know how to get status on this platform... throw generic error.
-  throw std::runtime_error("We don't know how to get status on this platform.")
-#endif
-
   // Tell the toolchain about our output.
+  std::chrono::duration<double> elapsed = end - start;
+  eo.setElapsedTime(elapsed.count()); 
   eo.setReturnValue(rv);
   return eo;
 }
