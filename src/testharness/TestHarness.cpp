@@ -133,19 +133,19 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
     std::vector<TestFile*> invalidTests;
 
     // Iterate over each package.
-    for (const auto& [packageName, package] : module) {
+    for (auto& [packageName, package] : module) {
         std::cout << "Entering package: " << packageName << '\n';
         unsigned int packageCount = 0, packagePasses = 0;
 
         // Iterate over each subpackage
-        for (const auto& [subPackageName, subPackage] : package) {
+        for (auto& [subPackageName, subPackage] : package) {
             std::cout << "  Entering subpackage: " << subPackageName << '\n';
             unsigned int subPackagePasses = 0, subPackageSize = subPackage.size();
 
             // Iterate over each test in the package
-            for (const std::unique_ptr<TestFile>& test : subPackage) {
+            for (std::unique_ptr<TestFile>& test : subPackage) {
                 if (test->getErrorState() == ParseError::NoError) {
-                    TestResult result = runTest(test, toolChain, cfg);
+                    TestResult result = runTest(test.get(), toolChain, cfg);
                     results.addResult(exeName, tcName, subPackageName, result);
 
                     std::cout << "    " << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET) : (Colors::RED + "[FAIL]" + Colors::RESET))

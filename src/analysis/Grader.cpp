@@ -80,9 +80,9 @@ void Grader::buildResults() {
         // Iterate over subpackages and the contained tests from the attacker, tracking pass count.
         size_t passCount = 0, testCount = 0;
         for (const auto &subpackages : tests[attacker]) {
-          for (const auto &test : subpackages.second) {
+          for (const std::unique_ptr<TestFile> &test : subpackages.second) {
             
-            TestResult result = runTest(test, tc, cfg); 
+            TestResult result = runTest(test.get(), tc, cfg); 
             
             if (result.pass) {
               std::cout << ".";
@@ -91,7 +91,9 @@ void Grader::buildResults() {
               std::cout << "x";
             }
             std::cout.flush();
-            testCount++;  
+            testCount++;
+
+            attackResults["timings"].push_back({test->getTestPath(), test->getElapsedTime()});  
           }
         }
         // update the test results

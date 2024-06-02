@@ -80,8 +80,15 @@ std::vector<std::string> readFileWithNewlines(const fs::path& filepath) {
 
 std::pair<bool, std::string> diffFiles(const fs::path& file1, const fs::path& file2) {
   
-  std::vector<std::string> lines1 = readFileWithNewlines(file1);
-  std::vector<std::string> lines2 = readFileWithNewlines(file2);
+  std::vector<std::string> lines1;
+  std::vector<std::string> lines2;
+  try { 
+    lines1 = readFileWithNewlines(file1); 
+    lines2 = readFileWithNewlines(file2);
+  } catch (const std::runtime_error &e) {
+
+    return std::make_pair(true, "Failed to open the file.");
+  }  
 
   dtl::Diff<std::string> diff(lines1, lines2);
   diff.compose();
@@ -144,7 +151,7 @@ void verboseDiffDump(const fs::path &testPath, const fs::path &expPath, const fs
 
 namespace tester {
 
-TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolChain, const Config &cfg) {
+TestResult runTest(TestFile *test, const ToolChain &toolChain, const Config &cfg) {
 
   ExecutionOutput eo("");
 
@@ -153,7 +160,7 @@ TestResult runTest(const std::unique_ptr<TestFile> &test, const ToolChain &toolC
 
   try {
     eo = toolChain.build(test);
-    // test->setExecutableDuration();
+  
   } catch (const CommandException &ce) {
     // toolchain throws errors only when allowError is false in the config
     if (!cfg.isQuiet()) {

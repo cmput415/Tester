@@ -1,3 +1,8 @@
+"""
+Script which operates on the output json file recieved from running the tester
+in grade mode.
+"""
+
 import argparse
 import json
 import pandas as pd

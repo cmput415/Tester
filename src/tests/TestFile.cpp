@@ -17,7 +17,7 @@ uint64_t TestFile::nextId = 0;
 TestFile::TestFile(const fs::path& path) 
   : id(++nextId), usesInputStream(false), usesInputFile(false), 
     usesOutStream(false), usesOutFile(false), testPath(path),
-    errorState(ParseError::NoError)
+    errorState(ParseError::NoError), elapsedTime(0)
 {
 
   // create a unique temporary file to use as the inputs stream path 
