@@ -54,12 +54,13 @@ public:
 
   int getReturnValue() const { return rv; }
   void setReturnValue(int returnValue) { rv = returnValue; }
-  void setElapsedTime(double elapsed) { elapsedTime = elapsed; }
+  
+  double elapsedTime; // time executable took to run (seconds)
+
 private:
   fs::path outputPath;
   fs::path errorPath;
   int rv;
-  double elapsedTime; // seconds
 };
 
 } // End namespace tester

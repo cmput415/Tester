@@ -17,7 +17,7 @@ ToolChain::ToolChain(const JSON &json, int64_t timeout) {
     commands.emplace_back(step, timeout);
 }
 
-ExecutionOutput ToolChain::build(const std::unique_ptr<TestFile> &test) const {
+ExecutionOutput ToolChain::build(TestFile *test) const {
   // The current output and input contexts.
   ExecutionInput ei(test->getTestPath(), test->getInsPath(), testedExecutable, testedRuntime);
   ExecutionOutput eo("");
@@ -30,6 +30,9 @@ ExecutionOutput ToolChain::build(const std::unique_ptr<TestFile> &test) const {
     if (rv != 0) {
       return eo;
     }
+
+    // std::cout << "eo output file:" << eo.getOutputFile() << std::endl; 
+    // std::cout << "eo error file:" << eo.getErrorFile() << std::endl; 
     
     ei = ExecutionInput(
         eo.getOutputFile(),
@@ -39,7 +42,8 @@ ExecutionOutput ToolChain::build(const std::unique_ptr<TestFile> &test) const {
     );
   }
 
-  // Return the output context of the final command.
+  // store the elapsed time of the final step execution step into the testfile  
+  test->setElapsedTime(eo.elapsedTime); 
   return eo;
 }
 
