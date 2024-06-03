@@ -183,6 +183,17 @@ void runCommand(std::promise<unsigned int> &promise, std::atomic_bool &killVar,
 
 namespace tester {
 
+Command::~Command() {
+  // remove temorary files
+  std::error_code ec;
+  if (fs::exists(stdoutPath)) {
+    bool removed = fs::remove(stdoutPath, ec);
+    if (!removed) {
+      std::cerr << "Failed to remove temporary output file: " << stdoutPath << "\n";
+    }
+  } 
+}
+
 Command::Command(const JSON &step, int64_t timeout)
     : usesRuntime(false), usesInStr(false), timeout(timeout) {
   // Make sure the step has all of the values needed for construction.
@@ -201,29 +212,13 @@ Command::Command(const JSON &step, int64_t timeout)
 
   // "-" represents stdout.
   if (outName == "-") {
-#if _WIN32 || _WIN64
-    throw std::runtime_error("Don't know how to capture stdout on Windows yet.");
-#endif
     isStdOut = true;
-
-    // Build a path in this directory for the standard output.
     fs::path fileName(name + "-temp.out");
-    output = fs::current_path();
-    output /= fileName;
+    output = fs::current_path() / fileName;
     stdoutPath = output;
-  }
-  // We've got a file name.
-  else {
-    isStdOut = false;
-
-    // Make sure the output path is absolute.
-    fs::path outPath(outName);
-    if (outPath.is_absolute())
-      output = outPath;
-    else
-      output = fs::absolute(outPath);
-
-    // Need to capture stdout anyway
+  } else {
+    isStdOut = false; 
+    output = fs::absolute(fs::path(outName));
     stdoutPath = output.string() + ".stdout";
   }
 
@@ -251,8 +246,6 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
   // Always remove old output files so we know if a new one was created
   std::error_code ec;
-  std::filesystem::remove(output, ec);
-  std::filesystem::remove(stdoutPath, ec);
 
   // Get the exe and its arguments, the things used in the actual execution of the command.
   std::string exe = resolveExe(ei, eo, exePath).string();
@@ -330,7 +323,7 @@ ExecutionOutput Command::execute(const ExecutionInput &ei) const {
 
   // Tell the toolchain about our output.
   std::chrono::duration<double> elapsed = end - start;
-  eo.setElapsedTime(elapsed.count()); 
+  eo.elapsedTime = elapsed.count(); 
   eo.setReturnValue(rv);
   return eo;
 }
