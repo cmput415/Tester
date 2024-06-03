@@ -8,11 +8,6 @@ namespace {
 
 namespace tester {
 
-Grader::Grader(const Config &cfg) : cfg(cfg), tests(), outputJson(JSON::object()) {
-  fillModule(cfg, tests);  
-  buildResults();
-}
-
 void Grader::buildResults() {
   
   // outputJson["toolchainCount"] = cfg.getToolChains().size();
@@ -21,7 +16,7 @@ void Grader::buildResults() {
   
   // collect summary of grading
   JSON testSummary = JSON::array(); 
-  for (const auto &testPackage : tests) {
+  for (const auto &testPackage : testSet) {
     // First check if the name exists in the executable lists.
     std::string name = testPackage.first;
     names.push_back(name);
@@ -79,7 +74,7 @@ void Grader::buildResults() {
 
         // Iterate over subpackages and the contained tests from the attacker, tracking pass count.
         size_t passCount = 0, testCount = 0;
-        for (const auto &subpackages : tests[attacker]) {
+        for (const auto &subpackages : testSet[attacker]) {
           for (const std::unique_ptr<TestFile> &test : subpackages.second) {
             
             TestResult result = runTest(test.get(), tc, cfg); 

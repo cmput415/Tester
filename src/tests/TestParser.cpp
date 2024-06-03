@@ -38,7 +38,7 @@ PathOrError TestParser::parsePathFromLine(
     }
 
     std::string parsedFilePath = line.substr(findIdx + directive.length());
-    fs::path relPath = testfile.getTestPath().parent_path() / fs::path(parsedFilePath);
+    fs::path relPath = testfile->getTestPath().parent_path() / fs::path(parsedFilePath);
     fs::path absPath(parsedFilePath);
 
     if (fs::exists(absPath))
@@ -65,7 +65,7 @@ ParseError TestParser::matchInputDirective(std::string &line) {
     std::string inputLine =  line.substr(findIdx + Directive::INPUT.length());
 
     try {
-        insLineToFile(testfile.getInsPath(), inputLine, !foundInput);
+        insLineToFile(testfile->getInsPath(), inputLine, !foundInput);
     } catch (...) {
         return ParseError::FileError;
     } 
@@ -89,7 +89,7 @@ ParseError TestParser::matchCheckDirective(std::string &line) {
     std::string checkLine = line.substr(findIdx + Directive::CHECK.length());
 
     try {
-        insLineToFile(testfile.getOutPath(), checkLine, !foundCheck);
+        insLineToFile(testfile->getOutPath(), checkLine, !foundCheck);
     } catch (...) {
         return ParseError::FileError;
     }
@@ -111,7 +111,7 @@ ParseError TestParser::matchInputFileDirective(std::string &line) {
 
     PathOrError pathOrError = parsePathFromLine(line, Directive::INPUT_FILE);
     if (std::holds_alternative<fs::path>(pathOrError)) {
-        testfile.setInsPath(std::get<fs::path>(pathOrError));
+        testfile->setInsPath(std::get<fs::path>(pathOrError));
         foundInputFile = true;
         return ParseError::NoError;
     } 
@@ -131,7 +131,7 @@ ParseError TestParser::matchCheckFileDirective(std::string &line) {
     
     PathOrError pathOrError = parsePathFromLine(line, Directive::CHECK_FILE);
     if (std::holds_alternative<fs::path>(pathOrError)) {
-        testfile.setOutPath(std::get<fs::path>(pathOrError));
+        testfile->setOutPath(std::get<fs::path>(pathOrError));
         foundCheckFile = true;
         return ParseError::NoError;
     }
@@ -154,7 +154,6 @@ ParseError TestParser::matchDirectives(std::string &line) {
 
     return ParseError::NoError;
 }
-
 
 /**
  * @brief Alter the reference to line to be the substring of itself that is
@@ -204,11 +203,12 @@ void TestParser::trackCommentState(std::string &line) {
  * @brief open up the testfile and begin matching directives in each line, updating
  * the state of the testfile with resource paths and other useful data. 
 */
-int TestParser::parseTest() {
-    std::ifstream testFileStream(testfile.getTestPath());
+void TestParser::parse() {
+
+    std::ifstream testFileStream(testfile->getTestPath());
     if (!testFileStream.is_open()) {
         std::cerr << "Failed to open the testfile" << std::endl; 
-        return -1;
+        return;
     }
 
     std::string line;
@@ -219,28 +219,27 @@ int TestParser::parseTest() {
         if (!line.empty()) {
             ParseError error = matchDirectives(line);
             if (error != ParseError::NoError) {
-                testfile.setErrorState(error);
-                testfile.setErrorMsg("Generic Error"); 
+                testfile->setErrorState(error);
+                testfile->setErrorMsg("Generic Error"); 
                 break;
             }
         } 
     }
 
     // Set final flags to update test state
-    testfile.usesInputStream = (foundInput || foundInputFile);
-    testfile.usesInputFile = (foundInputFile);
-    testfile.usesOutStream = (foundCheck || foundCheckFile);
-    testfile.usesOutFile = foundCheckFile;
+    testfile->usesInputStream = (foundInput || foundInputFile);
+    testfile->usesInputFile = (foundInputFile);
+    testfile->usesOutStream = (foundCheck || foundCheckFile);
+    testfile->usesOutFile = foundCheckFile;
 
     // ck if input directives have exceeded maximum
-    if (fs::file_size(testfile.getInsPath()) > Directive::MAX_INPUT_BYTES) {
-        testfile.setErrorState(ParseError::MaxInputBytesExceeded);
-    } else if (fs::file_size(testfile.getOutPath()) > Directive::MAX_OUTPUT_BYTES) {
-        testfile.setErrorState(ParseError::MaxOutputBytesExceeded);
+    if (fs::file_size(testfile->getInsPath()) > Directive::MAX_INPUT_BYTES) {
+        testfile->setErrorState(ParseError::MaxInputBytesExceeded);
+    } else if (fs::file_size(testfile->getOutPath()) > Directive::MAX_OUTPUT_BYTES) {
+        testfile->setErrorState(ParseError::MaxOutputBytesExceeded);
     }
 
     testFileStream.close();
-    return 0; 
 }
 
 } // namespace tester

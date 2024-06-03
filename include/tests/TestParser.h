@@ -13,30 +13,25 @@ namespace tester {
 using PathOrError = std::variant<fs::path, ParseError>;
 
 class TestParser {
-public:
-  TestParser(TestFile &testfile) 
-    : testfile(testfile), foundInput(false), foundInputFile(false), 
-      foundCheck(false), foundCheckFile(false), inLineComment(false), 
-      inBlockComment(false), inString(false), insByteCount(0), outByteCount(0)
-  {
-    parseTest();
-  };
 
-  int parseTest();
-  void validate();
+public:
+  TestParser(TestFile *testfile) : testfile(testfile) { parse(); }
+
+  // clear the parsing state for the next test. 
+  void parse(); 
 
 private:
-  // Testfile we parse on
-  TestFile &testfile;
-    
+  // testfile we are parsing
+  TestFile *testfile;
+
   // track state of parse
-  bool foundInput, foundInputFile, foundCheck, foundCheckFile;
+  bool foundInput{false}, foundInputFile{false}, foundCheck{false}, foundCheckFile{false};
 
   // track comment state
-  bool inLineComment, inBlockComment, inString; 
+  bool inLineComment{false}, inBlockComment{false}, inString{false}; 
 
   // current input stream size
-  uint32_t insByteCount, outByteCount;
+  uint32_t insByteCount{0}, outByteCount{0};
 
   // determine if we are in a comment while parsing
   void trackCommentState(std::string &line);
@@ -53,7 +48,6 @@ private:
   ParseError matchInputFileDirective(std::string &line);
   ParseError matchCheckFileDirective(std::string &line);
   ParseError matchDirectives(std::string &line);
-
 };
 
 }; // namespace tester

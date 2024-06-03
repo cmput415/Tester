@@ -44,8 +44,9 @@ public:
   ParseError getErrorState() const { return errorState; }
   std::string getErrorMessage() const;
   double getElapsedTime() const { return elapsedTime; }
-  
-  // setters 
+  bool didError() const { return errorState != ParseError::NoError; }
+
+  //  
   void setTestPath(fs::path path) { testPath = path; }
   void setInsPath(fs::path path) { insPath = path; }
   void setOutPath(fs::path path) { outPath = path; }
@@ -54,8 +55,9 @@ public:
   void setElapsedTime(double elapsed) { elapsedTime = elapsed; }
 
   // if test has any input and if test uses input file specifically
-  bool usesInputStream, usesInputFile, usesOutStream, usesOutFile;
+  bool usesInputStream{false}, usesInputFile{false}, usesOutStream{false}, usesOutFile{false};
 
+  // TODO: 
   friend class TestParser;
 
 protected:
@@ -66,11 +68,11 @@ private:
   fs::path testPath, insPath, outPath;
   
   // Test file breaks some convention or was unable to parse directives. 
-  ParseError errorState; 
+  ParseError errorState{ParseError::NoError}; 
   std::string errorMsg;
 
   // elapsed time for final toolchain step
-  double elapsedTime;
+  double elapsedTime{0};
  
 };
 
