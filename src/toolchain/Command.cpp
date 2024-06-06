@@ -186,6 +186,7 @@ namespace tester {
 Command::~Command() {
   // remove temorary files
   std::error_code ec;
+
   if (fs::exists(stdoutPath)) {
     bool removed = fs::remove(stdoutPath, ec);
     if (!removed) {

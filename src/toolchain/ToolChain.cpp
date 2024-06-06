@@ -23,24 +23,28 @@ ExecutionOutput ToolChain::build(TestFile *test) const {
   ExecutionOutput eo("");
 
   // Run the command, updating the contexts as we go.
-  for (const Command &c : commands) {
-    eo = c.execute(ei);
+  auto last = commands.end() -1; 
+  for (auto it = commands.begin(); it != commands.end(); it++) {
+    
+    if (it == last) {
+      // we will pas s some configuration flags.
+      // eo = it->execute(ei, cfg.isTimed(), cfg.isMemoryChecked());
+      eo = it->execute(ei);
+    }
+    eo = it->execute(ei);
 
     int rv = eo.getReturnValue();
     if (rv != 0) {
       return eo;
     }
 
-    // std::cout << "eo output file:" << eo.getOutputFile() << std::endl; 
-    // std::cout << "eo error file:" << eo.getErrorFile() << std::endl; 
-    
     ei = ExecutionInput(
-        eo.getOutputFile(),
-        ei.getInputStreamFile(),
-        ei.getTestedExecutable(),
-        ei.getTestedRuntime()
+      eo.getOutputFile(),
+      ei.getInputStreamFile(),
+      ei.getTestedExecutable(),
+      ei.getTestedRuntime()
     );
-  }
+  } 
 
   // store the elapsed time of the final step execution step into the testfile  
   test->setElapsedTime(eo.elapsedTime); 

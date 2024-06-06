@@ -81,28 +81,32 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
             // Iterate over each test in the package
             for (const std::unique_ptr<TestFile>& test : subPackage) {
                 if (test->getErrorState() == ParseError::NoError) {
-                    TestResult result = runTest(test.get(), toolChain, cfg);
-                    results.addResult(exeName, tcName, subPackageName, result);
+  
+                  TestResult result = runTest(test.get(), toolChain, cfg);
+                  results.addResult(exeName, tcName, subPackageName, result);
 
-                    std::cout << "    " << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET) : (Colors::RED + "[FAIL]" + Colors::RESET))
-                              << " " << test->getTestPath().stem().string() << '\n';
+                  std::cout << "    " << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET) : (Colors::RED + "[FAIL]" + Colors::RESET))
+                            << " " << std::setw(40) << std::left << test->getTestPath().stem().string();
 
-                    if (result.pass) {
-                        ++packagePasses;
-                        ++subPackagePasses;
-                    } else {
-                        failed = true;
-                        if (!cfg.isQuiet() && !result.error)
-                            std::cout << '\n' << result.diff << '\n';
-                    }
+                  if (cfg.isTimed()) {
+                    std::cout << std::fixed << std::setw(10) << std::setprecision(6) << test->getElapsedTime() 
+                              << "(s)\n";
+                  } else { std::cout << "\n"; }           
+                  
+                  if (result.pass) {
+                    ++packagePasses;
+                    ++subPackagePasses;
+                  } else {
+                    failed = true; 
+                  }
+
                 } else {
-                    std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET)
-                              << " " << test->getTestPath().stem().string() << '\n';
-                    --subPackageSize;
+                  std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET)
+                            << " " << test->getTestPath().stem().string() << '\n';
+                  --subPackageSize;
                 }
             }
             std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackageSize << '\n';
-
             // Track how many tests we run.
             packageCount += subPackageSize;
         }
