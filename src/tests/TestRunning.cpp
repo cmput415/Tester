@@ -160,7 +160,7 @@ TestResult runTest(TestFile *test, const ToolChain &toolChain, const Config &cfg
 
   try {
     eo = toolChain.build(test);
-  
+
   } catch (const CommandException &ce) {
     // toolchain throws errors only when allowError is false in the config
     if (!cfg.isQuiet()) {

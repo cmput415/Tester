@@ -12,10 +12,9 @@ from typing import Dict, List, Tuple, Any
 OUTPUT_CSV="output.csv"
 
 def create_competative_table(toolchain: str, toolchain_results):
+    
     """
     Generate a table for the pass rate.
-
-    TODO: finalize the Competative Testing score system.
     """ 
     n_teams = len(toolchain_results)
     table_dim = n_teams + 2
@@ -41,7 +40,7 @@ def create_competative_table(toolchain: str, toolchain_results):
 
     # sum the defensive score
     for i in range(1, table_dim-1):
-        defense_points = 0 
+        defense_points = 0
         for j in range(1, table_dim-1):
             if df.at[i, j] == 1:
                 defense_points += 2
@@ -90,7 +89,7 @@ def create_final_summary_table(data) -> pd.DataFrame:
 def generate_csv(data):
 
     ts_table = create_test_summary_table(data) 
-    ts_table.to_csv(OUTPUT_CSV, index=False, header=False)
+    # ts_table.to_csv(OUTPUT_CSV, index=False, header=False)
 
     toolchain_tables = []
     for result in data["results"]:
@@ -98,7 +97,6 @@ def generate_csv(data):
         toolchain_results = result["toolchainResults"]
         
         tc_table = create_competative_table(toolchain_name, toolchain_results)
-        print(tc_table) 
         toolchain_tables.append(tc_table) 
 
     for table in toolchain_tables:
@@ -119,7 +117,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', type=str, required=True, help='Path to the JSON file') 
     args = parser.parse_args()
-     
+
+    with open(OUTPUT_CSV, "w") as csv:
+        # clear the previous file.
+        pass
+
     with open(args.file, "r") as file:
         data = json.load(file)
         grade_csv = generate_csv(data)
+
+        # reload the csv for printing
+        df = pd.read_csv(grade_csv)
+        print(df.to_string())

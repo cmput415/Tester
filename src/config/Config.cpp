@@ -31,10 +31,11 @@ Config::Config(int argc, char **argv) : timeout(2l) {
   CLI::Option *gradeOpt = app.add_option("--grade", gradeFilePath,
       "Perform grading analysis and output to this file");
   
-  
   app.add_option("--timeout", timeout, "Specify timeout length for EACH command in a toolchain."); 
-  app.add_option("--debug-path", debugPath, "Provide a sub-path to run the tester on.");
+  app.add_option("--debug-path", debugPath, "Provide a sub-path to run the tester on."); 
   app.add_flag("-v,--verbose", verbose, "Verbose mode, dump files for failed tests");
+  app.add_flag("-t,--time", time, "Include the timings (seconds) of each test in the output.");
+  app.add_flag("-m,--mem-check", memory, "Include a memory leak check for each test.");
 
   gradeOpt->excludes(quietFlag)->excludes(summaryOpt);
 

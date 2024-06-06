@@ -46,6 +46,8 @@ public:
   // Config bool getters.
   bool isQuiet() const { return quiet; }
   bool isVerbose() const { return verbose; }
+  bool isTimed() const { return time; }
+  bool isMemoryChecked() const { return memory; }
   
   // Config int getters.
   int64_t getTimeout() const { return timeout; }
@@ -67,7 +69,7 @@ private:
   ToolChains toolchains;
 
   // Option flags.
-  bool quiet, verbose, debug;
+  bool quiet, verbose, debug, time, memory;
 
   // The command timeout.
   int64_t timeout;
