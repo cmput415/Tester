@@ -14,3 +14,4 @@ todo.md
 tests/testfiles/
 local_tests
 tests/timed_tests/
+tests/dev_tests/

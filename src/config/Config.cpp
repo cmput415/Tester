@@ -33,10 +33,9 @@ Config::Config(int argc, char **argv) : timeout(2l) {
   
   app.add_option("--timeout", timeout, "Specify timeout length for EACH command in a toolchain."); 
   app.add_option("--debug-path", debugPath, "Provide a sub-path to run the tester on."); 
-  app.add_flag("-v,--verbose", verbose, "Verbose mode, dump files for failed tests");
   app.add_flag("-t,--time", time, "Include the timings (seconds) of each test in the output.");
-  app.add_flag("-m,--mem-check", memory, "Include a memory leak check for each test.");
-
+  app.add_flag_function("-v", [&](size_t count) { verbosity = static_cast<int>(count); }, "Increase verbosity level");
+  
   gradeOpt->excludes(quietFlag)->excludes(summaryOpt);
 
   // Parse our command line options. This has the potential to throw CLI::ParseError, but we want it
@@ -99,7 +98,6 @@ Config::Config(int argc, char **argv) : timeout(2l) {
       std::string path = it.value();
       runtimes.emplace(std::make_pair(it.key(), path));
     }
-
   }
 }
 
