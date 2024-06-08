@@ -37,9 +37,7 @@ public:
   }
 
   // Manipulate the tested runtime.
-  void setTestedRuntime(fs::path testedRuntime_) {
-    testedRuntime = std::move(testedRuntime_);
-  }
+  void setTestedRuntime(fs::path testedRuntime_) { testedRuntime = std::move(testedRuntime_); }
 
   // Gets a brief description of the toolchain.
   std::string getBriefDescription() const;

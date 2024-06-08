@@ -20,14 +20,13 @@ typedef std::map<std::string, ToolChainMap> ExecutableMap;
 class ResultManager {
 public:
   // Add a test result.
-  void addResult(const std::string& exe, const std::string& toolchain,
-                 const std::string& key, const TestResult& result) {
+  void addResult(const std::string& exe, const std::string& toolchain, const std::string& key,
+                 const TestResult& result) {
     results[exe][toolchain][key].push_back(result);
   }
 
   // Get test results.
-  const ResultSet& getResults(const std::string& exe,
-                              const std::string& toolchain) const {
+  const ResultSet& getResults(const std::string& exe, const std::string& toolchain) const {
     return results.at(exe).at(toolchain);
   }
 

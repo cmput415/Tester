@@ -44,8 +44,7 @@ public:
   friend std::ostream& operator<<(std::ostream&, const Command&);
 
   // TODO: move back to private
-  std::string buildCommand(const ExecutionInput& input,
-                           const ExecutionOutput& output) const;
+  std::string buildCommand(const ExecutionInput& input, const ExecutionOutput& output) const;
 
 private:
   // Builds out best guess of the underlying command run by exec. Also adds a
@@ -53,12 +52,10 @@ private:
   // manual stream redirection.
 
   // Resolves magic parameters to values.
-  fs::path resolveArg(const ExecutionInput& ei, const ExecutionOutput& eo,
-                      std::string arg) const;
+  fs::path resolveArg(const ExecutionInput& ei, const ExecutionOutput& eo, std::string arg) const;
 
   // Resolves magic exe parameters to value.
-  fs::path resolveExe(const ExecutionInput& ei, const ExecutionOutput& eo,
-                      std::string exe) const;
+  fs::path resolveExe(const ExecutionInput& ei, const ExecutionOutput& eo, std::string exe) const;
 
 private:
   // Command info.

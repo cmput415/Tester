@@ -21,8 +21,7 @@ namespace {
 
 #if __linux__ || __APPLE__
 
-void becomeCommand(const std::string& exe,
-                   const std::vector<std::string>& trueArgs,
+void becomeCommand(const std::string& exe, const std::vector<std::string>& trueArgs,
                    const std::string& runtime, const std::string& output,
                    const std::string& input) {
   // Build a list of true arguments.
@@ -52,20 +51,17 @@ void becomeCommand(const std::string& exe,
 
   // Final resulting environment. Only add the preload arg if the runtime
   // isn't empty.
-  const char* env[3] = {path.c_str(), !runtime.empty() ? preload.c_str() : NULL,
-                        NULL};
+  const char* env[3] = {path.c_str(), !runtime.empty() ? preload.c_str() : NULL, NULL};
 
   // If we're provided with a redirect file we need to replace STDOUT.
   if (!output.empty()) {
     // Open up the file we'd like to use. Write only, create if it doesn't
     // exist, truncate if it does exist. User can read and write after.
-    int fd =
-        open(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    int fd = open(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
     if (fd == -1) {
       perror("open");
-      throw std::runtime_error(
-          "Child process couldn't open stdout replacement.");
+      throw std::runtime_error("Child process couldn't open stdout replacement.");
     }
 
     // Close the stream behind STDOUT and replace it with the file we
@@ -83,8 +79,7 @@ void becomeCommand(const std::string& exe,
 
     if (fd == -1) {
       perror("open");
-      throw std::runtime_error(
-          "Child process couldn't open stdin replacement.");
+      throw std::runtime_error("Child process couldn't open stdin replacement.");
     }
 
     // Close the stream behind STDIN and replace it with the file we opened.
@@ -100,8 +95,7 @@ void becomeCommand(const std::string& exe,
   }
 
   // Replace ourself with the command.
-  execve(exe.c_str(), const_cast<char* const*>(args),
-         const_cast<char* const*>(env));
+  execve(exe.c_str(), const_cast<char* const*>(args), const_cast<char* const*>(env));
 
   // Because execve replaces the current process, we only ever get here if it
   // fails.
@@ -114,10 +108,8 @@ void becomeCommand(const std::string& exe,
 // us to kill a long running subprocess (i.e. there's an infinite loop in a
 // test). This means we need to fall back on forking/execing, unfortunately.
 void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
-                const std::string& exe,
-                const std::vector<std::string>& trueArgs,
-                const std::string& runtime, const std::string& output,
-                const std::string& input) {
+                const std::string& exe, const std::vector<std::string>& trueArgs,
+                const std::string& runtime, const std::string& output, const std::string& input) {
 
   pid_t childId = fork();
 
@@ -163,8 +155,7 @@ void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
     // Somehow we weren't able to send a kill signal to our child process.
     if (killResult < 0) {
       perror("kill");
-      throw std::runtime_error(
-          "Problem killing subprocess. Check for zombie processes.");
+      throw std::runtime_error("Problem killing subprocess. Check for zombie processes.");
     }
 
     // Try to wait on the killed subprocess to reap it.
@@ -184,8 +175,7 @@ void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
 
 #elif _WIN32 || _WIN64
 void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
-                const std::string& exe,
-                const std::vector<std::string>& trueArgs,
+                const std::string& exe, const std::vector<std::string>& trueArgs,
                 const std::string& runtime, const std::string& output) {
   throw std::runtime_error("Don't know how to run commands on Windows.");
 }
@@ -202,8 +192,7 @@ Command::~Command() {
   if (fs::exists(stdoutPath)) {
     bool removed = fs::remove(stdoutPath, ec);
     if (!removed) {
-      std::cerr << "Failed to remove temporary output file: " << stdoutPath
-                << "\n";
+      std::cerr << "Failed to remove temporary output file: " << stdoutPath << "\n";
     }
   }
 }
@@ -281,21 +270,19 @@ ExecutionOutput Command::execute(const ExecutionInput& ei) const {
   std::atomic_bool kill(false);
 
   // Run the command in another thread.
-  auto start =
-      std::chrono::high_resolution_clock::now(); // start recording timings
-  std::thread thread = std::thread(
-      runCommand, std::ref(promise), std::ref(kill), // Parent variables.
-      std::ref(exe), std::ref(trueArgs), // Child execution variables.
-      std::ref(runtime), std::ref(stdOutFile),
-      std::ref(stdInFile) // Child setup variables.
-  );
+  auto start = std::chrono::high_resolution_clock::now(); // start recording timings
+  std::thread thread =
+      std::thread(runCommand, std::ref(promise), std::ref(kill), // Parent variables.
+                  std::ref(exe), std::ref(trueArgs),             // Child execution variables.
+                  std::ref(runtime), std::ref(stdOutFile),
+                  std::ref(stdInFile) // Child setup variables.
+      );
 
   // Detach the thread to allow it to run in the background.
   thread.detach();
 
   // Wait to time out on the future. If we do, ask the thread to die.
-  if (future.wait_for(std::chrono::seconds(timeout)) ==
-      std::future_status::timeout) {
+  if (future.wait_for(std::chrono::seconds(timeout)) == std::future_status::timeout) {
     // Notify the thread we want it to die.
     kill.store(true);
 
@@ -303,8 +290,7 @@ ExecutionOutput Command::execute(const ExecutionInput& ei) const {
     // that means the thread isn't dying probably because the subprocess
     // isn't dying for some reason despite SIGKILL. This return should be
     // nearly instantaneous.
-    if (future.wait_for(std::chrono::seconds(timeout)) !=
-        std::future_status::ready)
+    if (future.wait_for(std::chrono::seconds(timeout)) != std::future_status::ready)
       throw std::runtime_error("Couldn't kill subprocess.");
 
     // We know we timed out, time to notify the higher-ups.
@@ -324,25 +310,24 @@ ExecutionOutput Command::execute(const ExecutionInput& ei) const {
     // If the return code is not 0 and we do not allow errors, we failed in
     // some manner. Raise a custom exception.
     if (rv != 0 && !allowError)
-      throw FailException("Subcommand returned status code " +
-                          std::to_string(rv) + ":\n  " + buildCommand(ei, eo));
+      throw FailException("Subcommand returned status code " + std::to_string(rv) + ":\n  " +
+                          buildCommand(ei, eo));
   }
 
   // If we exited due to a signal we can dump the signal and throw an
   // exception.
   else if (WIFSIGNALED(rv)) {
     rv = WTERMSIG(rv);
-    throw FailException("Subcommand terminated by signal " +
-                        std::to_string(rv) + ":\n  " + buildCommand(ei, eo));
+    throw FailException("Subcommand terminated by signal " + std::to_string(rv) + ":\n  " +
+                        buildCommand(ei, eo));
   }
 
   // We have some other status of the process. Throw a more generic error that
   // will pass itself all the way out of the program. This needs to be
   // handled.
   else
-    throw std::runtime_error(
-        "Subcommand terminated in an unknown fashion:\n  " +
-        buildCommand(ei, eo));
+    throw std::runtime_error("Subcommand terminated in an unknown fashion:\n  " +
+                             buildCommand(ei, eo));
 
   // Tell the toolchain about our output.
   std::chrono::duration<double> elapsed = end - start;
@@ -351,8 +336,7 @@ ExecutionOutput Command::execute(const ExecutionInput& ei) const {
   return eo;
 }
 
-std::string Command::buildCommand(const ExecutionInput& ei,
-                                  const ExecutionOutput& eo) const {
+std::string Command::buildCommand(const ExecutionInput& ei, const ExecutionOutput& eo) const {
   // We start with the path to the exe.
   std::string command = resolveExe(ei, eo, exePath).string();
 
@@ -375,8 +359,8 @@ std::string Command::buildCommand(const ExecutionInput& ei,
   return command;
 }
 
-fs::path Command::resolveArg(const ExecutionInput& ei,
-                             const ExecutionOutput& eo, std::string arg) const {
+fs::path Command::resolveArg(const ExecutionInput& ei, const ExecutionOutput& eo,
+                             std::string arg) const {
   // Input magic argument. Resolves to the input file for this command.
   if (arg == "$INPUT")
     return ei.getInputFile();
@@ -387,15 +371,14 @@ fs::path Command::resolveArg(const ExecutionInput& ei,
 
   // Seem like it was meant to be a magic parameter.
   if (arg[0] == '$')
-    throw std::runtime_error("Should this be a different magic paramter: " +
-                             arg);
+    throw std::runtime_error("Should this be a different magic paramter: " + arg);
 
   // Wasn't a special arg, we should just return the arg.
   return fs::path(arg);
 }
 
-fs::path Command::resolveExe(const ExecutionInput& ei,
-                             const ExecutionOutput& eo, std::string exe) const {
+fs::path Command::resolveExe(const ExecutionInput& ei, const ExecutionOutput& eo,
+                             std::string exe) const {
   // Exe magic argument. Resolves to the current "tested executable" (probably
   // your compiler).
   if (exe == "$EXE")
@@ -409,8 +392,7 @@ fs::path Command::resolveExe(const ExecutionInput& ei,
 
   // Seem like it was meant to be a magic parameter.
   if (exe[0] == '$')
-    throw std::runtime_error("Should this be a different magic paramter: " +
-                             exe);
+    throw std::runtime_error("Should this be a different magic paramter: " + exe);
 
   // Wasn't a special arg, we should just return the arg.
   return fs::path(exe);

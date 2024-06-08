@@ -33,25 +33,15 @@ public:
 
   // Config map getters and convenience individual getters.
   const PathMap getExecutables() const { return executables; }
-  const fs::path& getExecutablePath(const std::string& name) const {
-    return executables.at(name);
-  }
-  bool hasExecutable(const std::string& name) const {
-    return executables.count(name) != 0;
-  }
+  const fs::path& getExecutablePath(const std::string& name) const { return executables.at(name); }
+  bool hasExecutable(const std::string& name) const { return executables.count(name) != 0; }
 
   const PathMap getRuntimes() const { return runtimes; }
-  const fs::path& getRuntimePath(const std::string& name) const {
-    return runtimes.at(name);
-  }
-  bool hasRuntime(const std::string& name) const {
-    return runtimes.count(name) != 0;
-  }
+  const fs::path& getRuntimePath(const std::string& name) const { return runtimes.at(name); }
+  bool hasRuntime(const std::string& name) const { return runtimes.count(name) != 0; }
 
   const ToolChains& getToolChains() const { return toolchains; }
-  const ToolChain& getToolChain(const std::string& name) const {
-    return toolchains.at(name);
-  }
+  const ToolChain& getToolChain(const std::string& name) const { return toolchains.at(name); }
 
   // Config bool getters.
   bool isQuiet() const { return quiet; }

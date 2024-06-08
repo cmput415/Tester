@@ -14,8 +14,7 @@ bool fullyContains(const std::string& str, const std::string& substr) {
   return str.substr(pos, substr.length()) == substr;
 }
 
-void TestParser::insLineToFile(fs::path filePath, std::string line,
-                               bool firstInsert) {
+void TestParser::insLineToFile(fs::path filePath, std::string line, bool firstInsert) {
   // open in append mode since otherwise multi-line checks and inputs would
   // over-write themselves.
   std::ofstream out(filePath, std::ios::app);
@@ -30,16 +29,14 @@ void TestParser::insLineToFile(fs::path filePath, std::string line,
  * @param directive which directive we attempt to match
  * @returns a std::variant of either a path or an error type
  */
-PathOrError TestParser::parsePathFromLine(const std::string& line,
-                                          const std::string& directive) {
+PathOrError TestParser::parsePathFromLine(const std::string& line, const std::string& directive) {
   size_t findIdx = line.find(directive);
   if (findIdx == std::string::npos) {
     return ParseError::FileError;
   }
 
   std::string parsedFilePath = line.substr(findIdx + directive.length());
-  fs::path relPath =
-      testfile->getTestPath().parent_path() / fs::path(parsedFilePath);
+  fs::path relPath = testfile->getTestPath().parent_path() / fs::path(parsedFilePath);
   fs::path absPath(parsedFilePath);
 
   if (fs::exists(absPath))
@@ -171,19 +168,18 @@ void TestParser::trackCommentState(std::string& line) {
   inLineComment = false; // reset line comment
 
   for (unsigned int i = 0; i < line.length(); i++) {
-    if (!inString && !inBlockComment && (i + 1) < line.length() &&
-        line[i] == '/' && line[i + 1] == '/') {
+    if (!inString && !inBlockComment && (i + 1) < line.length() && line[i] == '/' &&
+        line[i + 1] == '/') {
       inLineComment = true;
-      result +=
-          line.substr(i + 2); // save whatever comes after the line comment
+      result += line.substr(i + 2); // save whatever comes after the line comment
       break;
-    } else if (!inString && !inLineComment && (i + 1) < line.length() &&
-               line[i] == '/' && line[i + 1] == '*') {
+    } else if (!inString && !inLineComment && (i + 1) < line.length() && line[i] == '/' &&
+               line[i + 1] == '*') {
       inBlockComment = true;
       ++i; // skip the * in '/*'
       continue;
-    } else if (!inString && inBlockComment && (i + 1) < line.length() &&
-               line[i] == '*' && line[i + 1] == '/') {
+    } else if (!inString && inBlockComment && (i + 1) < line.length() && line[i] == '*' &&
+               line[i + 1] == '/') {
       inBlockComment = false;
       ++i; // skip the / in '*/'
       continue;
@@ -238,8 +234,7 @@ void TestParser::parse() {
   // ck if input directives have exceeded maximum
   if (fs::file_size(testfile->getInsPath()) > Directive::MAX_INPUT_BYTES) {
     testfile->setErrorState(ParseError::MaxInputBytesExceeded);
-  } else if (fs::file_size(testfile->getOutPath()) >
-             Directive::MAX_OUTPUT_BYTES) {
+  } else if (fs::file_size(testfile->getOutPath()) > Directive::MAX_OUTPUT_BYTES) {
     testfile->setErrorState(ParseError::MaxOutputBytesExceeded);
   }
 

@@ -4,7 +4,6 @@
 
 namespace tester {
 
-TestResult runTest(TestFile* test, const ToolChain& toolChain,
-                   const Config& cfg);
+TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg);
 
 } // namespace tester
