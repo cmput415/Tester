@@ -11,8 +11,6 @@
 #include <fstream>
 #include <sstream>
 
-#define ENFORCE_NL 0
-
 namespace {
 
 void dumpFile(const fs::path& filePath, bool showSpace=false) {
@@ -21,7 +19,6 @@ void dumpFile(const fs::path& filePath, bool showSpace=false) {
         std::cerr << "Error opening file: " << filePath << std::endl;
         return;
     }
-
     char ch;
     bool lastCharIsNl = false;
     while (file.get(ch)) {
@@ -46,12 +43,6 @@ std::vector<std::string> readFileWithNewlines(const fs::path& filepath) {
     throw std::runtime_error("Failed to open file.");
   }
 
-#if !ENFORCE_NL
-  std::string line;
-  while (getline(file, line)) {
-    lines.push_back(line);
-  }
-#else
   std::string currentLine;
   char ch;
   while (file.get(ch)) {
@@ -66,7 +57,6 @@ std::vector<std::string> readFileWithNewlines(const fs::path& filepath) {
   if (!currentLine.empty() || (file.eof() && ch == '\n')) {
     lines.push_back(currentLine);
   }
-#endif
   return lines;
 }
 
