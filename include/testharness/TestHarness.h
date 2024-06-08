@@ -1,15 +1,15 @@
 #ifndef TESTER_TEST_HARNESS_H
 #define TESTER_TEST_HARNESS_H
 
+#include "Colors.h"
 #include "config/Config.h"
 #include "testharness/ResultManager.h"
-#include "toolchain/ToolChain.h"
-#include "Colors.h"
 #include "tests/TestParser.h"
+#include "toolchain/ToolChain.h"
 
-#include <string>
-#include <map>
 #include <filesystem>
+#include <map>
+#include <string>
 
 // Convenience.
 namespace fs = std::filesystem;
@@ -17,7 +17,7 @@ namespace fs = std::filesystem;
 namespace tester {
 
 // Test hierarchy types
-typedef std::vector<std::unique_ptr<TestFile>> SubPackage; 
+typedef std::vector<std::unique_ptr<TestFile>> SubPackage;
 typedef std::map<std::string, SubPackage> Package;
 typedef std::map<std::string, Package> TestSet;
 
@@ -28,7 +28,7 @@ public:
   TestHarness() = delete;
 
   // Construct the Tester with a parsed JSON file.
-  TestHarness(const Config &cfg) : cfg(cfg), results() { findTests(); }
+  TestHarness(const Config& cfg) : cfg(cfg), results() { findTests(); }
 
   // Returns true if any tests failed, false otherwise.
   bool runTests();
@@ -41,34 +41,35 @@ public:
 
 protected:
   // where all the tests are held.
-  TestSet testSet; 
+  TestSet testSet;
 
   // A separate subpackage, just for invalid tests.
-  SubPackage invalidTests; 
+  SubPackage invalidTests;
 
   // let derived classes find tests.
-  void findTests();  
+  void findTests();
 
-private: 
+private:
   // Our input config.
-  const Config &cfg;
-  
+  const Config& cfg;
+
   // The results of the tests.
   ResultManager results;
 
 private:
-  // test running  
-  bool runTestsForToolChain(std::string tcId, std::string exeName); 
-  
-  // test finding and filling methods 
-  void addTestFileToSubPackage(SubPackage& subPackage, const fs::path& file); 
+  // test running
+  bool runTestsForToolChain(std::string tcId, std::string exeName);
+
+  // test finding and filling methods
+  void addTestFileToSubPackage(SubPackage& subPackage, const fs::path& file);
 
   // utility for filling packages with tests
-  void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath); 
-  void fillSubpackagesRecursive(Package& package, const fs::path& packPath, const std::string& parentKey);  
-  void setupDebugModule(TestSet& testSet, const fs::path &debugPath);
+  void fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath);
+  void fillSubpackagesRecursive(Package& package, const fs::path& packPath,
+                                const std::string& parentKey);
+  void setupDebugModule(TestSet& testSet, const fs::path& debugPath);
 };
 
 } // End namespace tester
 
-#endif //TESTER_TESTER_H
+#endif // TESTER_TESTER_H

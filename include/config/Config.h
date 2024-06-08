@@ -21,32 +21,42 @@ public:
   Config() = default;
 
   // Construct with argc/argv.
-  Config(int argc, char ** argv);
+  Config(int argc, char** argv);
 
   // Config path getters and checkers.
-  const fs::path &getGradePath() const { return gradeFilePath; }
+  const fs::path& getGradePath() const { return gradeFilePath; }
   bool hasGradePath() const { return !gradeFilePath.empty(); }
-  const fs::path &getSummaryPath() const { return summaryFilePath; }
+  const fs::path& getSummaryPath() const { return summaryFilePath; }
   bool hasSummaryPath() const { return !summaryFilePath.empty(); }
-  const fs::path &getTestDirPath() const { return testDirPath; }
-  const fs::path &getDebugPath() const { return debugPath; }
+  const fs::path& getTestDirPath() const { return testDirPath; }
+  const fs::path& getDebugPath() const { return debugPath; }
 
   // Config map getters and convenience individual getters.
   const PathMap getExecutables() const { return executables; }
-  const fs::path &getExecutablePath(const std::string &name) const { return executables.at(name); }
-  bool hasExecutable(const std::string &name) const { return executables.count(name) != 0; }
+  const fs::path& getExecutablePath(const std::string& name) const {
+    return executables.at(name);
+  }
+  bool hasExecutable(const std::string& name) const {
+    return executables.count(name) != 0;
+  }
 
   const PathMap getRuntimes() const { return runtimes; }
-  const fs::path &getRuntimePath(const std::string &name) const { return runtimes.at(name); }
-  bool hasRuntime(const std::string &name) const { return runtimes.count(name) != 0; }
+  const fs::path& getRuntimePath(const std::string& name) const {
+    return runtimes.at(name);
+  }
+  bool hasRuntime(const std::string& name) const {
+    return runtimes.count(name) != 0;
+  }
 
-  const ToolChains &getToolChains() const { return toolchains; }
-  const ToolChain &getToolChain(const std::string &name) const { return toolchains.at(name); }
+  const ToolChains& getToolChains() const { return toolchains; }
+  const ToolChain& getToolChain(const std::string& name) const {
+    return toolchains.at(name);
+  }
 
   // Config bool getters.
   bool isQuiet() const { return quiet; }
   bool isTimed() const { return time; }
-  bool isMemoryChecked() const { return memory; } 
+  bool isMemoryChecked() const { return memory; }
   int getVerbosity() const { return verbosity; }
 
   // Config int getters.
@@ -75,12 +85,12 @@ private:
   // The command timeout.
   int64_t timeout;
 
-  // Is the config initialised or not and an appropriate error code. This could be due to asking for
-  // help or a missing config file.
+  // Is the config initialised or not and an appropriate error code. This
+  // could be due to asking for help or a missing config file.
   bool initialised;
   int errorCode;
 };
 
 } // End namespace tester
 
-#endif //TESTER_CONFIG_H
+#endif // TESTER_CONFIG_H
