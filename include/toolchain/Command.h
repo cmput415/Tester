@@ -3,9 +3,9 @@
 
 #include "json.hpp"
 
-#include "toolchain/ExecutionState.h"
-#include "ExecutionState.h"
 #include "Colors.h"
+#include "ExecutionState.h"
+#include "toolchain/ExecutionState.h"
 
 #include <filesystem>
 #include <future>
@@ -26,35 +26,39 @@ public:
   Command() = delete;
 
   // Construct a command from JSON set up.
-  Command(const JSON &json, int64_t timeout);
+  Command(const JSON& json, int64_t timeout);
 
   // Copy constructor is default copy.
-  Command(const Command &command) = default;
+  Command(const Command& command) = default;
 
   // Destructor for removing temporary files
   ~Command();
 
   // Execute the command.
-  ExecutionOutput execute(const ExecutionInput &ei) const;
+  ExecutionOutput execute(const ExecutionInput& ei) const;
 
   // Get the command name.
   std::string getName() const { return name; }
 
   // Ostream operator.
-  friend std::ostream &operator<<(std::ostream&, const Command&);
+  friend std::ostream& operator<<(std::ostream&, const Command&);
 
-  // TODO: move back to private 
-  std::string buildCommand(const ExecutionInput &input, const ExecutionOutput &output) const;
+  // TODO: move back to private
+  std::string buildCommand(const ExecutionInput& input,
+                           const ExecutionOutput& output) const;
 
 private:
-  // Builds out best guess of the underlying command run by exec. Also adds a "redirect" as if
-  // we were executing in the shell. In truth we're doing manual stream redirection.
+  // Builds out best guess of the underlying command run by exec. Also adds a
+  // "redirect" as if we were executing in the shell. In truth we're doing
+  // manual stream redirection.
 
   // Resolves magic parameters to values.
-  fs::path resolveArg(const ExecutionInput &ei, const ExecutionOutput &eo, std::string arg) const;
+  fs::path resolveArg(const ExecutionInput& ei, const ExecutionOutput& eo,
+                      std::string arg) const;
 
   // Resolves magic exe parameters to value.
-  fs::path resolveExe(const ExecutionInput &ei, const ExecutionOutput &eo, std::string exe) const;
+  fs::path resolveExe(const ExecutionInput& ei, const ExecutionOutput& eo,
+                      std::string exe) const;
 
 private:
   // Command info.

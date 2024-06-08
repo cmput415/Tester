@@ -1,0 +1,11 @@
+BasedOnStyle: LLVM
+IndentWidth: 2
+UseTab: Never
+BreakBeforeBraces: Attach
+ColumnLimit: 80
+PointerAlignment: Left
+SpaceBeforeParens: ControlStatements
+NamespaceIndentation: Inner
+AccessModifierOffset: -2
+AllowShortFunctionsOnASingleLine: Inline
+IndentCaseLabels: true

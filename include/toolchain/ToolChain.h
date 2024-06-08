@@ -1,13 +1,13 @@
 #ifndef TESTER_TOOL_CHAIN_H
 #define TESTER_TOOL_CHAIN_H
 
-#include "toolchain/Command.h"
-#include "tests/TestFile.h"
 #include "json.hpp"
+#include "tests/TestFile.h"
+#include "toolchain/Command.h"
 
+#include <filesystem>
 #include <string>
 #include <vector>
-#include <filesystem>
 
 // Convenience.
 using JSON = nlohmann::json;
@@ -15,20 +15,21 @@ namespace fs = std::filesystem;
 
 namespace tester {
 
-// A simple toolchain that assumes that the output file of one step is the input file of the next
+// A simple toolchain that assumes that the output file of one step is the input
+// file of the next
 class ToolChain {
 public:
   // There is no default constructor.
   ToolChain() = delete;
 
   // Construct the ToolChain from a json file path.
-  ToolChain(const JSON &json, int64_t timeout);
+  ToolChain(const JSON& json, int64_t timeout);
 
   // Copy constructor is default copy.
-  ToolChain(const ToolChain &tc) = default;
+  ToolChain(const ToolChain& tc) = default;
 
   // Runs the toolchain on a specified inputfile.
-  ExecutionOutput build(TestFile *test) const;
+  ExecutionOutput build(TestFile* test) const;
 
   // Manipulate the executable to be tested.
   void setTestedExecutable(fs::path testedExecutable_) {
@@ -44,7 +45,7 @@ public:
   std::string getBriefDescription() const;
 
   // Ostream operator.
-  friend std::ostream &operator<<(std::ostream&, const ToolChain&);
+  friend std::ostream& operator<<(std::ostream&, const ToolChain&);
 
 private:
   // The list of commands to execute this toolchain.

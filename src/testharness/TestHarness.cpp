@@ -4,10 +4,10 @@
 #include "tests/Util.h"
 #include "util.h"
 
+#include <filesystem>
+#include <iostream>
 #include <sstream>
 #include <utility>
-#include <iostream>
-#include <filesystem>
 
 namespace tester {
 
@@ -18,7 +18,7 @@ bool TestHarness::runTests() {
   // Iterate over executables.
   for (auto exePair : cfg.getExecutables()) {
     // Iterate over toolchains.
-    for (auto &tcPair : cfg.getToolChains()) {
+    for (auto& tcPair : cfg.getToolChains()) {
       if (runTestsForToolChain(exePair.first, tcPair.first) == 1)
         failed = true;
     }
@@ -30,110 +30,123 @@ std::string TestHarness::getTestInfo() const {
   std::ostringstream oss;
   oss << "Test Information:\n\n";
   for (const auto& [packageName, subPackages] : testSet) {
-    oss << "Package: " << packageName << " (" << subPackages.size() << " subpackages)\n";
+    oss << "Package: " << packageName << " (" << subPackages.size()
+        << " subpackages)\n";
     for (const auto& [subPackageName, tests] : subPackages) {
-      oss << " - Subpackage: " << subPackageName << " (" << tests.size() << " tests)\n"; 
+      oss << " - Subpackage: " << subPackageName << " (" << tests.size()
+          << " tests)\n";
     }
   }
   oss << "Total Packages: " << testSet.size() << "\n";
   return oss.str();
 }
 
-bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
-    
-    if (cfg.hasSummaryPath()) {
-      //TODO: dup filepath to stdout and re-use this functions infra.
-      
-    }
+bool TestHarness::runTestsForToolChain(std::string exeName,
+                                       std::string tcName) {
 
-    bool failed = false;
+  if (cfg.hasSummaryPath()) {
+    // TODO: dup filepath to stdout and re-use this functions infra.
+  }
 
-    // Get the toolchain to use.
-    ToolChain toolChain = cfg.getToolChain(tcName);
+  bool failed = false;
 
-    // Set the toolchain's exe to be tested.
-    const fs::path& exe = cfg.getExecutablePath(exeName);
-    std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
-    toolChain.setTestedExecutable(exe);
+  // Get the toolchain to use.
+  ToolChain toolChain = cfg.getToolChain(tcName);
 
-    // If we have a runtime, set that as well.
-    if (cfg.hasRuntime(exeName))
-        toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
-    else
-        toolChain.setTestedRuntime("");
+  // Set the toolchain's exe to be tested.
+  const fs::path& exe = cfg.getExecutablePath(exeName);
+  std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
+  toolChain.setTestedExecutable(exe);
 
-    // Say which toolchain.
-    std::cout << "With toolchain: " << tcName << " -> " << toolChain.getBriefDescription() << '\n';
+  // If we have a runtime, set that as well.
+  if (cfg.hasRuntime(exeName))
+    toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
+  else
+    toolChain.setTestedRuntime("");
 
-    // Stat tracking for toolchain tests.
-    unsigned int toolChainCount = 0, toolChainPasses = 0;
+  // Say which toolchain.
+  std::cout << "With toolchain: " << tcName << " -> "
+            << toolChain.getBriefDescription() << '\n';
 
-    // Iterate over each package.
-    for (auto& [packageName, package] : testSet) {
-        std::cout << "Entering package: " << packageName << '\n';
-        unsigned int packageCount = 0, packagePasses = 0;
+  // Stat tracking for toolchain tests.
+  unsigned int toolChainCount = 0, toolChainPasses = 0;
 
-        // Iterate over each subpackage
-        for (auto& [subPackageName, subPackage] : package) {
-            std::cout << "  Entering subpackage: " << subPackageName << '\n';
-            unsigned int subPackagePasses = 0, subPackageSize = subPackage.size();
+  // Iterate over each package.
+  for (auto& [packageName, package] : testSet) {
+    std::cout << "Entering package: " << packageName << '\n';
+    unsigned int packageCount = 0, packagePasses = 0;
 
-            // Iterate over each test in the package
-            for (const std::unique_ptr<TestFile>& test : subPackage) {
-                if (test->getErrorState() == ParseError::NoError) {
-  
-                  TestResult result = runTest(test.get(), toolChain, cfg);
-                  results.addResult(exeName, tcName, subPackageName, result);
+    // Iterate over each subpackage
+    for (auto& [subPackageName, subPackage] : package) {
+      std::cout << "  Entering subpackage: " << subPackageName << '\n';
+      unsigned int subPackagePasses = 0, subPackageSize = subPackage.size();
 
-                  std::cout << "    " << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET) : (Colors::RED + "[FAIL]" + Colors::RESET))
-                            << " " << std::setw(40) << std::left << test->getTestPath().stem().string();
+      // Iterate over each test in the package
+      for (const std::unique_ptr<TestFile>& test : subPackage) {
+        if (test->getErrorState() == ParseError::NoError) {
 
-                  if (cfg.isTimed()) {
-                    std::cout << std::fixed << std::setw(10) << std::setprecision(6) << test->getElapsedTime() 
-                              << "(s)\n";
-                  } else { std::cout << "\n"; }           
-                  
-                  if (result.pass) {
-                    ++packagePasses;
-                    ++subPackagePasses;
-                  } else {
-                    failed = true; 
-                  }
+          TestResult result = runTest(test.get(), toolChain, cfg);
+          results.addResult(exeName, tcName, subPackageName, result);
 
-                } else {
-                  std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET)
-                            << " " << test->getTestPath().stem().string() << '\n';
-                  --subPackageSize;
-                }
-            }
-            std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackageSize << '\n';
-            // Track how many tests we run.
-            packageCount += subPackageSize;
+          std::cout << "    "
+                    << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET)
+                                    : (Colors::RED + "[FAIL]" + Colors::RESET))
+                    << " " << std::setw(40) << std::left
+                    << test->getTestPath().stem().string();
+
+          if (cfg.isTimed()) {
+            std::cout << std::fixed << std::setw(10) << std::setprecision(6)
+                      << test->getElapsedTime() << "(s)\n";
+          } else {
+            std::cout << "\n";
+          }
+
+          if (result.pass) {
+            ++packagePasses;
+            ++subPackagePasses;
+          } else {
+            failed = true;
+          }
+
+        } else {
+          std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET)
+                    << " " << test->getTestPath().stem().string() << '\n';
+          --subPackageSize;
         }
-
-        // Update the toolchain stats from the package stats.
-        toolChainPasses += packagePasses;
-        toolChainCount += packageCount;
-
-        std::cout << " Package passed " << packagePasses << " / " << packageCount << '\n';
+      }
+      std::cout << "  Subpackage passed " << subPackagePasses << " / "
+                << subPackageSize << '\n';
+      // Track how many tests we run.
+      packageCount += subPackageSize;
     }
 
-    std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount << "\n\n";
-    std::cout << "Invalid " << invalidTests.size() << " / "
-              << toolChainCount + invalidTests.size() << "\n";
+    // Update the toolchain stats from the package stats.
+    toolChainPasses += packagePasses;
+    toolChainCount += packageCount;
 
-    for (auto& test : invalidTests) {
-      std::cout << "  Skipped: " << test->getTestPath().filename().stem() << std::endl
-                << "  Error: " << Colors::YELLOW << test->getErrorMessage() << Colors::RESET << "\n";
-    }
-    std::cout << "\n";
+    std::cout << " Package passed " << packagePasses << " / " << packageCount
+              << '\n';
+  }
 
-    return failed;
+  std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount
+            << "\n\n";
+  std::cout << "Invalid " << invalidTests.size() << " / "
+            << toolChainCount + invalidTests.size() << "\n";
+
+  for (auto& test : invalidTests) {
+    std::cout << "  Skipped: " << test->getTestPath().filename().stem()
+              << std::endl
+              << "  Error: " << Colors::YELLOW << test->getErrorMessage()
+              << Colors::RESET << "\n";
+  }
+  std::cout << "\n";
+
+  return failed;
 }
 
 bool isTestFile(const fs::path& path) {
-  return fs::exists(path) && !fs::is_directory(path) && path.extension() != ".ins" 
-                          && path.extension() != ".out";
+  return fs::exists(path) && !fs::is_directory(path) &&
+         path.extension() != ".ins" && path.extension() != ".out";
 }
 
 bool hasTestFiles(const fs::path& path) {
@@ -145,7 +158,8 @@ bool hasTestFiles(const fs::path& path) {
   return false;
 }
 
-void TestHarness::addTestFileToSubPackage(SubPackage& subPackage, const fs::path& file) {
+void TestHarness::addTestFileToSubPackage(SubPackage& subPackage,
+                                          const fs::path& file) {
 
   // try {}
   auto testfile = std::make_unique<TestFile>(file);
@@ -159,7 +173,8 @@ void TestHarness::addTestFileToSubPackage(SubPackage& subPackage, const fs::path
   }
 }
 
-void TestHarness::fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {
+void TestHarness::fillSubpackage(SubPackage& subPackage,
+                                 const fs::path& subPackPath) {
   for (const fs::path& file : fs::directory_iterator(subPackPath)) {
     if (isTestFile(file)) {
       addTestFileToSubPackage(subPackage, file);
@@ -167,11 +182,14 @@ void TestHarness::fillSubpackage(SubPackage& subPackage, const fs::path& subPack
   }
 }
 
-void TestHarness::fillSubpackagesRecursive(Package& package, const fs::path& packPath, const std::string& parentKey) {
+void TestHarness::fillSubpackagesRecursive(Package& package,
+                                           const fs::path& packPath,
+                                           const std::string& parentKey) {
   try {
     for (const auto& file : fs::directory_iterator(packPath)) {
       if (fs::is_directory(file)) {
-        std::string subpackageKey = parentKey + "." + file.path().stem().string();
+        std::string subpackageKey =
+            parentKey + "." + file.path().stem().string();
         if (hasTestFiles(file)) {
           SubPackage subpackage;
           fillSubpackage(subpackage, file.path());
@@ -185,8 +203,9 @@ void TestHarness::fillSubpackagesRecursive(Package& package, const fs::path& pac
   }
 }
 
-void TestHarness::setupDebugModule(TestSet& testSet, const fs::path &debugPath) {
-  
+void TestHarness::setupDebugModule(TestSet& testSet,
+                                   const fs::path& debugPath) {
+
   Package debugPackage;
   SubPackage debugSubpackage;
   std::string prefix("debugSubPackage");
@@ -209,20 +228,20 @@ void TestHarness::setupDebugModule(TestSet& testSet, const fs::path &debugPath) 
   testSet["debugPkg"] = std::move(debugPackage);
 }
 
-
 void TestHarness::findTests() {
 
-  const fs::path &debugPath = cfg.getDebugPath();
-  const fs::path &testDirPath = cfg.getTestDirPath();
+  const fs::path& debugPath = cfg.getDebugPath();
+  const fs::path& testDirPath = cfg.getTestDirPath();
 
   if (!debugPath.empty()) {
     setupDebugModule(testSet, debugPath);
     return;
   }
-  
+
   for (const auto& dir : fs::directory_iterator(testDirPath)) {
     if (!fs::is_directory(dir)) {
-      throw std::runtime_error("All top-level files in module must be directories.");
+      throw std::runtime_error(
+          "All top-level files in module must be directories.");
     }
 
     const fs::path& packagePath = dir.path();
@@ -238,7 +257,7 @@ void TestHarness::findTests() {
 
     fillSubpackagesRecursive(package, packagePath, packageKeyPrefix);
     testSet[packageKeyPrefix] = std::move(package);
-  } 
+  }
 }
 
 } // End namespace tester
