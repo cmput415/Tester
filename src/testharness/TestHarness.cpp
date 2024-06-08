@@ -30,24 +30,16 @@ std::string TestHarness::getTestInfo() const {
   std::ostringstream oss;
   oss << "Test Information:\n\n";
   for (const auto& [packageName, subPackages] : testSet) {
-    oss << "Package: " << packageName << " (" << subPackages.size()
-        << " subpackages)\n";
+    oss << "Package: " << packageName << " (" << subPackages.size() << " subpackages)\n";
     for (const auto& [subPackageName, tests] : subPackages) {
-      oss << " - Subpackage: " << subPackageName << " (" << tests.size()
-          << " tests)\n";
+      oss << " - Subpackage: " << subPackageName << " (" << tests.size() << " tests)\n";
     }
   }
   oss << "Total Packages: " << testSet.size() << "\n";
   return oss.str();
 }
 
-bool TestHarness::runTestsForToolChain(std::string exeName,
-                                       std::string tcName) {
-
-  if (cfg.hasSummaryPath()) {
-    // TODO: dup filepath to stdout and re-use this functions infra.
-  }
-
+bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
   bool failed = false;
 
   // Get the toolchain to use.
@@ -65,8 +57,7 @@ bool TestHarness::runTestsForToolChain(std::string exeName,
     toolChain.setTestedRuntime("");
 
   // Say which toolchain.
-  std::cout << "With toolchain: " << tcName << " -> "
-            << toolChain.getBriefDescription() << '\n';
+  std::cout << "With toolchain: " << tcName << " -> " << toolChain.getBriefDescription() << '\n';
 
   // Stat tracking for toolchain tests.
   unsigned int toolChainCount = 0, toolChainPasses = 0;
@@ -91,8 +82,7 @@ bool TestHarness::runTestsForToolChain(std::string exeName,
           std::cout << "    "
                     << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET)
                                     : (Colors::RED + "[FAIL]" + Colors::RESET))
-                    << " " << std::setw(40) << std::left
-                    << test->getTestPath().stem().string();
+                    << " " << std::setw(40) << std::left << test->getTestPath().stem().string();
 
           if (cfg.isTimed()) {
             std::cout << std::fixed << std::setw(10) << std::setprecision(6)
@@ -109,13 +99,12 @@ bool TestHarness::runTestsForToolChain(std::string exeName,
           }
 
         } else {
-          std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET)
-                    << " " << test->getTestPath().stem().string() << '\n';
+          std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET) << " "
+                    << test->getTestPath().stem().string() << '\n';
           --subPackageSize;
         }
       }
-      std::cout << "  Subpackage passed " << subPackagePasses << " / "
-                << subPackageSize << '\n';
+      std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackageSize << '\n';
       // Track how many tests we run.
       packageCount += subPackageSize;
     }
@@ -124,20 +113,16 @@ bool TestHarness::runTestsForToolChain(std::string exeName,
     toolChainPasses += packagePasses;
     toolChainCount += packageCount;
 
-    std::cout << " Package passed " << packagePasses << " / " << packageCount
-              << '\n';
+    std::cout << " Package passed " << packagePasses << " / " << packageCount << '\n';
   }
 
-  std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount
-            << "\n\n";
-  std::cout << "Invalid " << invalidTests.size() << " / "
-            << toolChainCount + invalidTests.size() << "\n";
+  std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount << "\n\n";
+  std::cout << "Invalid " << invalidTests.size() << " / " << toolChainCount + invalidTests.size()
+            << "\n";
 
   for (auto& test : invalidTests) {
-    std::cout << "  Skipped: " << test->getTestPath().filename().stem()
-              << std::endl
-              << "  Error: " << Colors::YELLOW << test->getErrorMessage()
-              << Colors::RESET << "\n";
+    std::cout << "  Skipped: " << test->getTestPath().filename().stem() << std::endl
+              << "  Error: " << Colors::YELLOW << test->getErrorMessage() << Colors::RESET << "\n";
   }
   std::cout << "\n";
 
@@ -145,8 +130,8 @@ bool TestHarness::runTestsForToolChain(std::string exeName,
 }
 
 bool isTestFile(const fs::path& path) {
-  return fs::exists(path) && !fs::is_directory(path) &&
-         path.extension() != ".ins" && path.extension() != ".out";
+  return fs::exists(path) && !fs::is_directory(path) && path.extension() != ".ins" &&
+         path.extension() != ".out";
 }
 
 bool hasTestFiles(const fs::path& path) {
@@ -158,10 +143,7 @@ bool hasTestFiles(const fs::path& path) {
   return false;
 }
 
-void TestHarness::addTestFileToSubPackage(SubPackage& subPackage,
-                                          const fs::path& file) {
-
-  // try {}
+void TestHarness::addTestFileToSubPackage(SubPackage& subPackage, const fs::path& file) {
   auto testfile = std::make_unique<TestFile>(file);
 
   TestParser parser(testfile.get());
@@ -173,8 +155,7 @@ void TestHarness::addTestFileToSubPackage(SubPackage& subPackage,
   }
 }
 
-void TestHarness::fillSubpackage(SubPackage& subPackage,
-                                 const fs::path& subPackPath) {
+void TestHarness::fillSubpackage(SubPackage& subPackage, const fs::path& subPackPath) {
   for (const fs::path& file : fs::directory_iterator(subPackPath)) {
     if (isTestFile(file)) {
       addTestFileToSubPackage(subPackage, file);
@@ -182,14 +163,12 @@ void TestHarness::fillSubpackage(SubPackage& subPackage,
   }
 }
 
-void TestHarness::fillSubpackagesRecursive(Package& package,
-                                           const fs::path& packPath,
+void TestHarness::fillSubpackagesRecursive(Package& package, const fs::path& packPath,
                                            const std::string& parentKey) {
   try {
     for (const auto& file : fs::directory_iterator(packPath)) {
       if (fs::is_directory(file)) {
-        std::string subpackageKey =
-            parentKey + "." + file.path().stem().string();
+        std::string subpackageKey = parentKey + "." + file.path().stem().string();
         if (hasTestFiles(file)) {
           SubPackage subpackage;
           fillSubpackage(subpackage, file.path());
@@ -203,8 +182,7 @@ void TestHarness::fillSubpackagesRecursive(Package& package,
   }
 }
 
-void TestHarness::setupDebugModule(TestSet& testSet,
-                                   const fs::path& debugPath) {
+void TestHarness::setupDebugModule(TestSet& testSet, const fs::path& debugPath) {
 
   Package debugPackage;
   SubPackage debugSubpackage;
@@ -240,8 +218,7 @@ void TestHarness::findTests() {
 
   for (const auto& dir : fs::directory_iterator(testDirPath)) {
     if (!fs::is_directory(dir)) {
-      throw std::runtime_error(
-          "All top-level files in module must be directories.");
+      throw std::runtime_error("All top-level files in module must be directories.");
     }
 
     const fs::path& packagePath = dir.path();

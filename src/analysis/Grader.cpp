@@ -41,16 +41,14 @@ void Grader::buildResults() {
 
     // Table strings.
     std::string toolChainName = toolChain.first;
-    JSON toolChainJson = {{"toolchain", toolChain.first},
-                          {"toolchainResults", JSON::array()}};
+    JSON toolChainJson = {{"toolchain", toolChain.first}, {"toolchainResults", JSON::array()}};
 
     // Get the toolchain and start running tests. Run over names twice since
     // it's nxn.
     ToolChain tc = toolChain.second;
     for (const std::string& defender : names) {
 
-      JSON defenseResults = {{"defender", defender},
-                             {"defenderResults", JSON::array()}};
+      JSON defenseResults = {{"defender", defender}, {"defenderResults", JSON::array()}};
       // Set up the tool chain with the defender's executable.
       tc.setTestedExecutable(cfg.getExecutablePath(defender));
 
@@ -61,12 +59,11 @@ void Grader::buildResults() {
 
       // Iterate over attackers.
       for (const std::string& attacker : names) {
-        std::cout << "==== " << toolChainName << " " << attacker
-                  << " (attacker) V.S " << defender << " (defender)"
+        std::cout << "==== " << toolChainName << " " << attacker << " (attacker) V.S " << defender
+                  << " (defender)"
                   << "\n";
 
-        JSON attackResults = {{"attacker", attacker},
-                              {"timings", JSON::array()}};
+        JSON attackResults = {{"attacker", attacker}, {"timings", JSON::array()}};
 
         // Iterate over subpackages and the contained tests from the
         // attacker, tracking pass count.
@@ -85,8 +82,7 @@ void Grader::buildResults() {
             std::cout.flush();
             testCount++;
 
-            attackResults["timings"].push_back(
-                {test->getTestPath(), test->getElapsedTime()});
+            attackResults["timings"].push_back({test->getTestPath(), test->getElapsedTime()});
           }
         }
         // update the test results

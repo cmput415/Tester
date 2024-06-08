@@ -14,12 +14,10 @@ public:
   ExecutionInput() = delete;
 
   // Creates input to a subprocess execution.
-  ExecutionInput(fs::path inputPath, fs::path inputStreamPath,
-                 fs::path testedExecutable, fs::path testedRuntime)
-      : inputPath(std::move(inputPath)),
-        inputStreamPath(std::move(inputStreamPath)),
-        testedExecutable(std::move(testedExecutable)),
-        testedRuntime(std::move(testedRuntime)) {}
+  ExecutionInput(fs::path inputPath, fs::path inputStreamPath, fs::path testedExecutable,
+                 fs::path testedRuntime)
+      : inputPath(std::move(inputPath)), inputStreamPath(std::move(inputStreamPath)),
+        testedExecutable(std::move(testedExecutable)), testedRuntime(std::move(testedRuntime)) {}
 
   // Gets input file.
   const fs::path& getInputFile() const { return inputPath; }
@@ -48,8 +46,7 @@ public:
 
   // Creates output to a subprocess execution.
   explicit ExecutionOutput(fs::path outputPath, fs::path errorPath = "")
-      : outputPath(std::move(outputPath)), errorPath(std::move(errorPath)),
-        rv(0) {}
+      : outputPath(std::move(outputPath)), errorPath(std::move(errorPath)), rv(0) {}
 
   // Gets output file.
   fs::path getOutputFile() const { return outputPath; }

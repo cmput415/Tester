@@ -25,8 +25,7 @@ private:
   TestFile* testfile;
 
   // track state of parse
-  bool foundInput{false}, foundInputFile{false}, foundCheck{false},
-      foundCheckFile{false};
+  bool foundInput{false}, foundInputFile{false}, foundCheck{false}, foundCheckFile{false};
 
   // track comment state
   bool inLineComment{false}, inBlockComment{false}, inString{false};
@@ -38,8 +37,7 @@ private:
   void trackCommentState(std::string& line);
 
   // helper method to return the path in a FILE directive if it is good
-  PathOrError parsePathFromLine(const std::string& line,
-                                const std::string& directive);
+  PathOrError parsePathFromLine(const std::string& line, const std::string& directive);
 
   // helper method to insert a newline prefixed line to a file
   void insLineToFile(fs::path filePath, std::string line, bool firstInsert);

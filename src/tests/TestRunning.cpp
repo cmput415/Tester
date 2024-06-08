@@ -30,8 +30,7 @@ void dumpFile(const fs::path& filePath, bool showSpace = false) {
     lastCharIsNl = (ch == '\n');
   }
   if (!lastCharIsNl) {
-    std::cout << Colors::BG_WHITE << Colors::BLACK << '%' << Colors::RESET
-              << std::endl;
+    std::cout << Colors::BG_WHITE << Colors::BLACK << '%' << Colors::RESET << std::endl;
   }
   file.close();
 }
@@ -61,8 +60,7 @@ std::vector<std::string> readFileWithNewlines(const fs::path& filepath) {
   return lines;
 }
 
-std::pair<bool, std::string> getDiffString(const fs::path& file1,
-                                           const fs::path& file2) {
+std::pair<bool, std::string> getDiffString(const fs::path& file1, const fs::path& file2) {
 
   std::vector<std::string> lines1;
   std::vector<std::string> lines2;
@@ -99,11 +97,9 @@ std::pair<bool, std::string> getDiffString(const fs::path& file1,
  */
 std::string getErrorString(const fs::path stdOutPath) {
 
-  std::ifstream ins(
-      stdOutPath); // open input file stream of output file of toolchain
+  std::ifstream ins(stdOutPath); // open input file stream of output file of toolchain
   if (!ins.is_open()) {
-    throw std::runtime_error(
-        "Failed to open the generated output file of the toolchain.");
+    throw std::runtime_error("Failed to open the generated output file of the toolchain.");
   }
 
   std::string firstLine;
@@ -128,11 +124,9 @@ void formatFileDump(const fs::path& testPath, const fs::path& expOutPath,
                     const fs::path& genOutPath) {
   std::cout << "-----------------------" << std::endl;
   dumpFile(testPath);
-  std::cout << "----- Expected Output (" << fs::file_size(expOutPath)
-            << " bytes)" << std::endl;
+  std::cout << "----- Expected Output (" << fs::file_size(expOutPath) << " bytes)" << std::endl;
   dumpFile(expOutPath, true);
-  std::cout << "----- Generated Output (" << fs::file_size(genOutPath)
-            << " bytes)" << std::endl;
+  std::cout << "----- Generated Output (" << fs::file_size(genOutPath) << " bytes)" << std::endl;
   dumpFile(genOutPath, true);
   std::cout << "-----------------------" << std::endl;
 }
@@ -141,8 +135,7 @@ void formatFileDump(const fs::path& testPath, const fs::path& expOutPath,
 
 namespace tester {
 
-TestResult runTest(TestFile* test, const ToolChain& toolChain,
-                   const Config& cfg) {
+TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg) {
 
   ExecutionOutput eo("");
   const fs::path testPath = test->getTestPath();
@@ -160,8 +153,7 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain,
   } catch (const CommandException& ce) {
     // toolchain throws errors only when allowError is false in the config
     if (cfg.getVerbosity() > 0) {
-      std::cout << Colors::YELLOW << "    [ERROR] " << Colors::RESET
-                << ce.what() << '\n';
+      std::cout << Colors::YELLOW << "    [ERROR] " << Colors::RESET << ce.what() << '\n';
     }
     return TestResult(testPath, false, true, "");
   }
@@ -169,14 +161,12 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain,
   bool outputDiff = false;
   bool testError = false;
 
-  if (eo.getReturnValue() != 0 && !genErrorString.empty() &&
-      !expErrorString.empty()) {
+  if (eo.getReturnValue() != 0 && !genErrorString.empty() && !expErrorString.empty()) {
     outputDiff = (genErrorString == expErrorString) ? false : true; //
     testError = true;
   } else {
     auto diffPair = getDiffString(genOutPath, expOutPath);
-    outputDiff =
-        diffPair.first; // is there a difference between expected and generated
+    outputDiff = diffPair.first;  // is there a difference between expected and generated
     diffString = diffPair.second; // the diff string
   }
 
@@ -184,8 +174,7 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain,
   if (outputDiff) {
     switch (cfg.getVerbosity()) {
       case 1:
-        std::cout << diffString
-                  << std::endl; // level one simply print the diff string
+        std::cout << diffString << std::endl; // level one simply print the diff string
         break;
       case 2:
         formatFileDump(testPath, expOutPath,

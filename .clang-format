@@ -2,7 +2,7 @@ BasedOnStyle: LLVM
 IndentWidth: 2
 UseTab: Never
 BreakBeforeBraces: Attach
-ColumnLimit: 80
+ColumnLimit: 100
 PointerAlignment: Left
 SpaceBeforeParens: ControlStatements
 NamespaceIndentation: Inner

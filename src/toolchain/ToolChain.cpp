@@ -19,8 +19,7 @@ ToolChain::ToolChain(const JSON& json, int64_t timeout) {
 
 ExecutionOutput ToolChain::build(TestFile* test) const {
   // The current output and input contexts.
-  ExecutionInput ei(test->getTestPath(), test->getInsPath(), testedExecutable,
-                    testedRuntime);
+  ExecutionInput ei(test->getTestPath(), test->getInsPath(), testedExecutable, testedRuntime);
   ExecutionOutput eo("");
 
   // Run the command, updating the contexts as we go.
@@ -39,8 +38,8 @@ ExecutionOutput ToolChain::build(TestFile* test) const {
       return eo;
     }
 
-    ei = ExecutionInput(eo.getOutputFile(), ei.getInputStreamFile(),
-                        ei.getTestedExecutable(), ei.getTestedRuntime());
+    ei = ExecutionInput(eo.getOutputFile(), ei.getInputStreamFile(), ei.getTestedExecutable(),
+                        ei.getTestedRuntime());
   }
 
   // store the elapsed time of the final step execution step into the testfile

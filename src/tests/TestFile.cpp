@@ -18,10 +18,8 @@ TestFile::TestFile(const fs::path& path) : id(++nextId), testPath(path) {
 
   // create a unique temporary file to use as the inputs stream path
   std::string fileInsPath = stripFileExtension(testPath.filename());
-  insPath =
-      fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".ins");
-  outPath =
-      fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".out");
+  insPath = fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".ins");
+  outPath = fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".out");
 
   std::ofstream makeInsFile(insPath);
   std::ofstream makeOutFile(outPath);

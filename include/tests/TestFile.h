@@ -54,8 +54,7 @@ public:
   void setElapsedTime(double elapsed) { elapsedTime = elapsed; }
 
   // if test has any input and if test uses input file specifically
-  bool usesInputStream{false}, usesInputFile{false}, usesOutStream{false},
-      usesOutFile{false};
+  bool usesInputStream{false}, usesInputFile{false}, usesOutStream{false}, usesOutFile{false};
 
   // TODO:
   friend class TestParser;
