@@ -60,6 +60,9 @@ private:
   // test running
   bool runTestsForToolChain(std::string tcId, std::string exeName);
 
+  // helper for formatting tester output 
+  void printTestResult(const TestFile *test, TestResult result);
+
   // test finding and filling methods
   void addTestFileToSubPackage(SubPackage& subPackage, const fs::path& file);
 

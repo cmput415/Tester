@@ -12,7 +12,6 @@
 namespace tester {
 
 // Builds TestSet during object creation.
-
 bool TestHarness::runTests() {
   bool failed = false;
   // Iterate over executables.
@@ -39,29 +38,35 @@ std::string TestHarness::getTestInfo() const {
   return oss.str();
 }
 
+void TestHarness::printTestResult(const TestFile *test, TestResult result) {
+  std::cout << "    "
+            << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET)
+                            : (Colors::RED + "[FAIL]" + Colors::RESET))
+            << " " << std::setw(40) << std::left << test->getTestPath().stem().string();
+  if (cfg.isTimed()) {
+    std::cout << std::fixed << std::setw(10) << std::setprecision(6)
+              << test->getElapsedTime() << "(s)";
+  }
+  std::cout << "\n";
+}
+
 bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
   bool failed = false;
 
-  // Get the toolchain to use.
-  ToolChain toolChain = cfg.getToolChain(tcName);
-
-  // Set the toolchain's exe to be tested.
-  const fs::path& exe = cfg.getExecutablePath(exeName);
-  std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
+  ToolChain toolChain = cfg.getToolChain(tcName); // Get the toolchain to use.
+  const fs::path& exe = cfg.getExecutablePath(exeName); // Set the toolchain's exe to be tested.
   toolChain.setTestedExecutable(exe);
 
-  // If we have a runtime, set that as well.
-  if (cfg.hasRuntime(exeName))
+  if (cfg.hasRuntime(exeName)) // If we have a runtime, set that as well.
     toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
   else
     toolChain.setTestedRuntime("");
 
-  // Say which toolchain.
+  std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
   std::cout << "With toolchain: " << tcName << " -> " << toolChain.getBriefDescription() << '\n';
 
-  // Stat tracking for toolchain tests.
-  unsigned int toolChainCount = 0, toolChainPasses = 0;
-
+  unsigned int toolChainCount = 0, toolChainPasses = 0; // Stat tracking for toolchain tests.
+  
   // Iterate over each package.
   for (auto& [packageName, package] : testSet) {
     std::cout << "Entering package: " << packageName << '\n';
@@ -74,22 +79,11 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
 
       // Iterate over each test in the package
       for (const std::unique_ptr<TestFile>& test : subPackage) {
-        if (test->getErrorState() == ParseError::NoError) {
 
+        if (test->getErrorState() == ParseError::NoError) {
           TestResult result = runTest(test.get(), toolChain, cfg);
           results.addResult(exeName, tcName, subPackageName, result);
-
-          std::cout << "    "
-                    << (result.pass ? (Colors::GREEN + "[PASS]" + Colors::RESET)
-                                    : (Colors::RED + "[FAIL]" + Colors::RESET))
-                    << " " << std::setw(40) << std::left << test->getTestPath().stem().string();
-
-          if (cfg.isTimed()) {
-            std::cout << std::fixed << std::setw(10) << std::setprecision(6)
-                      << test->getElapsedTime() << "(s)\n";
-          } else {
-            std::cout << "\n";
-          }
+          printTestResult(test.get(), result); 
 
           if (result.pass) {
             ++packagePasses;
@@ -97,12 +91,11 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
           } else {
             failed = true;
           }
-
         } else {
           std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET) << " "
                     << test->getTestPath().stem().string() << '\n';
           --subPackageSize;
-        }
+        }        
       }
       std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackageSize << '\n';
       // Track how many tests we run.
@@ -130,8 +123,12 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
 }
 
 bool isTestFile(const fs::path& path) {
-  return fs::exists(path) && !fs::is_directory(path) && path.extension() != ".ins" &&
-         path.extension() != ".out";
+  return (fs::exists(path) 
+      && !fs::is_directory(path)
+      && path.extension() != ".ins"
+      && path.extension() != ".out"
+      && !(path.filename().string()[0] == '.') // don't consume hidden files
+  );
 }
 
 bool hasTestFiles(const fs::path& path) {
