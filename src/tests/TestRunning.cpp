@@ -122,7 +122,7 @@ std::string getErrorString(const fs::path stdOutPath) {
 
 void formatFileDump(const fs::path& testPath, const fs::path& expOutPath,
                     const fs::path& genOutPath) {
-  std::cout << "-----------------------" << std::endl;
+  std::cout << "----- TestFile: "<< testPath.filename() << std::endl;
   dumpFile(testPath);
   std::cout << "----- Expected Output (" << fs::file_size(expOutPath) << " bytes)" << std::endl;
   dumpFile(expOutPath, true);
@@ -177,8 +177,7 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
         std::cout << diffString << std::endl; // level one simply print the diff string
         break;
       case 2:
-        formatFileDump(testPath, expOutPath,
-                       genOutPath); // level two dump the relevant files
+        formatFileDump(testPath, expOutPath, genOutPath); // level two dump the relevant files
         break;
       default:
         break;
