@@ -40,6 +40,9 @@ public:
   std::string getTestSummary() const;
 
 protected:
+  // JSON config 
+  const Config& cfg;
+  
   // where all the tests are held.
   TestSet testSet;
 
@@ -51,7 +54,6 @@ protected:
 
 private:
   // Our input config.
-  const Config& cfg;
 
   // The results of the tests.
   ResultManager results;

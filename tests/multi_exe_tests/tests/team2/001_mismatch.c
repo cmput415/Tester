@@ -2,4 +2,4 @@ int main() {
     return 0;
 }
 
-// CHECK:123 
+//CHECK:123

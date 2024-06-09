@@ -21,7 +21,7 @@ public:
   Grader() = delete;
 
   // Construct with output file path.
-  Grader(const Config& cfg) : TestHarness(cfg), cfg(cfg) {
+  Grader(const Config& cfg) : TestHarness(cfg) {
     findTests();
     buildResults();
   }
@@ -36,12 +36,11 @@ private:
   void buildResults();
 
 private:
-  // Our config.
-  const Config& cfg;
-
-  // The filtered (must have exe and tests) names of all solutions that will
-  // be tested.
-  std::vector<std::string> names;
+  // The filtered (must have exe and tests) names of all solutions to be tested
+  // std::vector<std::string> defenderNames;
+  
+  std::vector<std::string> defendingExes;
+  std::vector<std::string> attackingTestPackages;
 
   // Tester tournament results
   JSON outputJson;

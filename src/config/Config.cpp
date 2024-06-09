@@ -23,11 +23,6 @@ Config::Config(int argc, char** argv) : timeout(2l) {
       ->required()
       ->check(CLI::ExistingFile);
 
-  CLI::Option* summaryOpt = app.add_option("--summary", summaryFilePath,
-                                           "Write the test summary to this file instead of stdout");
-
-  CLI::Option* quietFlag = app.add_flag("-q,--quiet", quiet, "Quiet mode, don't print fail diffs");
-
   CLI::Option* gradeOpt =
       app.add_option("--grade", gradeFilePath, "Perform grading analysis and output to this file");
 
@@ -36,9 +31,7 @@ Config::Config(int argc, char** argv) : timeout(2l) {
   app.add_flag("-t,--time", time, "Include the timings (seconds) of each test in the output.");
   app.add_flag_function(
       "-v", [&](size_t count) { verbosity = static_cast<int>(count); }, "Increase verbosity level");
-
-  gradeOpt->excludes(quietFlag)->excludes(summaryOpt);
-
+ 
   // Parse our command line options. This has the potential to throw
   // CLI::ParseError, but we want it to continue up the tree.
   try {
