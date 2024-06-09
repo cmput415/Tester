@@ -1,31 +1,42 @@
 #include "analysis/Grader.h"
-
+#include <algorithm>
 #include <iostream>
 
 // File static namespace.
-namespace {}
+namespace {
+
+bool containsString(const std::vector<std::string>& vec, const std::string& str) {
+  return std::find(vec.begin(), vec.end(), str) != vec.end();
+}
+
+}
 
 namespace tester {
 
 void Grader::buildResults() {
 
-  // outputJson["toolchainCount"] = cfg.getToolChains().size();
   outputJson["title"] = "415 Grades";
   outputJson["results"] = JSON::array();
+  
+  // infer the name of each time from the executable string
+  for (const auto& exe : cfg.getExecutables()) {
+    std::cout << "exe: " << exe.first << std::endl;
+    defendingExes.push_back(exe.first);   
+  }
 
-  // collect summary of grading
+  // build a preliminary test summary object
   JSON testSummary = JSON::array();
+  attackingTestPackages = defendingExes; // start with a copy to preserve symmetric ordering
   for (const auto& testPackage : testSet) {
-    // First check if the name exists in the executable lists.
-    std::string name = testPackage.first;
-    names.push_back(name);
-    if (!cfg.hasExecutable(name)) {
-      std::cerr << "Test package (" << name << ") missing executable.\n";
-      continue;
-    }
+
+    std::string packageName = testPackage.first;
+
+    if (!containsString(defendingExes, packageName)) {
+      attackingTestPackages.push_back(packageName);
+    } 
 
     // Create the summary item.
-    JSON summaryItem = {{"team", name}};
+    JSON summaryItem = {{"team", packageName}};
     size_t count = 0;
     for (const auto& subpackage : testPackage.second) {
       count += subpackage.second.size();
@@ -42,11 +53,11 @@ void Grader::buildResults() {
     // Table strings.
     std::string toolChainName = toolChain.first;
     JSON toolChainJson = {{"toolchain", toolChain.first}, {"toolchainResults", JSON::array()}};
+    std::cout << "Toolchain: " << toolChain.first << std::endl;
 
-    // Get the toolchain and start running tests. Run over names twice since
-    // it's nxn.
+    // Get the toolchain and start running tests. Run over names twice since it's nxn.
     ToolChain tc = toolChain.second;
-    for (const std::string& defender : names) {
+    for (const std::string& defender : defendingExes) {
 
       JSON defenseResults = {{"defender", defender}, {"defenderResults", JSON::array()}};
       // Set up the tool chain with the defender's executable.
@@ -58,11 +69,12 @@ void Grader::buildResults() {
         tc.setTestedRuntime("");
 
       // Iterate over attackers.
-      for (const std::string& attacker : names) {
-        std::cout << "==== " << toolChainName << " " << attacker << " (attacker) V.S " << defender
-                  << " (defender)"
-                  << "\n";
-
+      int maxNameLength = 20, arrowStart = 10;
+      for (const std::string& attacker : attackingTestPackages) {
+        std::cout << "  " << std::setw(arrowStart) << std::left << "(" + attacker + ")"
+          << std::setw(maxNameLength - arrowStart) << " --> "
+          << std::setw(10) << "(" + defender + ") ";
+        
         JSON attackResults = {{"attacker", attacker}, {"timings", JSON::array()}};
 
         // Iterate over subpackages and the contained tests from the
@@ -73,16 +85,27 @@ void Grader::buildResults() {
 
             TestResult result = runTest(test.get(), tc, cfg);
 
-            if (result.pass) {
-              std::cout << ".";
+            if (result.pass && !result.error) {
+              // a regular test that passes
+              std::cout << Colors::GREEN << "." << Colors::RESET;
               passCount++;
-            } else if (result.error) {
-              std::cout << "x";
+            } else if (result.pass && result.error) {
+              // a test failed due to error but in the expected manner
+              std::cout << Colors::GREEN << "x" << Colors::RESET; 
+              passCount++;
+            } else if (!result.pass && result.error) {
+              // a test failed due to error unexpectedly
+              std::cout << Colors::RED << "x" << Colors::RESET;
+            } else {
+              // a test that produced a different output
+              std::cout << Colors::RED << "." << Colors::RESET;
             }
             std::cout.flush();
             testCount++;
-
-            attackResults["timings"].push_back({test->getTestPath(), test->getElapsedTime()});
+            attackResults["timings"].push_back({
+              test->getTestPath().filename(),
+              test->getElapsedTime()
+            });
           }
         }
         // update the test results

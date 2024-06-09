@@ -26,8 +26,6 @@ public:
   // Config path getters and checkers.
   const fs::path& getGradePath() const { return gradeFilePath; }
   bool hasGradePath() const { return !gradeFilePath.empty(); }
-  const fs::path& getSummaryPath() const { return summaryFilePath; }
-  bool hasSummaryPath() const { return !summaryFilePath.empty(); }
   const fs::path& getTestDirPath() const { return testDirPath; }
   const fs::path& getDebugPath() const { return debugPath; }
 
@@ -44,7 +42,6 @@ public:
   const ToolChain& getToolChain(const std::string& name) const { return toolchains.at(name); }
 
   // Config bool getters.
-  bool isQuiet() const { return quiet; }
   bool isTimed() const { return time; }
   bool isMemoryChecked() const { return memory; }
   int getVerbosity() const { return verbosity; }
@@ -69,8 +66,8 @@ private:
   ToolChains toolchains;
 
   // Option flags.
-  bool quiet, debug, time, memory;
-  int verbosity;
+  bool debug, time, memory;
+  int verbosity{0};
 
   // The command timeout.
   int64_t timeout;
