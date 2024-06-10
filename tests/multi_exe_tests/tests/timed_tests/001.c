@@ -11,6 +11,11 @@ int main() {
 
     printf("%c%c%c", c[2], c[1], c[0]);
 
+    int i = 0;
+    for (int i = 0; i < 1000000; i++) {
+        i++;
+    }
+
     return 0;
 }
 

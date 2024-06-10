@@ -2,15 +2,6 @@
 #include <algorithm>
 #include <iostream>
 
-// File static namespace.
-namespace {
-
-bool containsString(const std::vector<std::string>& vec, const std::string& str) {
-  return std::find(vec.begin(), vec.end(), str) != vec.end();
-}
-
-}
-
 namespace tester {
 
 void Grader::buildResults() {
@@ -18,33 +9,33 @@ void Grader::buildResults() {
   outputJson["title"] = "415 Grades";
   outputJson["results"] = JSON::array();
   
-  // infer the name of each time from the executable string
-  for (const auto& exe : cfg.getExecutables()) {
-    std::cout << "exe: " << exe.first << std::endl;
-    defendingExes.push_back(exe.first);   
-  }
+  JSON testSummary = {
+    {"packages", JSON::array()},   
+    {"executables", JSON::array()}
+  };
 
-  // build a preliminary test summary object
-  JSON testSummary = JSON::array();
-  attackingTestPackages = defendingExes; // start with a copy to preserve symmetric ordering
+  for (const auto& exe : cfg.getExecutables()) {
+    
+    std::string exeName = exe.first;     
+    defendingExes.push_back(exeName);   
+    testSummary["executables"].push_back(exeName);
+  }
+ 
   for (const auto& testPackage : testSet) {
 
     std::string packageName = testPackage.first;
+    attackingTestPackages.push_back(packageName);
 
-    if (!containsString(defendingExes, packageName)) {
-      attackingTestPackages.push_back(packageName);
-    } 
-
-    // Create the summary item.
-    JSON summaryItem = {{"team", packageName}};
-    size_t count = 0;
-    for (const auto& subpackage : testPackage.second) {
+    int count = 0;
+    for (const auto &subpackage : testPackage.second)
       count += subpackage.second.size();
-    }
-    summaryItem["testCount"] = count;
-    testSummary.push_back(summaryItem);
+    
+    JSON packageSummary = {
+      {"name", packageName},
+      {"count", count}
+    };  
+    testSummary["packages"].push_back(packageSummary);
   }
-
   outputJson["testSummary"] = testSummary;
 
   // Start running tests. Make a pass rate table for each toolchain.
@@ -68,12 +59,20 @@ void Grader::buildResults() {
       else
         tc.setTestedRuntime("");
 
+      // Find max string length of team name for formatting stdout  
+      auto maxNameLength = static_cast<int>(std::max_element(
+        attackingTestPackages.begin(), attackingTestPackages.end(),
+        [](const std::string &a, const std::string &b) {
+          return a < b;
+        }
+      )->size());
+
       // Iterate over attackers.
-      int maxNameLength = 20, arrowStart = 10;
       for (const std::string& attacker : attackingTestPackages) {
-        std::cout << "  " << std::setw(arrowStart) << std::left << "(" + attacker + ")"
-          << std::setw(maxNameLength - arrowStart) << " --> "
-          << std::setw(10) << "(" + defender + ") ";
+        
+        std::cout << "  " << std::left << std::setw(maxNameLength + 2) << ("(" + attacker + ")") // +2 for the parentheses
+          << " --> "
+          << std::left << std::setw(maxNameLength + 2) << ("(" + defender + ")");
         
         JSON attackResults = {{"attacker", attacker}, {"timings", JSON::array()}};
 

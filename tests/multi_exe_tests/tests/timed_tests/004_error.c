@@ -16,7 +16,7 @@ int main() {
         fprintf(stderr, "DivideByZeroError: a was about to be divided by 0!");
         exit(EXIT_DIVIDE_BY_ZERO);
     }  
-    
+
     return 0;
 }
 
