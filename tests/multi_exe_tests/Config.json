@@ -1,10 +1,7 @@
 {
   "testDir": "tests",
   "testedExecutablePaths": {
-    "team1": "/usr/bin/clang",
-    "team2": "/usr/bin/clang",
-    "team3": "/usr/bin/clang",
-    "TA": "/usr/bin/clang"
+    "test": "/usr/bin/clang"
   },
   "toolchains": {
     "LLVM": [
@@ -56,4 +53,5 @@
     ] 
   }
 }
+
 

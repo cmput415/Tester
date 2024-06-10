@@ -1,0 +1,813 @@
+{
+  "results": [
+    {
+      "toolchain": "LLVM",
+      "toolchainResults": [
+        {
+          "defender": "TA",
+          "defenderResults": [
+            {
+              "attacker": "TA",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": [
+                [
+                  "002_ta.c",
+                  0.01034884
+                ],
+                [
+                  "001_ta.c",
+                  0.010497002
+                ],
+                [
+                  "000_ta.c",
+                  0.01060118
+                ]
+              ]
+            },
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010512948
+                ],
+                [
+                  "002.c",
+                  0.010659881
+                ],
+                [
+                  "003_timeout.c",
+                  0.0
+                ]
+              ]
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": [
+                [
+                  "002.c",
+                  0.010635542
+                ],
+                [
+                  "001_mismatch.c",
+                  0.010649832
+                ]
+              ]
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": [
+                [
+                  "001.c",
+                  1.003260794
+                ]
+              ]
+            },
+            {
+              "attacker": "timed_tests",
+              "passCount": 4,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010497766
+                ],
+                [
+                  "002.c",
+                  0.0
+                ],
+                [
+                  "003_timeout.c",
+                  2.021130683
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "defender": "team1",
+          "defenderResults": [
+            {
+              "attacker": "TA",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": [
+                [
+                  "002_ta.c",
+                  0.010356955
+                ],
+                [
+                  "001_ta.c",
+                  0.010690674
+                ],
+                [
+                  "000_ta.c",
+                  0.010358642
+                ]
+              ]
+            },
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010400347
+                ],
+                [
+                  "002.c",
+                  0.010691282
+                ],
+                [
+                  "003_timeout.c",
+                  0.0
+                ]
+              ]
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": [
+                [
+                  "002.c",
+                  0.010521112000000001
+                ],
+                [
+                  "001_mismatch.c",
+                  0.010687718
+                ]
+              ]
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": [
+                [
+                  "001.c",
+                  1.003111213
+                ]
+              ]
+            },
+            {
+              "attacker": "timed_tests",
+              "passCount": 4,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010650402
+                ],
+                [
+                  "002.c",
+                  0.0
+                ],
+                [
+                  "003_timeout.c",
+                  2.023056491
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "defender": "team2",
+          "defenderResults": [
+            {
+              "attacker": "TA",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": [
+                [
+                  "002_ta.c",
+                  0.010609016
+                ],
+                [
+                  "001_ta.c",
+                  0.010618255
+                ],
+                [
+                  "000_ta.c",
+                  0.010713738
+                ]
+              ]
+            },
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010620003
+                ],
+                [
+                  "002.c",
+                  0.010617953
+                ],
+                [
+                  "003_timeout.c",
+                  0.0
+                ]
+              ]
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": [
+                [
+                  "002.c",
+                  0.010505006
+                ],
+                [
+                  "001_mismatch.c",
+                  0.010492173
+                ]
+              ]
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": [
+                [
+                  "001.c",
+                  1.002934806
+                ]
+              ]
+            },
+            {
+              "attacker": "timed_tests",
+              "passCount": 4,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010501177
+                ],
+                [
+                  "002.c",
+                  0.0
+                ],
+                [
+                  "003_timeout.c",
+                  2.018494322
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "defender": "team3",
+          "defenderResults": [
+            {
+              "attacker": "TA",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": [
+                [
+                  "002_ta.c",
+                  0.010543416
+                ],
+                [
+                  "001_ta.c",
+                  0.010498105
+                ],
+                [
+                  "000_ta.c",
+                  0.010456271
+                ]
+              ]
+            },
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010723391
+                ],
+                [
+                  "002.c",
+                  0.010635687
+                ],
+                [
+                  "003_timeout.c",
+                  0.0
+                ]
+              ]
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": [
+                [
+                  "002.c",
+                  0.010491462
+                ],
+                [
+                  "001_mismatch.c",
+                  0.010612427
+                ]
+              ]
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": [
+                [
+                  "001.c",
+                  1.005150645
+                ]
+              ]
+            },
+            {
+              "attacker": "timed_tests",
+              "passCount": 4,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010325688
+                ],
+                [
+                  "002.c",
+                  0.0
+                ],
+                [
+                  "003_timeout.c",
+                  2.020746287
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "toolchain": "LLVM-opt",
+      "toolchainResults": [
+        {
+          "defender": "TA",
+          "defenderResults": [
+            {
+              "attacker": "TA",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": [
+                [
+                  "002_ta.c",
+                  0.010589115
+                ],
+                [
+                  "001_ta.c",
+                  0.010642028
+                ],
+                [
+                  "000_ta.c",
+                  0.010602248
+                ]
+              ]
+            },
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.01048172
+                ],
+                [
+                  "002.c",
+                  0.010688037
+                ],
+                [
+                  "003_timeout.c",
+                  0.0
+                ]
+              ]
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": [
+                [
+                  "002.c",
+                  0.010624927
+                ],
+                [
+                  "001_mismatch.c",
+                  0.010670567
+                ]
+              ]
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": [
+                [
+                  "001.c",
+                  1.005373263
+                ]
+              ]
+            },
+            {
+              "attacker": "timed_tests",
+              "passCount": 4,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010646021
+                ],
+                [
+                  "002.c",
+                  0.0
+                ],
+                [
+                  "003_timeout.c",
+                  2.008123031
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "defender": "team1",
+          "defenderResults": [
+            {
+              "attacker": "TA",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": [
+                [
+                  "002_ta.c",
+                  0.010668507
+                ],
+                [
+                  "001_ta.c",
+                  0.010632455
+                ],
+                [
+                  "000_ta.c",
+                  0.010294811
+                ]
+              ]
+            },
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010468743
+                ],
+                [
+                  "002.c",
+                  0.010631441
+                ],
+                [
+                  "003_timeout.c",
+                  0.0
+                ]
+              ]
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": [
+                [
+                  "002.c",
+                  0.010672274
+                ],
+                [
+                  "001_mismatch.c",
+                  0.01061128
+                ]
+              ]
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": [
+                [
+                  "001.c",
+                  1.001949765
+                ]
+              ]
+            },
+            {
+              "attacker": "timed_tests",
+              "passCount": 4,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010672657
+                ],
+                [
+                  "002.c",
+                  0.0
+                ],
+                [
+                  "003_timeout.c",
+                  2.003749667
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "defender": "team2",
+          "defenderResults": [
+            {
+              "attacker": "TA",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": [
+                [
+                  "002_ta.c",
+                  0.010509623
+                ],
+                [
+                  "001_ta.c",
+                  0.010493248
+                ],
+                [
+                  "000_ta.c",
+                  0.010390238
+                ]
+              ]
+            },
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010624393
+                ],
+                [
+                  "002.c",
+                  0.010722831
+                ],
+                [
+                  "003_timeout.c",
+                  0.0
+                ]
+              ]
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": [
+                [
+                  "002.c",
+                  0.01037731
+                ],
+                [
+                  "001_mismatch.c",
+                  0.010722518
+                ]
+              ]
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": [
+                [
+                  "001.c",
+                  1.004814753
+                ]
+              ]
+            },
+            {
+              "attacker": "timed_tests",
+              "passCount": 4,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010687889
+                ],
+                [
+                  "002.c",
+                  0.0
+                ],
+                [
+                  "003_timeout.c",
+                  2.010968341
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "defender": "team3",
+          "defenderResults": [
+            {
+              "attacker": "TA",
+              "passCount": 3,
+              "testCount": 3,
+              "timings": [
+                [
+                  "002_ta.c",
+                  0.010670114
+                ],
+                [
+                  "001_ta.c",
+                  0.010697331
+                ],
+                [
+                  "000_ta.c",
+                  0.010348531
+                ]
+              ]
+            },
+            {
+              "attacker": "team1",
+              "passCount": 3,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010680346
+                ],
+                [
+                  "002.c",
+                  0.01049487
+                ],
+                [
+                  "003_timeout.c",
+                  0.0
+                ]
+              ]
+            },
+            {
+              "attacker": "team2",
+              "passCount": 1,
+              "testCount": 2,
+              "timings": [
+                [
+                  "002.c",
+                  0.010588078
+                ],
+                [
+                  "001_mismatch.c",
+                  0.010575755
+                ]
+              ]
+            },
+            {
+              "attacker": "team3",
+              "passCount": 1,
+              "testCount": 1,
+              "timings": [
+                [
+                  "001.c",
+                  1.008140228
+                ]
+              ]
+            },
+            {
+              "attacker": "timed_tests",
+              "passCount": 4,
+              "testCount": 4,
+              "timings": [
+                [
+                  "004_error.c",
+                  0.0
+                ],
+                [
+                  "001.c",
+                  0.010635711
+                ],
+                [
+                  "002.c",
+                  0.0
+                ],
+                [
+                  "003_timeout.c",
+                  2.006529471
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "testSummary": {
+    "executables": [
+      "TA",
+      "team1",
+      "team2",
+      "team3"
+    ],
+    "packages": [
+      {
+        "count": 3,
+        "name": "TA"
+      },
+      {
+        "count": 4,
+        "name": "team1"
+      },
+      {
+        "count": 2,
+        "name": "team2"
+      },
+      {
+        "count": 1,
+        "name": "team3"
+      },
+      {
+        "count": 4,
+        "name": "timed_tests"
+      }
+    ]
+  },
+  "title": "415 Grades"
+}
