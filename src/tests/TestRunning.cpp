@@ -171,8 +171,9 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
   }
 
   // if there is a diff in the output, pick the defined way to display it.
+  int verbosity = cfg.getVerbosity();  
   if (outputDiff) {
-    switch (cfg.getVerbosity()) {
+    switch (verbosity) {
       case 1:
         std::cout << diffString << std::endl; // level one simply print the diff string
         break;
@@ -182,6 +183,9 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
       default:
         break;
     }
+  } else if (verbosity == 3) {
+    // highest level of verbosity results in printing the full output even for passing tests.
+    formatFileDump(testPath, expOutPath, genOutPath);
   }
 
   return TestResult(testPath, !outputDiff, testError, "");
