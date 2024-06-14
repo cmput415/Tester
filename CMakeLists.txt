@@ -17,8 +17,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_definitions(DEBUG)
 endif()
 
-# Include cmake utilities
-include("${CMAKE_SOURCE_DIR}/cmake/symlink_to_bin.cmake")
+# Redirect executable to bin 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 # Include project headers.
 include_directories("${CMAKE_SOURCE_DIR}/include")

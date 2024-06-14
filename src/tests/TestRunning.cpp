@@ -162,7 +162,7 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
   bool testError = false;
 
   if (eo.getReturnValue() != 0 && !genErrorString.empty() && !expErrorString.empty()) {
-    outputDiff = (genErrorString == expErrorString) ? false : true; //
+    outputDiff = (genErrorString == expErrorString) ? false : true;
     testError = true;
   } else {
     auto diffPair = getDiffString(genOutPath, expOutPath);
