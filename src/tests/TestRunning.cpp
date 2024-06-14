@@ -175,17 +175,12 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
   if (verbosity == 3) {
     // highest level of verbosity results in printing the full output even for passing tests.
     formatFileDump(testPath, expOutPath, genOutPath);
-  } else if (outputDiff) {
-    switch (verbosity) {
-      case 1:
-        std::cout << diffString << std::endl; // level one simply print the diff string
-        break;
-      case 2:
-        formatFileDump(testPath, expOutPath, genOutPath); // level two dump the relevant files
-        break;
-      default:
-        break;
-    }
+  } else if (verbosity == 2 && outputDiff) {
+    // level two dump the relevant files
+    formatFileDump(testPath, expOutPath, genOutPath);
+  } else if (verbosity == 1 && outputDiff) {
+    // level one simply print the diff string
+    std::cout << diffString << std::endl;
   }
 
   return TestResult(testPath, !outputDiff, testError, "");
