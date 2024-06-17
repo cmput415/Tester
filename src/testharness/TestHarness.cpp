@@ -214,7 +214,12 @@ void TestHarness::findTests() {
   }
 
   for (const auto& dir : fs::directory_iterator(testDirPath)) {
-    if (!fs::is_directory(dir)) {
+
+    if (dir.is_regular_file() && dir.path().filename().string()[0] == '.') {
+      // skip hidden files like .gitkeep
+      continue;
+    } else if (!fs::is_directory(dir)) {
+      // all other files should be directories
       throw std::runtime_error("All top-level files in module must be directories.");
     }
 
