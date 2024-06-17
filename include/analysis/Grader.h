@@ -4,7 +4,7 @@
 #include "config/Config.h"
 #include "json.hpp"
 #include "testharness/TestHarness.h"
-#include "tests/Util.h"
+#include "tests/TestRunning.h"
 
 #include <map>
 #include <ostream>

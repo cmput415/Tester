@@ -1,5 +1,4 @@
-#include "tests/TestFile.h"
-#include "tests/Util.h"
+#include "tests/TestRunning.h"
 
 #include "Colors.h"
 #include "config/Config.h"
