@@ -1,7 +1,7 @@
 #include "testharness/TestHarness.h"
 
 #include "tests/TestResult.h"
-#include "tests/Util.h"
+#include "tests/TestRunning.h"
 #include "util.h"
 
 #include <filesystem>
