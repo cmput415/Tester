@@ -12,3 +12,6 @@ jobs:
 
       - name: run single executable tests  
         run: tests/single_exe_tests/run.sh
+
+      - name: run expected failure tests  
+        run: tests/fail_tests/run.sh
