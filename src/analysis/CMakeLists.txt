@@ -1,6 +1,3 @@
-# Add sub libraries.
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/spreadsheet")
-
 # Gather our source files in this directory.
 set(
   analysis_src_files
@@ -12,7 +9,6 @@ set(
   analysis_libs
     testharness
     toolchain
-    spreadsheet
 )
 
 # Build the library from the source files.

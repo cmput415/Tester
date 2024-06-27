@@ -25,6 +25,3 @@ add_executable(tester ${tester_src_files})
 
 # Link in the filesystem library
 target_link_libraries(tester ${tester_libs})
-
-# Symbolic link our executable to the base directory so we don't have to go searching for it.
-symlink_to_bin("tester")

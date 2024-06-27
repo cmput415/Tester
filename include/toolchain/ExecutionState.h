@@ -16,20 +16,20 @@ public:
   // Creates input to a subprocess execution.
   ExecutionInput(fs::path inputPath, fs::path inputStreamPath, fs::path testedExecutable,
                  fs::path testedRuntime)
-    : inputPath(std::move(inputPath)), inputStreamPath(std::move(inputStreamPath)),
-      testedExecutable(std::move(testedExecutable)), testedRuntime(std::move(testedRuntime)) { }
+      : inputPath(std::move(inputPath)), inputStreamPath(std::move(inputStreamPath)),
+        testedExecutable(std::move(testedExecutable)), testedRuntime(std::move(testedRuntime)) {}
 
   // Gets input file.
-  const fs::path &getInputFile() const { return inputPath; }
+  const fs::path& getInputFile() const { return inputPath; }
 
   // Gets the input stream file.
-  const fs::path &getInputStreamFile() const { return inputStreamPath; }
+  const fs::path& getInputStreamFile() const { return inputStreamPath; }
 
   // Gets tested executable.
-  const fs::path &getTestedExecutable() const { return testedExecutable; }
+  const fs::path& getTestedExecutable() const { return testedExecutable; }
 
   // Gets tested runtime.
-  const fs::path &getTestedRuntime() const { return testedRuntime; }
+  const fs::path& getTestedRuntime() const { return testedRuntime; }
 
 private:
   fs::path inputPath;
@@ -45,16 +45,22 @@ public:
   ExecutionOutput() = delete;
 
   // Creates output to a subprocess execution.
-  explicit ExecutionOutput(fs::path outputPath, fs::path errorPath = "") :
-      outputPath(std::move(outputPath)), errorPath(std::move(errorPath)) { }
+  explicit ExecutionOutput(fs::path outputPath, fs::path errorPath = "")
+      : outputPath(std::move(outputPath)), errorPath(std::move(errorPath)), rv(0) {}
 
   // Gets output file.
   fs::path getOutputFile() const { return outputPath; }
   fs::path getErrorFile() const { return errorPath; }
 
+  int getReturnValue() const { return rv; }
+  void setReturnValue(int returnValue) { rv = returnValue; }
+
+  double elapsedTime; // time executable took to run (seconds)
+
 private:
   fs::path outputPath;
   fs::path errorPath;
+  int rv;
 };
 
 } // End namespace tester

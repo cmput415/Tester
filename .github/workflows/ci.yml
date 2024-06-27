@@ -1,0 +1,17 @@
+name: '415 Tester CI'
+run-name: ${{ github.actor }}
+on: [push]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3 
+      
+      - name: build tester
+        run: tests/build.sh
+
+      - name: run single executable tests  
+        run: tests/single_exe_tests/run.sh
+
+      - name: run expected failure tests  
+        run: tests/fail_tests/run.sh

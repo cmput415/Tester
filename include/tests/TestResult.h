@@ -14,7 +14,7 @@ struct TestResult {
 
   // Make the result. Extract the test file name from the path.
   TestResult(fs::path in, bool pass, bool error, std::string diff)
-    : name(in.stem()), pass(pass), error(error), diff(diff) { }
+      : name(in.stem()), pass(pass), error(error), diff(diff) {}
 
   // Info about result.
   const fs::path name;
@@ -25,4 +25,4 @@ struct TestResult {
 
 } // End namespace tester
 
-#endif //TESTER_TEST_RESULT_H
+#endif // TESTER_TEST_RESULT_H

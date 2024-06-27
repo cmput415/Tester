@@ -1,0 +1,57 @@
+{
+  "testDir": "tests",
+  "testedExecutablePaths": {
+    "test": "/usr/bin/clang"
+  },
+  "toolchains": {
+    "LLVM": [
+      {
+        "stepName": "compile",
+        "executablePath": "$EXE",
+        "arguments": [
+          "$INPUT", 
+          "-Wno-everything",
+          "-fno-show-column",
+          "-fno-show-source-location", 
+          "-o", "$OUTPUT"
+        ],
+        "output": "test",
+        "allowError": true 
+      },
+      {
+        "stepName": "run",
+        "executablePath": "$INPUT",
+        "arguments": [],
+        "output": "-",
+        "usesInStr": true,
+        "allowError": true
+      }
+    ],
+    "LLVM-opt": [
+      {
+        "stepName": "compile",
+        "executablePath": "$EXE",
+        "arguments": [
+          "$INPUT",
+          "-O3", 
+          "-Wno-everything",
+          "-fno-show-column",
+          "-fno-show-source-location", 
+          "-o", "$OUTPUT"
+        ],
+        "output": "test",
+        "allowError": true 
+      },
+      {
+        "stepName": "run",
+        "executablePath": "$INPUT",
+        "arguments": [],
+        "output": "-",
+        "usesInStr": true,
+        "allowError": true
+      }
+    ] 
+  }
+}
+
+
