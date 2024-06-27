@@ -21,18 +21,14 @@ tester [options] <json_config>
 
 Several useful options below you may find provide great assistance to your development.
 #### Flags
-  * `-q`, `--quiet`: Quiet mode, don't print diffs, only shows failures/ successes
-  * `-v`, `--verbose`: Verbose mode, print out diffs and
+  * `-v`, `--verbose`: Print diff plus extra info with increasing levels as specified by additional `v` characters.
+  * `-t`, `--trace-times`: Print the time in seconds elapsed while executing the final toolchain step.
   * `-h`, `--help`: List options and flags
-  * `-t`, `--timings`: Print the time in seconds an exectable elapses beside its pass or failure message.
 
 #### Options
   * `--debug-path <path>`: Over-rides the test directory specified in the config file for quick
   debugging on a subset of the test-suite.
-  * `--summary <file_path>`: Writes the final summary to the file rather than
-    stdout
-  * `--file <path>` Override the test paths in the configuration and run one
-  test (or directory) specifically. Great for debugging. Perserves intermediate toolchain files.
+  * `--summary <file_path>`: Writes the test summary to the file supplied.
 
 ### Configuration
 The configuration file specifies the directory of test packages, main executables, and toolchains used to transform the initial test file into output for comparison.
