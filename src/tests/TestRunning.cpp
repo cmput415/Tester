@@ -5,7 +5,7 @@
 #include "dtl/dtl.hpp"
 #include "toolchain/CommandException.h"
 #include "toolchain/ExecutionState.h"
-
+#include <optional>
 #include <fstream>
 #include <sstream>
 #include <tuple>
@@ -59,7 +59,14 @@ std::vector<std::string> readFileWithNewlines(const fs::path& filepath) {
   return lines;
 }
 
-std::pair<bool, std::string> getDiffString(const fs::path& file1, const fs::path& file2) {
+/**
+ * @brief a precise character by character diff between two files.
+ * 
+ * @param genFile file path with generated output of final toolchain step
+ * @param expFile file path with expected output for the testcase. 
+ * @returns a pair with 1) isDiff boolean and 2) diff string (empty if isDiff is false)
+ */
+std::pair<bool, std::string> preciseDiff(const fs::path& file1, const fs::path& file2) {
 
   std::vector<std::string> lines1;
   std::vector<std::string> lines2;
@@ -94,16 +101,16 @@ std::pair<bool, std::string> getDiffString(const fs::path& file1, const fs::path
  * Given a file path, return the substring of the first line that conforms to
  * the error testcase specification.
  */
-std::string getErrorString(const fs::path stdOutPath) {
+std::optional<std::string >getErrorString(const fs::path outPath) {
 
-  std::ifstream ins(stdOutPath); // open input file stream of output file of toolchain
+  std::ifstream ins(outPath); // open input file stream of output file of toolchain
   if (!ins.is_open()) {
     throw std::runtime_error("Failed to open the generated output file of the toolchain.");
   }
 
   std::string firstLine;
   if (!getline(ins, firstLine)) {
-    return std::string("");
+    return std::nullopt;
   }
 
   if (firstLine.find("Error") != std::string::npos) {
@@ -116,7 +123,7 @@ std::string getErrorString(const fs::path stdOutPath) {
     return firstLine.substr(0, firstLine.find(":"));
   }
 
-  return std::string("");
+  return std::nullopt;
 }
 
 void formatFileDump(const fs::path& testPath, const fs::path& expOutPath,
@@ -129,6 +136,28 @@ void formatFileDump(const fs::path& testPath, const fs::path& expOutPath,
   dumpFile(genOutPath, true);
   std::cout << "-----------------------" << std::endl;
 }
+
+/**
+ * @brief custom diff implementation which corresponds to how we compare an error testcase
+ * in the spec. Currently, we look for the first line in the generated output and match
+ * if the expected output is a full substring, up to the first colon.
+ * 
+ * @param genFile path to the file containing generated output of final toolchain step
+ * @param expFile path to the file containing expected output for the testcase. 
+ * @returns pair indicating 1) success and 2) diff in case of failure
+ */
+std::pair<bool, std::string> errorDiff(const fs::path& genFile, const fs::path& expFile) {
+
+  auto genErrorString = getErrorString(genFile);
+  auto expErrorString = getErrorString(expFile);
+
+  if (genErrorString && expErrorString && *genErrorString == *expErrorString) {
+    return {false, ""};
+  }
+
+  std::string diffStr = ""; 
+  return std::make_pair(true, std::move(diffStr));
+} 
 
 } // end anonymous namespace
 
@@ -146,9 +175,6 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
   try {
     eo = toolChain.build(test);
     genOutPath = eo.getErrorFile();
-    genErrorString = getErrorString(eo.getErrorFile());
-    expErrorString = getErrorString(test->getOutPath());
-
   } catch (const CommandException& ce) {
     // toolchain throws errors only when allowError is false in the config
     if (cfg.getVerbosity() > 0) {
@@ -157,32 +183,29 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
     return TestResult(testPath, false, true, "");
   }
 
-  bool outputDiff = false;
-  bool testError = false;
-
-  if (eo.getReturnValue() != 0 && !genErrorString.empty() && !expErrorString.empty()) {
-    outputDiff = (genErrorString == expErrorString) ? false : true;
-    testError = true;
-  } else {
-    auto diffPair = getDiffString(genOutPath, expOutPath);
-    outputDiff = diffPair.first;  // is there a difference between expected and generated
-    diffString = diffPair.second; // the diff string
-  }
+  bool testDiff = false, testError = false;
+  std::pair<bool, std::string> result; 
+  result = preciseDiff(genOutPath, expOutPath);
+  if (result.first) {
+    result = errorDiff(genOutPath, expOutPath);   
+  }  
+  testDiff = result.first;
+  diffString = result.second;
 
   // if there is a diff in the output, pick the defined way to display it.
   int verbosity = cfg.getVerbosity();
   if (verbosity == 3) {
     // highest level of verbosity results in printing the full output even for passing tests.
     formatFileDump(testPath, expOutPath, genOutPath);
-  } else if (verbosity == 2 && outputDiff) {
+  } else if (verbosity == 2 && testDiff) {
     // level two dump the relevant files
     formatFileDump(testPath, expOutPath, genOutPath);
-  } else if (verbosity == 1 && outputDiff) {
+  } else if (verbosity == 1 && testDiff) {
     // level one simply print the diff string
     std::cout << diffString << std::endl;
   }
-
-  return TestResult(testPath, !outputDiff, testError, "");
+  
+  return TestResult(testPath, !testDiff, testError, "");
 }
 
 } // End namespace tester
