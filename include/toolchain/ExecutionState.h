@@ -2,7 +2,7 @@
 #define TESTER_EXECUTION_STATE_H
 
 #include <filesystem>
-
+#include <optional>
 namespace fs = std::filesystem;
 
 namespace tester {
@@ -46,21 +46,29 @@ public:
 
   // Creates output to a subprocess execution.
   explicit ExecutionOutput(fs::path outputPath, fs::path errorPath = "")
-      : outputPath(std::move(outputPath)), errorPath(std::move(errorPath)), rv(0) {}
+      : outputPath(std::move(outputPath)), errorPath(std::move(errorPath)), 
+        rv(0), elapsedTime(0), hasElapsed(false) {}
 
   // Gets output file.
   fs::path getOutputFile() const { return outputPath; }
   fs::path getErrorFile() const { return errorPath; }
+  std::optional<double> getElapsedTime() const {
+    return hasElapsed ? std::optional<double>(elapsedTime) : std::nullopt;
+  }
 
   int getReturnValue() const { return rv; }
   void setReturnValue(int returnValue) { rv = returnValue; }
-
-  double elapsedTime; // time executable took to run (seconds)
+  void setElapsedTime(double time) {
+    elapsedTime = time;
+    hasElapsed = true;
+  }
 
 private:
   fs::path outputPath;
   fs::path errorPath;
   int rv;
+  double elapsedTime; // time executable took to run (seconds)
+  bool hasElapsed;
 };
 
 } // End namespace tester

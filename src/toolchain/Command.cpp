@@ -331,7 +331,7 @@ ExecutionOutput Command::execute(const ExecutionInput& ei) const {
 
   // Tell the toolchain about our output.
   std::chrono::duration<double> elapsed = end - start;
-  eo.elapsedTime = elapsed.count();
+  eo.setElapsedTime(elapsed.count());
   eo.setReturnValue(rv);
   return eo;
 }

@@ -1,7 +1,6 @@
 #ifndef TESTER_TEST_FILE_H
 #define TESTER_TEST_FILE_H
 
-// #include "TestParser.h"
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -27,7 +26,6 @@ class TestParser;
 
 class TestFile {
 public:
-  // no default constructor
   TestFile() = delete;
 
   // construct Testfile from path to .test file.
@@ -40,31 +38,30 @@ public:
   fs::path getTestPath() const { return testPath; }
   fs::path getInsPath() const { return insPath; }
   fs::path getOutPath() const { return outPath; }
-  ParseError getErrorState() const { return errorState; }
-  std::string getErrorMessage() const;
+  ParseError getParseError() const { return errorState; }
+  std::string getParseErrorMsg() const;
   double getElapsedTime() const { return elapsedTime; }
   bool didError() const { return errorState != ParseError::NoError; }
 
-  //
+  // setters
   void setTestPath(fs::path path) { testPath = path; }
   void setInsPath(fs::path path) { insPath = path; }
   void setOutPath(fs::path path) { outPath = path; }
-  void setErrorState(ParseError error) { errorState = error; }
-  void setErrorMsg(std::string msg) { errorMsg = msg; }
+  void getParseError(ParseError error) { errorState = error; }
+  void setParseErrorMsg(std::string msg) { errorMsg = msg; }
   void setElapsedTime(double elapsed) { elapsedTime = elapsed; }
 
   // if test has any input and if test uses input file specifically
-  bool usesInputStream{false}, usesInputFile{false}, usesOutStream{false}, usesOutFile{false};
+  bool usesInputStream{false}, usesInputFile{false}; 
+  bool usesOutStream{false}, usesOutFile{false};
 
-  // TODO:
   friend class TestParser;
 
 protected:
   static uint64_t nextId;
 
 private:
-  // Path for the .test (supplied in contructor) and .ins files (generated or
-  // supplied in INPUT_FILE).
+  // Path for the test, ins and out files 
   fs::path testPath, insPath, outPath;
 
   // Test file breaks some convention or was unable to parse directives.

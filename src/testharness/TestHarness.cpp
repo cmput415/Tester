@@ -44,8 +44,12 @@ void TestHarness::printTestResult(const TestFile *test, TestResult result) {
                             : (Colors::RED + "[FAIL]" + Colors::RESET))
             << " " << std::setw(40) << std::left << test->getTestPath().stem().string();
   if (cfg.isTimed()) {
-    std::cout << std::fixed << std::setw(10) << std::setprecision(6)
-              << test->getElapsedTime() << "(s)";
+    double time = test->getElapsedTime();
+
+    if (time != 0) {
+      std::cout << std::fixed << std::setw(10) << std::setprecision(6)
+                << test->getElapsedTime() << "(s)";
+    }
   }
   std::cout << "\n";
 }
@@ -78,9 +82,10 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
       unsigned int subPackagePasses = 0, subPackageSize = subPackage.size();
 
       // Iterate over each test in the package
-      for (const std::unique_ptr<TestFile>& test : subPackage) {
-
-        if (test->getErrorState() == ParseError::NoError) {
+      for (size_t i = 0; i < subPackage.size(); ++i) {
+        std::unique_ptr<TestFile>& test = subPackage[i];
+        if (test->getParseError() == ParseError::NoError) {
+        
           TestResult result = runTest(test.get(), toolChain, cfg);
           results.addResult(exeName, tcName, subPackageName, result);
           printTestResult(test.get(), result); 
@@ -115,7 +120,7 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
 
   for (auto& test : invalidTests) {
     std::cout << "  Skipped: " << test->getTestPath().filename().stem() << std::endl
-              << "  Error: " << Colors::YELLOW << test->getErrorMessage() << Colors::RESET << "\n";
+              << "  Error: " << Colors::YELLOW << test->getParseErrorMsg() << Colors::RESET << "\n";
   }
   std::cout << "\n";
 
