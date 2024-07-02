@@ -218,8 +218,8 @@ void TestParser::parse() {
     if (!line.empty()) {
       ParseError error = matchDirectives(line);
       if (error != ParseError::NoError) {
-        testfile->setErrorState(error);
-        testfile->setErrorMsg("Generic Error");
+        testfile->getParseError(error);
+        testfile->setParseErrorMsg("Generic Error");
         break;
       }
     }
@@ -233,9 +233,9 @@ void TestParser::parse() {
 
   // ck if input directives have exceeded maximum
   if (fs::file_size(testfile->getInsPath()) > Directive::MAX_INPUT_BYTES) {
-    testfile->setErrorState(ParseError::MaxInputBytesExceeded);
+    testfile->getParseError(ParseError::MaxInputBytesExceeded);
   } else if (fs::file_size(testfile->getOutPath()) > Directive::MAX_OUTPUT_BYTES) {
-    testfile->setErrorState(ParseError::MaxOutputBytesExceeded);
+    testfile->getParseError(ParseError::MaxOutputBytesExceeded);
   }
 
   testFileStream.close();

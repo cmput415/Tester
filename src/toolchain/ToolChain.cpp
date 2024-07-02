@@ -25,14 +25,8 @@ ExecutionOutput ToolChain::build(TestFile* test) const {
   // Run the command, updating the contexts as we go.
   auto last = commands.end() - 1;
   for (auto it = commands.begin(); it != commands.end(); it++) {
-
-    if (it == last) {
-      // we will pas s some configuration flags.
-      // eo = it->execute(ei, cfg.isTimed(), cfg.isMemoryChecked());
-      eo = it->execute(ei);
-    }
+    
     eo = it->execute(ei);
-
     int rv = eo.getReturnValue();
     if (rv != 0) {
       return eo;
@@ -43,7 +37,11 @@ ExecutionOutput ToolChain::build(TestFile* test) const {
   }
 
   // store the elapsed time of the final step execution step into the testfile
-  test->setElapsedTime(eo.elapsedTime);
+  std::optional<double> elapsedTime = eo.getElapsedTime();
+  if (elapsedTime.has_value()) {
+    test->setElapsedTime(elapsedTime.value());
+  } 
+
   return eo;
 }
 

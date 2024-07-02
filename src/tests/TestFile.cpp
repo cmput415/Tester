@@ -39,9 +39,9 @@ TestFile::~TestFile() {
   }
 }
 
-std::string TestFile::getErrorMessage() const {
+std::string TestFile::getParseErrorMsg() const {
 
-  switch (getErrorState()) {
+  switch (getParseError()) {
     case ParseError::NoError:
       return "No error";
       break;
