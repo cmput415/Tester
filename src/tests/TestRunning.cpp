@@ -110,20 +110,27 @@ std::optional<std::string >getErrorString(const fs::path outPath) {
 
   std::string firstLine;
   if (!getline(ins, firstLine)) {
+    // can't get the first line for some reason.
     return std::nullopt;
   }
 
-  if (firstLine.find("Error") != std::string::npos) {
-    // expected output matches the spec, return first line
-    size_t colonPos = firstLine.find(":");
-    if (colonPos == std::string::npos) {
-      // this file only contains only the LHS of the real error output.
-      return firstLine;
-    }
-    return firstLine.substr(0, firstLine.find(":"));
+  size_t errorStart = firstLine.find("Error");
+  if (errorStart == std::string::npos) {
+    // Error substring NEEDS to be in the first line somewhere.
+    return std::nullopt;
   }
 
-  return std::nullopt;
+  std::string snipLHS = firstLine.substr(errorStart);
+  // Generated outputs may have implementation defined message on the RHS of
+  // a colon for an error output. If a colon exists, strip what it and what is on
+  // the RHS of it.
+  size_t colonPos = snipLHS.find(":");
+  if (colonPos == std::string::npos) {
+    return snipLHS;
+  }
+  // colon in output
+  std::string snipRHS = snipLHS.substr(0, colonPos);
+  return snipRHS;
 }
 
 void formatFileDump(const fs::path& testPath, const fs::path& expOutPath,
@@ -151,7 +158,8 @@ std::pair<bool, std::string> errorDiff(const fs::path& genFile, const fs::path& 
   auto genErrorString = getErrorString(genFile);
   auto expErrorString = getErrorString(expFile);
 
-  if (genErrorString && expErrorString && *genErrorString == *expErrorString) {
+  if ( genErrorString.has_value() && expErrorString.has_value()
+                                 && *genErrorString == *expErrorString ) {
     return {false, ""};
   }
 
