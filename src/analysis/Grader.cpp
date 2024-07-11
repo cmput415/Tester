@@ -101,10 +101,12 @@ void Grader::buildResults() {
             }
             std::cout.flush();
             testCount++;
-            attackResults["timings"].push_back({
-              test->getTestPath().filename(),
-              test->getElapsedTime()
-            });
+            JSON timingData = {
+              {"test", test->getTestPath().filename()},
+              {"time", test->getElapsedTime()},
+              {"pass", result.pass}
+            };
+            attackResults["timings"].push_back(timingData);
           }
         }
         // update the test results
