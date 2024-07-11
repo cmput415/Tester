@@ -359,6 +359,70 @@ std::string Command::buildCommand(const ExecutionInput& ei, const ExecutionOutpu
   return command;
 }
 
+// /**
+//  * @brief replace the placeholder in the original string with the contents
+//  * of to_replace.
+//  */
+// void fillArgPlaceholder(std::string& original, 
+//                         std::string& placeholder,
+//                         std::string& to_replace) {
+//     size_t pos = original.find(placeholder);
+//     if (pos != std::string::npos) {
+//         original.replace(pos, placeholder.length(), to_replace);
+//     }
+// } 
+
+// /**
+//  * @brief Strips the .so extension and lib prefix from the given library filename.
+//  * @param filename The name of the dynamic library file.
+//  * @return The name of the library with the .so extension and lib prefix stripped.
+//  */
+// void stripLibraryName(std::string& filename) {
+//     if (filename.substr(0, 3) == "lib") {
+//         filename = filename.substr(3);
+//     }
+//     size_t pos = filename.find(".so");
+//     if (pos != std::string::npos) {
+//         filename = filename.substr(0, pos);
+//     }
+// }
+
+/**
+ * @brief Replaces the placeholder in the original string with the contents
+ * of to_replace.
+ * @param original The original string containing the placeholder.
+ * @param placeholder The placeholder to be replaced.
+ * @param to_replace The string to replace the placeholder with.
+ * @return A new string with the placeholder replaced by to_replace.
+ */
+std::string fillArgPlaceholder(const std::string& original, 
+                               const std::string& placeholder,
+                               const std::string& to_replace) {
+    std::string result = original;
+    size_t pos = result.find(placeholder);
+    if (pos != std::string::npos) {
+        result.replace(pos, placeholder.length(), to_replace);
+    }
+    return result;
+}
+
+/**
+ * @brief Strips the .so extension and lib prefix from the given library filename.
+ * @param filename The name of the dynamic library file.
+ * @return The name of the library with the .so extension and lib prefix stripped.
+ */
+std::string stripLibraryName(const std::string& filename) {
+    std::string result = filename;
+    if (result.substr(0, 3) == "lib") {
+        result = result.substr(3);
+    }
+    size_t pos = result.find(".so");
+    if (pos != std::string::npos) {
+        result = result.substr(0, pos);
+    }
+    return result;
+}
+
 fs::path Command::resolveArg(const ExecutionInput& ei, const ExecutionOutput& eo,
                              std::string arg) const {
   // Input magic argument. Resolves to the input file for this command.
@@ -369,6 +433,26 @@ fs::path Command::resolveArg(const ExecutionInput& ei, const ExecutionOutput& eo
   if (arg == "$OUTPUT")
     return eo.getOutputFile();
 
+  // Two additional magic parameters for using the llc toolchain, which requires providing
+  // the runtime path and the library name.
+  std::string rtPath = "$RT_PATH";
+  std::string rtLib = "$RT_LIB";
+
+  // Set up placeholder replacements
+  fs::path current_rt = ei.getTestedRuntime();
+  std::string runtime_file = current_rt.filename().string();
+  std::string runtime_dir = current_rt.parent_path().string();
+  if (arg.find(rtPath) != std::string::npos) {
+    // insert the directory of the runtime into the arg
+    // example: -L$RT_PATH becomes -L/path/to/so/ when current runtime is /path/to/so/libgazrt.so
+    arg = fillArgPlaceholder(arg, rtPath, runtime_dir);
+  }
+  if (arg.find(rtLib) != std::string::npos) {
+    // insert the name of the runtime library (for example gazrt from libgazrt.so) into the arg.
+    // example: -l$RT_LIB becomes -lgazrt from the current runtime /path/to/so/libgazrt.so
+    // it is hacky but this is precisely what clang needs.
+    arg = fillArgPlaceholder(arg, rtLib, stripLibraryName(runtime_file));
+  }
   // Seem like it was meant to be a magic parameter.
   if (arg[0] == '$')
     throw std::runtime_error("Should this be a different magic paramter: " + arg);
