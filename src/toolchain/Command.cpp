@@ -349,43 +349,11 @@ std::string Command::buildCommand(const ExecutionInput& ei, const ExecutionOutpu
 
   // If we were initially writing to stdout, then we add the redirect note.
   if (isStdOut) {
-#if __linux__ || __APPLE__
     command += " > \"" + eo.getOutputFile().string() + "\"";
-#else
-    command += " TO STDOUT";
-#endif
   }
 
   return command;
 }
-
-// /**
-//  * @brief replace the placeholder in the original string with the contents
-//  * of to_replace.
-//  */
-// void fillArgPlaceholder(std::string& original, 
-//                         std::string& placeholder,
-//                         std::string& to_replace) {
-//     size_t pos = original.find(placeholder);
-//     if (pos != std::string::npos) {
-//         original.replace(pos, placeholder.length(), to_replace);
-//     }
-// } 
-
-// /**
-//  * @brief Strips the .so extension and lib prefix from the given library filename.
-//  * @param filename The name of the dynamic library file.
-//  * @return The name of the library with the .so extension and lib prefix stripped.
-//  */
-// void stripLibraryName(std::string& filename) {
-//     if (filename.substr(0, 3) == "lib") {
-//         filename = filename.substr(3);
-//     }
-//     size_t pos = filename.find(".so");
-//     if (pos != std::string::npos) {
-//         filename = filename.substr(0, pos);
-//     }
-// }
 
 /**
  * @brief Replaces the placeholder in the original string with the contents
