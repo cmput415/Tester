@@ -1,5 +1,5 @@
 {
-  "testDir": "tests",
+  "testDir": "testfiles/ExpectedFail",
   "testedExecutablePaths": {
     "clang": "/usr/bin/clang"
   },
@@ -22,7 +22,6 @@
         "stepName": "run",
         "executablePath": "$INPUT",
         "arguments": [],
-        "output": "-",
         "usesInStr": true,
         "allowError": true
       }

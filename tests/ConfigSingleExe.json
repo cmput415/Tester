@@ -1,5 +1,5 @@
 {
-  "testDir": "tests",
+  "testDir": "testfiles/SingleExe",
   "testedExecutablePaths": {
     "clang": "/usr/bin/clang"
   },
@@ -15,37 +15,16 @@
           "-fno-show-source-location", 
           "-o", "$OUTPUT"
         ],
-        "output": "test",
+        "output": "test.o",
         "allowError": true 
       },
       {
         "stepName": "run",
         "executablePath": "$INPUT",
         "arguments": [],
-        "output": "-",
         "usesInStr": true,
         "allowError": true
       }
     ] 
-  },
-  "GNU": [
-    {
-      "stepName": "compile",
-      "executablePath": "$EXE",
-      "arguments": [
-        "$INPUT",  
-        "-o", "$OUTPUT"
-      ],
-      "output": "test",
-      "allowError": true 
-    },
-      {
-        "stepName": "run",
-        "executablePath": "$INPUT",
-        "arguments": [],
-        "output": "-",
-        "usesInStr": true,
-        "allowError": true
-      }
-  ]
+  }
 }

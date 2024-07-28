@@ -23,19 +23,19 @@ namespace {
 /// supplied by dup_fd to the file underlying file_str. 
 int redirectOpen(const std::string& file_str, int flags, mode_t mode, int dup_fd) {
 
-    // Open the process
-    int fd = open(file_str.c_str(), flags, mode);
-    if (fd == -1) {
-        return -1;
-    }
+  // Open the process
+  int fd = open(file_str.c_str(), flags, mode);
+  if (fd == -1) {
+    return -1;
+  }
 
-    // Set the file descriptor aliased by dup_fd to the newly opened file 
-    if (dup2(fd, dup_fd) == -1) {
-        close(fd);
-        return -1;
-    }
+  // Set the file descriptor aliased by dup_fd to the newly opened file 
+  if (dup2(fd, dup_fd) == -1) {
     close(fd);
-    return 0; 
+    return -1;
+  }
+  close(fd);
+  return 0; 
 }
 
 void becomeCommand(const std::string& exe,
@@ -71,15 +71,11 @@ void becomeCommand(const std::string& exe,
   const char* env[3] = {path.c_str(), !runtime.empty() ? preload.c_str() : NULL, NULL};
 
   // Open the supplied files and redirect FD of current child process to them.
-  int outFileStatus = redirectOpen(output.c_str(), 
-                                   O_WRONLY | O_CREAT | O_TRUNC,
-                                   S_IRUSR | S_IWUSR,
-                                   STDOUT_FILENO);
+  int outFileStatus = redirectOpen(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC,
+                                   S_IRUSR | S_IWUSR, STDOUT_FILENO);
 
-  int errorFileStatus = redirectOpen(error.c_str(), 
-                                     O_WRONLY | O_CREAT | O_TRUNC,
-                                     S_IRUSR | S_IWUSR,
-                                     STDERR_FILENO);
+  int errorFileStatus = redirectOpen(error.c_str(), O_WRONLY | O_CREAT | O_TRUNC,
+                                     S_IRUSR | S_IWUSR, STDERR_FILENO);
   
   int inFileStatus = !input.empty() 
                      ? redirectOpen(input.c_str(), O_RDONLY, NULL, STDIN_FILENO)
@@ -176,10 +172,6 @@ void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
 
 namespace tester {
 
-Command::~Command() {
-  ///TODO: remove temorary files
-}
-
 Command::Command(const JSON& step, int64_t timeout)
     : usesRuntime(false), usesInStr(false), timeout(timeout) {
   // Make sure the step has all of the values needed for construction.
@@ -202,12 +194,8 @@ Command::Command(const JSON& step, int64_t timeout)
   exePath = fs::path(path);
 
   // Allow override of stdout path
-  if (doesContain(step, "outPath"))
-    outPath = fs::path(step["outPath"]); 
-
-  // Allow override default stderr file path  
-  if (doesContain(step, "errorPath"))
-    errPath = fs::path(step["errorPath"]);
+  if (doesContain(step, "output"))
+    outPath = fs::path(step["output"]); 
 
   // Do we use an input stream file?
   if (doesContain(step, "usesInStr"))
