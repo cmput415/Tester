@@ -20,7 +20,7 @@ ToolChain::ToolChain(const JSON& json, int64_t timeout) {
 ExecutionOutput ToolChain::build(TestFile* test) const {
   // The current output and input contexts.
   ExecutionInput ei(test->getTestPath(), test->getInsPath(), testedExecutable, testedRuntime);
-  ExecutionOutput eo("");
+  ExecutionOutput eo;
 
   // Run the command, updating the contexts as we go.
   auto last = commands.end() - 1;
@@ -28,10 +28,14 @@ ExecutionOutput ToolChain::build(TestFile* test) const {
     
     eo = it->execute(ei);
     int rv = eo.getReturnValue();
-    if (rv != 0) {
+    
+    // Terminate the toolchain prematurely if we encounter a non-zero exit status
+    // or if the error stream has bytes. 
+    if (rv != 0 || fs::file_size(eo.getErrorFile()) != 0) {
+      eo.setIsErrorTest(true);
       return eo;
     }
-
+     
     ei = ExecutionInput(eo.getOutputFile(), ei.getInputStreamFile(), ei.getTestedExecutable(),
                         ei.getTestedRuntime());
   }

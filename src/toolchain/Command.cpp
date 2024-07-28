@@ -19,11 +19,33 @@
 
 namespace {
 
-#if __linux__ || __APPLE__
+int custom_open(const std::string& file_str, int flags, mode_t mode, int dup_fd) {
 
-void becomeCommand(const std::string& exe, const std::vector<std::string>& trueArgs,
-                   const std::string& runtime, const std::string& output,
-                   const std::string& input) {
+    // Open the process
+    int fd = open(file_str.c_str(), flags, mode);
+    if (fd == -1) {
+        return -1;
+    }
+
+    // Set the file descriptor aliased by dup_fd to the newly opened file 
+    if (dup2(fd, dup_fd) == -1) {
+        close(fd);
+        return -1;
+    }
+    close(fd);
+    return 0; 
+}
+
+void becomeCommand(const std::string& exe,
+                   const std::vector<std::string>& trueArgs,
+                   const std::string& input,
+                   const std::string& output,
+                   const std::string& error,
+                   const std::string& runtime
+  ) {
+  // Error and output files should never be empty.
+  assert(!error.empty() && !output.empty());
+
   // Build a list of true arguments.
   const char* args[trueArgs.size() + 2];
 
@@ -53,45 +75,18 @@ void becomeCommand(const std::string& exe, const std::vector<std::string>& trueA
   // isn't empty.
   const char* env[3] = {path.c_str(), !runtime.empty() ? preload.c_str() : NULL, NULL};
 
-  // If we're provided with a redirect file we need to replace STDOUT.
-  if (!output.empty()) {
-    // Open up the file we'd like to use. Write only, create if it doesn't
-    // exist, truncate if it does exist. User can read and write after.
-    int fd = open(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+  // int output= 
+  int open_outfile = custom_open(output.c_str(), 
+                                 O_WRONLY | O_CREAT | O_TRUNC,
+                                 S_IRUSR | S_IWUSR,
+                                 STDOUT_FILENO);
 
-    if (fd == -1) {
-      perror("open");
-      throw std::runtime_error("Child process couldn't open stdout replacement.");
-    }
-
-    // Close the stream behind STDOUT and replace it with the file we
-    // opened.
-    dup2(fd, STDOUT_FILENO);
-
-    // Close the descriptor to that file.
-    close(fd);
-  }
-
-  // If we're provided with a input stream file we need to replace STDIN.
+  int open_errfile = custom_open(error.c_str(), 
+                                 O_WRONLY | O_CREAT | O_TRUNC,
+                                 S_IRUSR | S_IWUSR,
+                                 STDERR_FILENO);
   if (!input.empty()) {
-    // Open up the file we'd like to use.
-    int fd = open(input.c_str(), O_RDONLY, NULL);
-
-    if (fd == -1) {
-      perror("open");
-      throw std::runtime_error("Child process couldn't open stdin replacement.");
-    }
-
-    // Close the stream behind STDIN and replace it with the file we opened.
-    dup2(fd, STDIN_FILENO);
-
-    // Close the descriptor to that file.
-    close(fd);
-  }
-
-  // Redirect stderr to stdout
-  if (dup2(STDOUT_FILENO, STDERR_FILENO) == -1) {
-    perror("dup2");
+    int open_infile = custom_open(input.c_str(), O_RDONLY, NULL, STDIN_FILENO);
   }
 
   // Replace ourself with the command.
@@ -109,7 +104,10 @@ void becomeCommand(const std::string& exe, const std::vector<std::string>& trueA
 // test). This means we need to fall back on forking/execing, unfortunately.
 void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
                 const std::string& exe, const std::vector<std::string>& trueArgs,
-                const std::string& runtime, const std::string& output, const std::string& input) {
+                const std::string& input,
+                const std::string& output,
+                const std::string& error,
+                const std::string& runtime) {
 
   pid_t childId = fork();
 
@@ -117,7 +115,7 @@ void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
   // shell running the command. This function will never return if successful
   // and will throw a runtime_error if it is unsuccessful.
   if (childId == 0)
-    becomeCommand(exe, trueArgs, runtime, output, input);
+    becomeCommand(exe, trueArgs, input, output, error, runtime);
 
   // We're in the parent process. Set up variables for watching the child
   // process.
@@ -173,28 +171,12 @@ void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
   promise.set_value_at_thread_exit(static_cast<unsigned int>(status));
 }
 
-#elif _WIN32 || _WIN64
-void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
-                const std::string& exe, const std::vector<std::string>& trueArgs,
-                const std::string& runtime, const std::string& output) {
-  throw std::runtime_error("Don't know how to run commands on Windows.");
-}
-#endif
-
 } // End anonymous namespace.
 
 namespace tester {
 
 Command::~Command() {
-  // remove temorary files
-  std::error_code ec;
-
-  if (fs::exists(stdoutPath)) {
-    bool removed = fs::remove(stdoutPath, ec);
-    if (!removed) {
-      std::cerr << "Failed to remove temporary output file: " << stdoutPath << "\n";
-    }
-  }
+  ///TODO: remove temorary files
 }
 
 Command::Command(const JSON& step, int64_t timeout)
@@ -203,32 +185,28 @@ Command::Command(const JSON& step, int64_t timeout)
   ensureContains(step, "stepName");
   ensureContains(step, "executablePath");
   ensureContains(step, "arguments");
-  ensureContains(step, "output");
 
   // Build the command.
   name = step["stepName"];
   for (std::string arg : step["arguments"])
     args.push_back(arg);
 
-  // Build the output.
-  std::string outName = step["output"];
+  std::string output_name = std::string(step["stepName"]) + ".stdout";
+  std::string error_name = std::string(step["stepName"]) + ".stderr";
+  outPath = fs::temp_directory_path() / output_name;
+  errPath = fs::temp_directory_path() / error_name;
 
-  // "-" represents stdout.
-  if (outName == "-") {
-    isStdOut = true;
-    fs::path fileName(name + "-temp.out");
-    output = fs::current_path() / fileName;
-    stdoutPath = output;
-  } else {
-    isStdOut = false;
-    output = fs::absolute(fs::path(outName));
-    stdoutPath = output.string() + ".stdout";
-  }
-
-  // Need to explicitly tell json what type we're pulling out here because it
-  // doesn't like loading into an fs::path.
+  // Set the executable path
   std::string path = step["executablePath"];
   exePath = fs::path(path);
+
+  // Allow override of stdout path
+  if (doesContain(step, "outPath"))
+    outPath = fs::path(step["outPath"]); 
+
+  // Allow override default stderr file path  
+  if (doesContain(step, "errorPath"))
+    errPath = fs::path(step["errorPath"]);
 
   // Do we use an input stream file?
   if (doesContain(step, "usesInStr"))
@@ -245,7 +223,7 @@ Command::Command(const JSON& step, int64_t timeout)
 
 ExecutionOutput Command::execute(const ExecutionInput& ei) const {
   // Create our output context.
-  ExecutionOutput eo(output, stdoutPath);
+  ExecutionOutput eo(outPath, errPath);
 
   // Always remove old output files so we know if a new one was created
   std::error_code ec;
@@ -259,9 +237,10 @@ ExecutionOutput Command::execute(const ExecutionInput& ei) const {
 
   // Get the runtime path and standard out file, the things used in setting up
   // the execution of the command.
-  std::string runtime = usesRuntime ? ei.getTestedRuntime().string() : "";
-  std::string stdOutFile = stdoutPath.string();
-  std::string stdInFile = usesInStr ? ei.getInputStreamFile().string() : "";
+  std::string runtimeStr = usesRuntime ? ei.getTestedRuntime().string() : "";
+  std::string inPathStr = usesInStr ? ei.getInputStreamFile().string() : "";
+  std::string outPathStr = outPath.string();
+  std::string errPathStr = errPath.string();
 
   // Create the promise, which gives the future for the thread, and the kill
   // variable, the things used in the monitor thread.
@@ -274,9 +253,10 @@ ExecutionOutput Command::execute(const ExecutionInput& ei) const {
   std::thread thread =
       std::thread(runCommand, std::ref(promise), std::ref(kill), // Parent variables.
                   std::ref(exe), std::ref(trueArgs),             // Child execution variables.
-                  std::ref(runtime), std::ref(stdOutFile),
-                  std::ref(stdInFile) // Child setup variables.
-      );
+                  std::ref(inPathStr),
+                  std::ref(outPathStr),
+                  std::ref(errPathStr), 
+                  std::ref(runtimeStr));
 
   // Detach the thread to allow it to run in the background.
   thread.detach();
@@ -347,11 +327,6 @@ std::string Command::buildCommand(const ExecutionInput& ei, const ExecutionOutpu
     command += resolveArg(ei, eo, arg).string();
   }
 
-  // If we were initially writing to stdout, then we add the redirect note.
-  if (isStdOut) {
-    command += " > \"" + eo.getOutputFile().string() + "\"";
-  }
-
   return command;
 }
 
@@ -363,15 +338,14 @@ std::string Command::buildCommand(const ExecutionInput& ei, const ExecutionOutpu
  * @param to_replace The string to replace the placeholder with.
  * @return A new string with the placeholder replaced by to_replace.
  */
-std::string fillArgPlaceholder(const std::string& original, 
-                               const std::string& placeholder,
+std::string fillArgPlaceholder(const std::string& original, const std::string& placeholder,
                                const std::string& to_replace) {
-    std::string result = original;
-    size_t pos = result.find(placeholder);
-    if (pos != std::string::npos) {
-        result.replace(pos, placeholder.length(), to_replace);
-    }
-    return result;
+  std::string result = original;
+  size_t pos = result.find(placeholder);
+  if (pos != std::string::npos) {
+    result.replace(pos, placeholder.length(), to_replace);
+  }
+  return result;
 }
 
 /**
@@ -380,15 +354,15 @@ std::string fillArgPlaceholder(const std::string& original,
  * @return The name of the library with the .so extension and lib prefix stripped.
  */
 std::string stripLibraryName(const std::string& filename) {
-    std::string result = filename;
-    if (result.substr(0, 3) == "lib") {
-        result = result.substr(3);
-    }
-    size_t pos = result.find(".so");
-    if (pos != std::string::npos) {
-        result = result.substr(0, pos);
-    }
-    return result;
+  std::string result = filename;
+  if (result.substr(0, 3) == "lib") {
+    result = result.substr(3);
+  }
+  size_t pos = result.find(".so");
+  if (pos != std::string::npos) {
+    result = result.substr(0, pos);
+  }
+  return result;
 }
 
 fs::path Command::resolveArg(const ExecutionInput& ei, const ExecutionOutput& eo,
@@ -412,13 +386,10 @@ fs::path Command::resolveArg(const ExecutionInput& ei, const ExecutionOutput& eo
   std::string runtime_dir = current_rt.parent_path().string();
   if (arg.find(rtPath) != std::string::npos) {
     // insert the directory of the runtime into the arg
-    // example: -L$RT_PATH becomes -L/path/to/so/ when current runtime is /path/to/so/libgazrt.so
     arg = fillArgPlaceholder(arg, rtPath, runtime_dir);
   }
   if (arg.find(rtLib) != std::string::npos) {
     // insert the name of the runtime library (for example gazrt from libgazrt.so) into the arg.
-    // example: -l$RT_LIB becomes -lgazrt from the current runtime /path/to/so/libgazrt.so
-    // it is hacky but this is precisely what clang needs.
     arg = fillArgPlaceholder(arg, rtLib, stripLibraryName(runtime_file));
   }
   // Seem like it was meant to be a magic parameter.
@@ -453,7 +424,7 @@ fs::path Command::resolveExe(const ExecutionInput& ei, const ExecutionOutput& eo
 // Implement the Command ostream operator
 std::ostream& operator<<(std::ostream& os, const Command& c) {
   ExecutionInput ei("$INPUT", "", "$EXE", "");
-  ExecutionOutput eo(c.output);
+  ExecutionOutput eo(c.outPath, c.errPath);
   os << c.buildCommand(ei, eo);
   return os;
 }

@@ -173,16 +173,27 @@ namespace tester {
 
 TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg) {
 
-  ExecutionOutput eo("");
   const fs::path testPath = test->getTestPath();
   const fs::path expOutPath = test->getOutPath();
-  const fs::path insPath = test->getInsPath();
+  const fs::path insPath = test->getInsPath(); 
   fs::path genOutPath;
   std::string genErrorString, expErrorString, diffString;
+  
+  // Track test results 
+  bool testDiff = false, testError = false;
+  std::pair<bool, std::string> testResult; 
 
+  ExecutionOutput eo;
   try {
     eo = toolChain.build(test);
-    genOutPath = eo.getErrorFile();
+
+    // For error tests, we will use the stderr stream of the execution output.
+    if (eo.IsErrorTest()) {
+      genOutPath = eo.getErrorFile();
+    } else {
+      genOutPath = eo.getOutputFile();
+    }
+
   } catch (const CommandException& ce) {
     // toolchain throws errors only when allowError is false in the config
     if (cfg.getVerbosity() > 0) {
@@ -190,17 +201,17 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
     }
     return TestResult(testPath, false, true, "");
   }
+ 
+  // Make a precise diff and fallback to error diff if  the precise diff failed.
+  testResult = preciseDiff(genOutPath, expOutPath);
+  if (testResult.first) {
+    testResult = errorDiff(genOutPath, expOutPath);   
+  }
 
-  bool testDiff = false, testError = false;
-  std::pair<bool, std::string> result; 
-  result = preciseDiff(genOutPath, expOutPath);
-  if (result.first) {
-    result = errorDiff(genOutPath, expOutPath);   
-  }  
-  testDiff = result.first;
-  diffString = result.second;
+  // Unpack results
+  std::tie(testDiff, diffString) = testResult;
 
-  // if there is a diff in the output, pick the defined way to display it.
+  // if there is a diff in the output, pick the defined way to display it based on config.
   int verbosity = cfg.getVerbosity();
   if (verbosity == 3) {
     // highest level of verbosity results in printing the full output even for passing tests.
