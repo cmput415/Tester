@@ -1,5 +1,5 @@
 {
-  "testDir": "testfiles/ExpectedFail",
+  "testDir": "./testfiles/ExpectedFail",
   "testedExecutablePaths": {
     "clang": "/usr/bin/clang"
   },

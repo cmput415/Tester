@@ -1,5 +1,5 @@
 {
-  "testDir": "testfiles/SingleExe",
+  "testDir": "./testfiles/SingleExe",
   "testedExecutablePaths": {
     "clang": "/usr/bin/clang"
   },
