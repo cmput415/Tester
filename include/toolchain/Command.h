@@ -64,10 +64,9 @@ private:
   fs::path runtimePath;
   std::vector<std::string> args;
 
-  // Output info.
-  fs::path output;
-  bool isStdOut;
-  fs::path stdoutPath;
+  // Every command produces a file descriptor for each of these paths
+  fs::path errPath;
+  fs::path outPath;
 
   // Uses runtime and uses input stream.
   bool usesRuntime, usesInStr;

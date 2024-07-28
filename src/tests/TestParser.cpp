@@ -163,8 +163,7 @@ ParseError TestParser::matchDirectives(std::string& line) {
  * contained with in a comment. Use comment state in class instance to track.
  */
 void TestParser::trackCommentState(std::string& line) {
-
-  std::string result;
+std::string result;
   inLineComment = false; // reset line comment
 
   for (unsigned int i = 0; i < line.length(); i++) {

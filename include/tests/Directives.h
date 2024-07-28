@@ -12,8 +12,9 @@ inline const std::string CHECK = "CHECK:";
 inline const std::string CHECK_FILE = "CHECK_FILE:";
 
 // other constants
-inline const uint32_t MAX_INPUT_BYTES = 1025;
+inline const uint32_t MAX_INPUT_BYTES = 4096;
 inline const uint32_t MAX_OUTPUT_BYTES = 4096;
+
 } // namespace Directive
 
 #endif // DIRECTIVES_H

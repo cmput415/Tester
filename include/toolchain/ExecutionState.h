@@ -41,34 +41,49 @@ private:
 // A class meant to share intermediate info when a toolchain step ends.
 class ExecutionOutput {
 public:
-  // No default constructor.
-  ExecutionOutput() = delete;
+ 
+  ExecutionOutput() : rv(0), elapsedTime(0), hasElapsed(0), isErrorTest(false) {};
 
   // Creates output to a subprocess execution.
-  explicit ExecutionOutput(fs::path outputPath, fs::path errorPath = "")
-      : outputPath(std::move(outputPath)), errorPath(std::move(errorPath)), 
-        rv(0), elapsedTime(0), hasElapsed(false) {}
+  explicit ExecutionOutput(fs::path outPath, fs::path errPath)
+      : outPath(std::move(outPath)),
+        errPath(std::move(errPath)), 
+        rv(0), elapsedTime(0), hasElapsed(false), isErrorTest(false) {}
 
   // Gets output file.
-  fs::path getOutputFile() const { return outputPath; }
-  fs::path getErrorFile() const { return errorPath; }
+  fs::path getOutputFile() const { return outPath; }
+  fs::path getErrorFile() const { return errPath; }
+
+  // Get CPU time
   std::optional<double> getElapsedTime() const {
     return hasElapsed ? std::optional<double>(elapsedTime) : std::nullopt;
   }
 
   int getReturnValue() const { return rv; }
+  
   void setReturnValue(int returnValue) { rv = returnValue; }
+  
   void setElapsedTime(double time) {
     elapsedTime = time;
     hasElapsed = true;
   }
+ 
+  void setIsErrorTest(bool errorTest) { isErrorTest = errorTest; }
+  bool IsErrorTest() const { return isErrorTest; }
 
 private:
-  fs::path outputPath;
-  fs::path errorPath;
+  fs::path outPath;
+  fs::path errPath;
+  
   int rv;
-  double elapsedTime; // time executable took to run (seconds)
+  
+  // time executable took to run (seconds)
+  double elapsedTime;
   bool hasElapsed;
+
+  // Flag to indicate if the generated output should be read from stdout or stderr.
+  // For error tests we grab from stderr.
+  bool isErrorTest;
 };
 
 } // End namespace tester
