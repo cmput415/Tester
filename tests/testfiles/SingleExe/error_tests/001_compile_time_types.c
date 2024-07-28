@@ -1,3 +1,4 @@
+#include <stdio.h>
 #define TYPE_ERROR 0
 
 typedef struct Apple{
@@ -17,11 +18,11 @@ int main() {
   a = b;
 #else
   // We will emulate the type error to match the Error Test Specification
-  printf("TypeError on line 17: Assigning Banana to Apple."); 
+  fprintf(stderr, "TypeError on line 20: Assigning Banana to Apple."); 
   exit(1);
 #endif
 
   return 0;
 }
 
-// CHECK:TypeError on line 17
+// CHECK:TypeError on line 20

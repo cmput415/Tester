@@ -1,5 +1,5 @@
+#include <stdio.h>
 #define OUT_OF_BOUNDS_ERROR 0
-
 
 // INPUT:9
 int main() {
@@ -15,7 +15,7 @@ int main() {
     } else {
         // We will emulate the IndexError to match "Error Test Spec" since
         // C will just let us poke around.
-        printf("IndexError: Don't do that! (The text past the first\
+        fprintf(stderr, "IndexError: Don't do that! (The text past the first\
             colon is implementation specific so is not picked up by the tester)"); 
         
         exit(1);

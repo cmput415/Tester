@@ -30,6 +30,8 @@ int main(int argc, char** argv) {
 
     // Run our tests.
     failed = t.runTests();
+
+    // Free resources
   } catch (const std::runtime_error& e) {
     std::cout << "Test harness error: " << e.what() << '\n';
     return 1;

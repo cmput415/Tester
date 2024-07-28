@@ -49,6 +49,14 @@ Config::Config(int argc, char** argv) : timeout(2l) {
   JSON json;
   jsonFile >> json;
 
+  // Make sure an in and out dir were provided.
+  ensureContains(json, "testDir");
+  std::string testDirStr = json["testDir"];
+  testDirPath = testDirStr;
+  // Ensure the paths exist.
+  if (!fs::exists(testDirPath) || !fs::is_directory(testDirPath))
+    throw std::runtime_error("Output file directory did not exist: " + testDirStr);
+
   // Make sure we have an executable to test then set it. Need to explicitly
   // tell json what type we're pulling out here because it doesn't like
   // loading into an fs::path.
@@ -61,26 +69,7 @@ Config::Config(int argc, char** argv) : timeout(2l) {
     std::string path = it.value();
     executables.emplace(std::make_pair(it.key(), path));
   }
-
-  // Make sure toolchains are provided then build the set of toolchains.
-  ensureContains(json, "toolchains");
-  const JSON& tcJson = json["toolchains"];
-  if (!tcJson.is_object())
-    throw std::runtime_error("Toolchains is not an object.");
-
-  for (auto it = tcJson.begin(); it != tcJson.end(); ++it) {
-    toolchains.emplace(std::make_pair(it.key(), ToolChain(it.value(), timeout)));
-  }
-
-  // Make sure an in and out dir were provided.
-  ensureContains(json, "testDir");
-  std::string testDirStr = json["testDir"];
-  testDirPath = testDirStr;
-
-  // Ensure the paths exist.
-  if (!fs::exists(testDirPath) || !fs::is_directory(testDirPath))
-    throw std::runtime_error("Output file directory did not exist: " + testDirStr);
-
+  
   // Add runtimes to the config.
   if (doesContain(json, "runtimes")) {
     const JSON& runtimesJson = json["runtimes"];
@@ -91,6 +80,16 @@ Config::Config(int argc, char** argv) : timeout(2l) {
       std::string path = it.value();
       runtimes.emplace(std::make_pair(it.key(), path));
     }
+  }
+
+  // Make sure toolchains are provided then build the set of toolchains.
+  ensureContains(json, "toolchains");
+  const JSON& tcJson = json["toolchains"];
+  if (!tcJson.is_object())
+    throw std::runtime_error("Toolchains is not an object.");
+
+  for (auto it = tcJson.begin(); it != tcJson.end(); ++it) {
+    toolchains.emplace(std::make_pair(it.key(), ToolChain(it.value(), timeout)));
   }
 }
 

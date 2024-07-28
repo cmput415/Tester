@@ -1,7 +1,10 @@
 {
-  "testDir": "tests",
+  "testDir": "./testfiles/GradePackages",
   "testedExecutablePaths": {
-    "test": "/usr/bin/clang"
+    "team1": "/usr/bin/clang",
+    "team2": "/usr/bin/clang",
+    "team3": "/usr/bin/clang",
+    "TA": "/usr/bin/clang"
   },
   "toolchains": {
     "LLVM": [
@@ -15,14 +18,13 @@
           "-fno-show-source-location", 
           "-o", "$OUTPUT"
         ],
-        "output": "test",
+        "output": "test.o",
         "allowError": true 
       },
       {
         "stepName": "run",
         "executablePath": "$INPUT",
         "arguments": [],
-        "output": "-",
         "usesInStr": true,
         "allowError": true
       }
@@ -31,27 +33,17 @@
       {
         "stepName": "compile",
         "executablePath": "$EXE",
-        "arguments": [
-          "$INPUT",
-          "-O3", 
-          "-Wno-everything",
-          "-fno-show-column",
-          "-fno-show-source-location", 
-          "-o", "$OUTPUT"
-        ],
-        "output": "test",
+        "arguments": ["$INPUT", "-O3", "-o", "$OUTPUT"],
+        "output": "test.o",
         "allowError": true 
       },
       {
         "stepName": "run",
         "executablePath": "$INPUT",
         "arguments": [],
-        "output": "-",
         "usesInStr": true,
         "allowError": true
       }
     ] 
   }
 }
-
-

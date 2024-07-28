@@ -70,7 +70,7 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
   std::cout << "With toolchain: " << tcName << " -> " << toolChain.getBriefDescription() << '\n';
 
   unsigned int toolChainCount = 0, toolChainPasses = 0; // Stat tracking for toolchain tests.
-  
+
   // Iterate over each package.
   for (auto& [packageName, package] : testSet) {
     std::cout << "Entering package: " << packageName << '\n';

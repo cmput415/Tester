@@ -23,19 +23,19 @@ namespace {
 /// supplied by dup_fd to the file underlying file_str. 
 int redirectOpen(const std::string& file_str, int flags, mode_t mode, int dup_fd) {
 
-    // Open the process
-    int fd = open(file_str.c_str(), flags, mode);
-    if (fd == -1) {
-        return -1;
-    }
+  // Open the process
+  int fd = open(file_str.c_str(), flags, mode);
+  if (fd == -1) {
+    return -1;
+  }
 
-    // Set the file descriptor aliased by dup_fd to the newly opened file 
-    if (dup2(fd, dup_fd) == -1) {
-        close(fd);
-        return -1;
-    }
+  // Set the file descriptor aliased by dup_fd to the newly opened file 
+  if (dup2(fd, dup_fd) == -1) {
     close(fd);
-    return 0; 
+    return -1;
+  }
+  close(fd);
+  return 0; 
 }
 
 void becomeCommand(const std::string& exe,
@@ -60,43 +60,38 @@ void becomeCommand(const std::string& exe,
   // Build the new command's environment (PATH, LD_PRELOAD).
   std::string path = "PATH=" + std::string(std::getenv("PATH"));
 
-  // Insert runtime into environment.
-#if __linux__
-  std::string preload = "LD_PRELOAD=" + runtime;
-#elif __APPLE__
-  std::string preload = "DYLD_INSERT_LIBRARIES=" + runtime;
-#endif
+  #if __linux__
+    std::string preload = "LD_PRELOAD=" + runtime;
+  #elif __APPLE__
+    std::string preload = "DYLD_INSERT_LIBRARIES=" + runtime;
+  #endif
 
-  // Final resulting environment. Only add the preload arg if the runtime isn't empty.
-  const char* env[3] = {path.c_str(), !runtime.empty() ? preload.c_str() : NULL, NULL};
+  std::string ld_library_path = "LD_LIBRARY_PATH=" + fs::path(runtime).parent_path().string();
 
-  // Open the supplied files and redirect FD of current child process to them.
-  int outFileStatus = redirectOpen(output.c_str(), 
-                                   O_WRONLY | O_CREAT | O_TRUNC,
-                                   S_IRUSR | S_IWUSR,
-                                   STDOUT_FILENO);
+  // Construct the environment variables array.
+  const char* env[4];
+  env[0] = path.c_str();
+  env[1] = !runtime.empty() ? preload.c_str() : NULL;
+  env[2] = ld_library_path.c_str();
+  env[3] = NULL;
 
-  int errorFileStatus = redirectOpen(error.c_str(), 
-                                     O_WRONLY | O_CREAT | O_TRUNC,
-                                     S_IRUSR | S_IWUSR,
-                                     STDERR_FILENO);
-  
-  int inFileStatus = !input.empty() 
-                     ? redirectOpen(input.c_str(), O_RDONLY, NULL, STDIN_FILENO)
-                     : 0;
+  // Open the supplied files and redirect FD of the current child process to them.
+  int outFileStatus = redirectOpen(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDOUT_FILENO);
+  int errorFileStatus = redirectOpen(error.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDERR_FILENO);
+  int inFileStatus = !input.empty() ? redirectOpen(input.c_str(), O_RDONLY, NULL, STDIN_FILENO) : 0;
 
-  // If opening any of the supplied output, input or error failed, raise here. 
+  // If opening any of the supplied output, input, or error files failed, raise here.
   if (outFileStatus == -1 || errorFileStatus == -1 || inFileStatus == -1) {
-    perror("dup2");
-  } 
+      perror("dup2");
+      exit(EXIT_FAILURE);
+  }
 
-  // Replace ourself with the command.
+  // Replace ourselves with the command.
   execve(exe.c_str(), const_cast<char* const*>(args), const_cast<char* const*>(env));
 
-  // Because execve replaces the current process, we only ever get here if it
-  // fails.
+  // If execve returns, an error occurred.
   perror("execve");
-  throw std::runtime_error("Child process didn't start.");
+  exit(EXIT_FAILURE);
 }
 
 // This can get a bit complicated. We want easy command running which is
@@ -176,10 +171,6 @@ void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
 
 namespace tester {
 
-Command::~Command() {
-  ///TODO: remove temorary files
-}
-
 Command::Command(const JSON& step, int64_t timeout)
     : usesRuntime(false), usesInStr(false), timeout(timeout) {
   // Make sure the step has all of the values needed for construction.
@@ -192,6 +183,7 @@ Command::Command(const JSON& step, int64_t timeout)
   for (std::string arg : step["arguments"])
     args.push_back(arg);
 
+  // If no output path is supplied by default, temporaries are created to capture stdout and stderr.
   std::string output_name = std::string(step["stepName"]) + ".stdout";
   std::string error_name = std::string(step["stepName"]) + ".stderr";
   outPath = fs::temp_directory_path() / output_name;
@@ -202,12 +194,8 @@ Command::Command(const JSON& step, int64_t timeout)
   exePath = fs::path(path);
 
   // Allow override of stdout path
-  if (doesContain(step, "outPath"))
-    outPath = fs::path(step["outPath"]); 
-
-  // Allow override default stderr file path  
-  if (doesContain(step, "errorPath"))
-    errPath = fs::path(step["errorPath"]);
+  if (doesContain(step, "output"))
+    outputFile = fs::path(step["output"]);
 
   // Do we use an input stream file?
   if (doesContain(step, "usesInStr"))
@@ -224,7 +212,8 @@ Command::Command(const JSON& step, int64_t timeout)
 
 ExecutionOutput Command::execute(const ExecutionInput& ei) const {
   // Create our output context.
-  ExecutionOutput eo(outPath, errPath);
+  fs::path out = outputFile.has_value() ? *outputFile : outPath;
+  ExecutionOutput eo(out, errPath);
 
   // Always remove old output files so we know if a new one was created
   std::error_code ec;

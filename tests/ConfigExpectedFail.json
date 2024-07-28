@@ -1,5 +1,5 @@
 {
-  "testDir": "tests",
+  "testDir": "./testfiles/ExpectedFail",
   "testedExecutablePaths": {
     "clang": "/usr/bin/clang"
   },
@@ -8,13 +8,7 @@
       {
         "stepName": "compile",
         "executablePath": "$EXE",
-        "arguments": [
-          "$INPUT", 
-          "-Wno-everything",
-          "-fno-show-column",
-          "-fno-show-source-location", 
-          "-o", "$OUTPUT"
-        ],
+        "arguments": ["$INPUT", "-o", "$OUTPUT"],
         "output": "test",
         "allowError": true 
       },
@@ -22,7 +16,6 @@
         "stepName": "run",
         "executablePath": "$INPUT",
         "arguments": [],
-        "output": "-",
         "usesInStr": true,
         "allowError": true
       }

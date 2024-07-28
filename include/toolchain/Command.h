@@ -32,7 +32,7 @@ public:
   Command(const Command& command) = default;
 
   // Destructor for removing temporary files
-  ~Command();
+  ~Command() {}
 
   // Execute the command.
   ExecutionOutput execute(const ExecutionInput& ei) const;
@@ -47,10 +47,6 @@ public:
   std::string buildCommand(const ExecutionInput& input, const ExecutionOutput& output) const;
 
 private:
-  // Builds out best guess of the underlying command run by exec. Also adds a
-  // "redirect" as if we were executing in the shell. In truth we're doing
-  // manual stream redirection.
-
   // Resolves magic parameters to values.
   fs::path resolveArg(const ExecutionInput& ei, const ExecutionOutput& eo, std::string arg) const;
 
@@ -67,6 +63,9 @@ private:
   // Every command produces a file descriptor for each of these paths
   fs::path errPath;
   fs::path outPath;
+
+  // The command can supply a output file to use instead of stdout/err 
+  std::optional<fs::path> outputFile;
 
   // Uses runtime and uses input stream.
   bool usesRuntime, usesInStr;
