@@ -3,8 +3,7 @@
 CWD=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PROJECT_BASE="$CWD/.."
 
-ls $CWD
-ls $PROJECT_BASE
+cd $CWD
 
 TEST_CONFIGS=(
   "$CWD/ConfigSingleExe.json"
