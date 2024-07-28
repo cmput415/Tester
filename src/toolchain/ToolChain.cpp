@@ -23,15 +23,14 @@ ExecutionOutput ToolChain::build(TestFile* test) const {
   ExecutionOutput eo;
 
   // Run the command, updating the contexts as we go.
-  auto last = commands.end() - 1;
-  for (auto it = commands.begin(); it != commands.end(); it++) {
+  for (const auto& cmd: commands) {
     
-    eo = it->execute(ei);
+    eo = cmd.execute(ei);
     int rv = eo.getReturnValue();
     
     // Terminate the toolchain prematurely if we encounter a non-zero exit status
     // or if the error stream has bytes. 
-    if (rv != 0 || fs::file_size(eo.getErrorFile()) != 0) {
+    if (rv != 0) {
       eo.setIsErrorTest(true);
       return eo;
     }

@@ -1,7 +1,10 @@
 {
-  "testDir": "tests",
+  "testDir": "./testfiles/MultiExe",
   "testedExecutablePaths": {
-    "test": "/usr/bin/clang"
+    "team1": "/usr/bin/clang",
+    "team2": "/usr/bin/clang",
+    "team3": "/usr/bin/clang",
+    "TA": "/usr/bin/clang"
   },
   "toolchains": {
     "LLVM": [
@@ -15,14 +18,13 @@
           "-fno-show-source-location", 
           "-o", "$OUTPUT"
         ],
-        "output": "test",
+        "output": "test.o",
         "allowError": true 
       },
       {
         "stepName": "run",
         "executablePath": "$INPUT",
         "arguments": [],
-        "output": "-",
         "usesInStr": true,
         "allowError": true
       }
@@ -39,19 +41,17 @@
           "-fno-show-source-location", 
           "-o", "$OUTPUT"
         ],
-        "output": "test",
+        "output": "test.o",
         "allowError": true 
       },
       {
         "stepName": "run",
         "executablePath": "$INPUT",
         "arguments": [],
-        "output": "-",
         "usesInStr": true,
         "allowError": true
       }
     ] 
   }
 }
-
 

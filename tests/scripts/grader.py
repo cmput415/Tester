@@ -7,17 +7,17 @@ import argparse
 import json
 import pandas as pd
 from fractions import Fraction
-import numpy as np
-# output file
-# OUTPUT_CSV="output.csv"
+
 MIN_COLUMNS=6
 
 # score awarded to a team for passing all an attackers tests
 DEFENSE_POINT_SCORE=2
 COHERENCE_POINT_SCORE=1
 
-#  
+# Which package to use   
 TA_PACKAGE="gazprea-solution"
+
+GRADE_TIME=False
 
 # the test packages to use for timings
 TIMED_PACKAGE="timed_tests"
@@ -307,14 +307,39 @@ def get_student_packages():
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', type=str, required=True, help='Path to the JSON file') 
+    parser = argparse.ArgumentParser(description='Produce Grade CSV based on JSON input.')
+
+    # Required arguments
+    parser.add_argument('json_file', type=str, help='Path to the JSON file')
+    parser.add_argument('-o', '--output', type=str, required=True, help='Path to the output CSV file')
+    parser.add_argument('--ta-package', type=str, required=True, default="", help='The test packaged used for TA tests.')
+
+    # Optional timed arguments group
+    timed_group = parser.add_argument_group('timed options')
+    timed_group.add_argument('--timed-package', type=str, help='Path to the timed package')
+    timed_group.add_argument('--timed-toolchain', type=str, help='Path to the timed toolchain')
+    timed_group.add_argument('--timed-exe-reference', type=str, help='Path to the timed exe reference')
+
     args = parser.parse_args()
 
+    # Check if all timed arguments are provided or none are provided
+    timed_args = [args.timed_package, args.timed_toolchain, args.timed_exe_reference]
+    if any(timed_args) and not all(timed_args):
+        parser.error("All timed arguments (--timed-package, --timed-toolchain, --timed-exe-reference) must be provided together")
+
+    # initialize global parameters
+    JSON_FILE = args.json_file
+    OUTPUT_CSV = args.output 
+    TA_PACKAGE = args.ta_package 
+    if all(timed_args):
+        TIMED_PACKAGE = args.timed_package
+        TIMED_TOOLCHAIN = args.timed_toolchain
+        TIMED_EXE_REFERENCE = args.timed_exe_reference
+
     # init globals
-    with open(args.file, "r") as file:
+    with open(JSON_FILE, "r") as file:
         data = json.load(file)
-    OUTPUT_CSV = "output.csv" 
+    
     n_attackers = len(get_attacking_packages())
     n_defenders = len(get_defending_executables())
 

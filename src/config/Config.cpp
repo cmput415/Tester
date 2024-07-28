@@ -77,6 +77,7 @@ Config::Config(int argc, char** argv) : timeout(2l) {
   std::string testDirStr = json["testDir"];
   testDirPath = testDirStr;
 
+  std::cout << testDirPath << std::endl; 
   // Ensure the paths exist.
   if (!fs::exists(testDirPath) || !fs::is_directory(testDirPath))
     throw std::runtime_error("Output file directory did not exist: " + testDirStr);
