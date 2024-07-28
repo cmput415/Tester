@@ -19,7 +19,9 @@
 
 namespace {
 
-int custom_open(const std::string& file_str, int flags, mode_t mode, int dup_fd) {
+/// @brief Open the file with provided flags and mode. Redirect the file descriptor
+/// supplied by dup_fd to the file underlying file_str. 
+int redirectOpen(const std::string& file_str, int flags, mode_t mode, int dup_fd) {
 
     // Open the process
     int fd = open(file_str.c_str(), flags, mode);
@@ -49,20 +51,14 @@ void becomeCommand(const std::string& exe,
   // Build a list of true arguments.
   const char* args[trueArgs.size() + 2];
 
-  // The base arg is the executable.
+  // Build the args list
   args[0] = exe.c_str();
-
-  // Now fill the actual args in.
   for (size_t i = 0; i < trueArgs.size(); ++i)
     args[i + 1] = trueArgs[i].c_str();
-
-  // Null terminate the args array.
   args[trueArgs.size() + 1] = NULL;
 
   // Build the new command's environment (PATH, LD_PRELOAD).
-  // PATH.
-  std::string path = "PATH=";
-  path += std::getenv("PATH");
+  std::string path = "PATH=" + std::string(std::getenv("PATH"));
 
   // Insert runtime into environment.
 #if __linux__
@@ -71,23 +67,28 @@ void becomeCommand(const std::string& exe,
   std::string preload = "DYLD_INSERT_LIBRARIES=" + runtime;
 #endif
 
-  // Final resulting environment. Only add the preload arg if the runtime
-  // isn't empty.
+  // Final resulting environment. Only add the preload arg if the runtime isn't empty.
   const char* env[3] = {path.c_str(), !runtime.empty() ? preload.c_str() : NULL, NULL};
 
-  // int output= 
-  int open_outfile = custom_open(output.c_str(), 
-                                 O_WRONLY | O_CREAT | O_TRUNC,
-                                 S_IRUSR | S_IWUSR,
-                                 STDOUT_FILENO);
+  // Open the supplied files and redirect FD of current child process to them.
+  int outFileStatus = redirectOpen(output.c_str(), 
+                                   O_WRONLY | O_CREAT | O_TRUNC,
+                                   S_IRUSR | S_IWUSR,
+                                   STDOUT_FILENO);
 
-  int open_errfile = custom_open(error.c_str(), 
-                                 O_WRONLY | O_CREAT | O_TRUNC,
-                                 S_IRUSR | S_IWUSR,
-                                 STDERR_FILENO);
-  if (!input.empty()) {
-    int open_infile = custom_open(input.c_str(), O_RDONLY, NULL, STDIN_FILENO);
-  }
+  int errorFileStatus = redirectOpen(error.c_str(), 
+                                     O_WRONLY | O_CREAT | O_TRUNC,
+                                     S_IRUSR | S_IWUSR,
+                                     STDERR_FILENO);
+  
+  int inFileStatus = !input.empty() 
+                     ? redirectOpen(input.c_str(), O_RDONLY, NULL, STDIN_FILENO)
+                     : 0;
+
+  // If opening any of the supplied output, input or error failed, raise here. 
+  if (outFileStatus == -1 || errorFileStatus == -1 || inFileStatus == -1) {
+    perror("dup2");
+  } 
 
   // Replace ourself with the command.
   execve(exe.c_str(), const_cast<char* const*>(args), const_cast<char* const*>(env));
