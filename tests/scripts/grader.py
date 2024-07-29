@@ -21,6 +21,11 @@ TA_TEST_WEIGHT = 0.5
 COMPETATIVE_WEIGHT = 0.2
 TIMING_WEIGHT = 0.1
 
+TA_PACKAGE = None
+TIMED_PACKAGE = None
+TIMED_TOOLCHAIN = None
+TIMED_EXE_REFERENCE = None
+
 from typing import List
 
 class Attack:
@@ -77,12 +82,16 @@ class Defense:
 
 def insert_blank_row():
     """
-    Like adding a newline to string, but for CSV.
+    Create a blank row in the output CSV
     """
     df = pd.DataFrame(None, index=range(1), columns=range(MIN_COLUMNS))
     df.to_csv(OUTPUT_CSV, index=False, header=False, mode="a") 
 
 def get_attack_header() -> pd.DataFrame:
+    """
+    Creat a dataframe with a single row, filled in with the names of each attacking package
+    in the tournament. 
+    """
     packages = get_attacking_package_names()
     df = pd.DataFrame(None, index=range(0), columns=range(len(packages))) 
     df.at[0, 0] = "D\A"
@@ -212,9 +221,7 @@ def create_test_summary_table():
     print("============ SUMMARY TABLE ============\n", df) 
     df.to_csv(OUTPUT_CSV, index=False, header=False, mode='a')
 
-def create_final_summary_table(
-        toolchain_summary: pd.DataFrame,
-        timing_summary: Optional[pd.DataFrame]) -> pd.DataFrame:
+def create_final_summary_table(toolchain_summary, timing_summary = None) -> pd.DataFrame:
     """
     Create a final summary table and return a dataframe 
     """
@@ -229,10 +236,10 @@ def create_final_summary_table(
     fst.iloc[0,1:n_attackers] = (ta_pass_rate_col.T * TA_TEST_WEIGHT).fillna(0).round(5)
 
     # Get competiative testing scores
-    comp_row = toolchain_summary.iloc[n_defenders+4, 1:(1+n_defenders)]
+    comp_row = toolchain_summary.iloc[n_defenders+4, 1:n_defenders]
     max_comp_score = comp_row.max() 
     normalized_comp_row = comp_row / max_comp_score 
-    fst.iloc[1,1:n_attackers] = (normalized_comp_row * COMPETATIVE_WEIGHT).fillna(0).round(5)
+    fst.iloc[1,1:n_defenders] = (normalized_comp_row * COMPETATIVE_WEIGHT).fillna(0).round(5)
 
     # Get timing scores
     if timing_summary is not None:
@@ -271,16 +278,20 @@ def fill_csv():
         assert len(timed_toolchain), f"Could not find the toolchain supposed to be timed: {TIMED_TOOLCHAIN}"
         rel_timing_table = create_timing_table(timed_toolchain[0])
         insert_blank_row()
-    
-    ## STEP 5: final summary and grades
-    create_final_summary_table(tcs, rel_timing_table)
-
+        ## STEP 5: final summary and grades 
+        create_final_summary_table(tcs, rel_timing_table)
+    else:
+        ## STEP 5: final summary and grades 
+        create_final_summary_table(tcs)
+   
 def is_timed_grading():
     """
     We include a timing table to the final grades if the necessary variables are supplied via
     the CLI arguments.
     """
-    return True if all([TIMED_PACKAGE, TIMED_EXE_REFERENCE, TIMED_TOOLCHAIN]) else False
+    return True if all([TIMED_PACKAGE is not None, 
+                        TIMED_EXE_REFERENCE is not None,
+                        TIMED_TOOLCHAIN is not None]) else False
 
 def get_attacking_packages():
     """
@@ -292,7 +303,7 @@ def get_attacking_packages():
     attacking_pkgs = sorted(
         data["testSummary"]["packages"],
         key=lambda exe: (exe["name"] not in priority_list, exe["name"])
-    ) 
+    )
     
     return attacking_pkgs
 
@@ -347,6 +358,13 @@ def main():
         TIMED_PACKAGE = args.timed_package
         TIMED_TOOLCHAIN = args.timed_toolchain
         TIMED_EXE_REFERENCE = args.timed_exe_reference
+    
+    print("Running Grader with:")
+    print(" -- TA Package: ", TA_PACKAGE)
+    print(" -- Output CSV: ", OUTPUT_CSV)
+    print(" -- Timed Package: ", TIMED_PACKAGE)
+    print(" -- Timed Toolchain: ", TIMED_TOOLCHAIN)
+    print(" -- Timed Reference Executable", TIMED_EXE_REFERENCE)
 
     # Initialize data
     with open(args.json_file, "r") as file:
