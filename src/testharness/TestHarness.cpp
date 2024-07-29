@@ -70,7 +70,6 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
   std::cout << "With toolchain: " << tcName << " -> " << toolChain.getBriefDescription() << '\n';
 
   unsigned int toolChainCount = 0, toolChainPasses = 0; // Stat tracking for toolchain tests.
-  std::vector<TestFile*> failedTests;
 
   // Iterate over each package.
   for (auto& [packageName, package] : testSet) {
@@ -96,7 +95,6 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
             ++subPackagePasses;
           } else {
             failed = true;
-            failedTests.push_back(test.get());
           }
         } else {
           std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET) << " "
@@ -124,11 +122,6 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
     std::cout << "  Skipped: " << test->getTestPath().filename().stem() << std::endl
               << "  Error: " << Colors::YELLOW << test->getParseErrorMsg() << Colors::RESET << "\n";
   }
-
-  for (auto test : failedTests) {
-    std::cout << "  Failed: " << test->getTestPath().filename().stem() << std::endl;
-  }
-
   std::cout << "\n";
 
   return failed;

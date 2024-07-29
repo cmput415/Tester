@@ -42,9 +42,6 @@ public:
   // Gets a brief description of the toolchain.
   std::string getBriefDescription() const;
 
-  // Get commands 
-  std::vector<Command>& getCommands() { return commands; }
-  
   // Ostream operator.
   friend std::ostream& operator<<(std::ostream&, const ToolChain&);
 
