@@ -7,38 +7,19 @@ import argparse
 import json
 import pandas as pd
 from fractions import Fraction
+from typing import List, Optional
+from logging import Logger
 
-MIN_COLUMNS=6
-
-# score awarded to a team for passing all an attackers tests
-DEFENSE_POINT_SCORE=2
-COHERENCE_POINT_SCORE=1
-
-# Which package to use   
-TA_PACKAGE="gazprea-solution"
-
-GRADE_TIME=False
-
-# the test packages to use for timings
-TIMED_PACKAGE="timed_tests"
-
-# the list of toolchains for which to record timings
-TIMED_TOOLCHAIN="gazprea-opt"
-
-# the executable for which other executables should be compared too
-TIMED_EXE_REFERENCE="TA"
-
-TIME_MAX_SECONDS=10
+MIN_COLUMNS = 6
+DEFENSE_POINT_SCORE = 2
+COHERENCE_POINT_SCORE = 1
+GRADE_TIME = False
+TIME_MAX_SECONDS = 10
 
 # weights
 TA_TEST_WEIGHT = 0.5
-COMPETATIVE_WEGIHT = 0.2
+COMPETATIVE_WEIGHT = 0.2
 TIMING_WEIGHT = 0.1
-
-global data             # the parsed JSON data
-global OUTPUT_CSV       # the filename of the output CSV
-global n_attackers      # how many test packages are in the tournament (gte n_defenders)
-global n_defenders      # how many exectuables are in the tournament (lte n_attackers)
 
 from typing import List
 
@@ -111,6 +92,7 @@ def get_attack_header() -> pd.DataFrame:
 
 def get_timing_tests(toolchain) -> List[str]:
     timed_tests=[]
+
     for defense_obj in toolchain["toolchainResults"]:
         for attack_obj in defense_obj["defenderResults"]:
             if attack_obj["attacker"] == TIMED_PACKAGE:
@@ -134,6 +116,8 @@ def create_toolchain_summary_table(toolchains) -> pd.DataFrame:
     # normalize each value to compute the average 
     tcs_table.iloc[1:, 1:] = tcs_table.iloc[1:, 1:] / len(toolchains)
     tcs_table.to_csv(OUTPUT_CSV, index=False, header=False, mode="a")
+    print(f"============ TOOLCHAIN SUMMARY TABLE ============\n", tcs_table) 
+
     return tcs_table
 
 def create_toolchain_results_table(name, results) -> pd.DataFrame: 
@@ -142,7 +126,7 @@ def create_toolchain_results_table(name, results) -> pd.DataFrame:
     assert len(results) > 0, "Need at least one defending executable." 
 
     df = get_attack_header()
-
+    # each defense result represents all the attackers tests running on a single defending exe
     for defense_result in results:
         row = Defense(defense_result)
         row_df = row.get_competative_df()
@@ -167,6 +151,8 @@ def create_toolchain_results_table(name, results) -> pd.DataFrame:
     # sum total competative points 
     points_df.iloc[3, 1:] = points_df.iloc[:3, 1:].sum()
     df = pd.concat([df, points_df], ignore_index=True)    
+    
+    print(f"============ TOOLCHAIN RESULT TABLE ({name}) ============\n", df) 
     df.to_csv(OUTPUT_CSV, index=False, header=False, mode="a")
 
     return df
@@ -176,7 +162,8 @@ def create_timing_table(timed_toolchain):
     Create a table with a column for each tested executable and a row for each test
     in the testpackage(s) for which timing is desired.
     """
-    timed_tests = get_timing_tests(timed_toolchain) 
+    timed_tests = get_timing_tests(timed_toolchain)
+    assert len(timed_tests) > 0, "Found timed tests package with 0 tests."  
     timing_df = pd.DataFrame(
         None, index=range(0, len(timed_tests)+1), columns=range(n_attackers))
 
@@ -189,6 +176,7 @@ def create_timing_table(timed_toolchain):
         timing_df.iloc[1:,1:] = timing_df.iloc[1:,1:].fillna(0).round(3)
 
     timing_df.to_csv(OUTPUT_CSV, index=False, header=False, mode='a')
+    print("============ TIMING TABLE ============\n", timing_df) 
     insert_blank_row()
 
     # compute the relative timings as normalized by the fastest executable
@@ -206,6 +194,7 @@ def create_timing_table(timed_toolchain):
     # append the total row to the relative timing row
     rel_timing_df = pd.concat([rel_timing_df, rel_total], ignore_index=True) 
     rel_timing_df.to_csv(OUTPUT_CSV, index=False, header=False, mode='a')
+    print("============ RELATIVE TIMING TABLE ============\n", rel_timing_df) 
     return rel_timing_df 
 
 def create_test_summary_table():
@@ -216,13 +205,16 @@ def create_test_summary_table():
     df.iloc[:3,0] = ["Test Summary", "Team Name", "Test Count"]
     # record the count and name of each test package 
     pkgs = get_attacking_packages()
+    
     for i, package in enumerate(pkgs):
         df.at[1, i+1] = package["name"]
         df.at[2, i+1] = package["count"]
-
+    print("============ SUMMARY TABLE ============\n", df) 
     df.to_csv(OUTPUT_CSV, index=False, header=False, mode='a')
 
-def create_final_summary_table(toolchain_summary, timing_summary) -> pd.DataFrame:
+def create_final_summary_table(
+        toolchain_summary: pd.DataFrame,
+        timing_summary: Optional[pd.DataFrame]) -> pd.DataFrame:
     """
     Create a final summary table and return a dataframe 
     """
@@ -232,8 +224,7 @@ def create_final_summary_table(toolchain_summary, timing_summary) -> pd.DataFram
                         "Code Style (10%)", "Final Grade (100%)" ]
 
     # Get Pass Rate on TA tests.
-    first_row = toolchain_summary.iloc[0] # get first row
-    index = fst.loc[first_row.str.contains(TA_PACKAGE, na=False)].index 
+    index = get_attacking_package_names().index(TA_PACKAGE) 
     ta_pass_rate_col = toolchain_summary.iloc[1:n_attackers, index]    
     fst.iloc[0,1:n_attackers] = (ta_pass_rate_col.T * TA_TEST_WEIGHT).fillna(0).round(5)
 
@@ -241,14 +232,16 @@ def create_final_summary_table(toolchain_summary, timing_summary) -> pd.DataFram
     comp_row = toolchain_summary.iloc[n_defenders+4, 1:(1+n_defenders)]
     max_comp_score = comp_row.max() 
     normalized_comp_row = comp_row / max_comp_score 
-    fst.iloc[1,1:n_attackers] = (normalized_comp_row * COMPETATIVE_WEGIHT).fillna(0).round(5)
+    fst.iloc[1,1:n_attackers] = (normalized_comp_row * COMPETATIVE_WEIGHT).fillna(0).round(5)
 
     # Get timing scores
-    timing_scores = (timing_summary.iloc[-1,1:] * TIMING_WEIGHT).fillna(0).round(5)
-    fst.iloc[2,1:n_attackers] = timing_scores 
-    print(timing_scores)
+    if timing_summary is not None:
+        timing_scores = (timing_summary.iloc[-1,1:] * TIMING_WEIGHT).fillna(0).round(5)
+        fst.iloc[2,1:n_attackers] = timing_scores 
+        print(timing_scores)
 
     # Write to CSV 
+    print("============ FINAL SUMMARY TABLE ============\n", fst) 
     fst.to_csv(OUTPUT_CSV, index=False, header=False, mode='a')
 
     return fst
@@ -273,13 +266,21 @@ def fill_csv():
     insert_blank_row()
     
     ## STEP 4: timing results
-    timed_toolchain = [tc for tc in data["results"] if tc["toolchain"] == "gazprea"]
-    assert len(timed_toolchain), f"Could not find the toolchain supposed to be timed: {TIMED_TOOLCHAIN}"
-    rel_timing_table = create_timing_table(timed_toolchain[0])
-    insert_blank_row()
+    if is_timed_grading(): 
+        timed_toolchain = [tc for tc in data["results"] if tc["toolchain"] == TIMED_TOOLCHAIN]
+        assert len(timed_toolchain), f"Could not find the toolchain supposed to be timed: {TIMED_TOOLCHAIN}"
+        rel_timing_table = create_timing_table(timed_toolchain[0])
+        insert_blank_row()
     
     ## STEP 5: final summary and grades
     create_final_summary_table(tcs, rel_timing_table)
+
+def is_timed_grading():
+    """
+    We include a timing table to the final grades if the necessary variables are supplied via
+    the CLI arguments.
+    """
+    return True if all([TIMED_PACKAGE, TIMED_EXE_REFERENCE, TIMED_TOOLCHAIN]) else False
 
 def get_attacking_packages():
     """
@@ -288,13 +289,17 @@ def get_attacking_packages():
     columns and rows in the sheet.
     """
     priority_list = get_defending_executables()
-    return sorted(
+    attacking_pkgs = sorted(
         data["testSummary"]["packages"],
-        key=lambda exe: (exe["name"] not in priority_list)
-    )
+        key=lambda exe: (exe["name"] not in priority_list, exe["name"])
+    ) 
+    
+    return attacking_pkgs
 
 def get_attacking_package_names():
-    return [ pkg["name"] for pkg in get_attacking_packages() ]
+    attacking_packag_names = [ pkg["name"] for pkg in get_attacking_packages() ]
+
+    return attacking_packag_names
 
 def get_defending_executables():
     return sorted(data["testSummary"]["executables"])
@@ -305,14 +310,13 @@ def get_student_packages():
     student_packages = [ pkg for pkg in all_packages if pkg in student_exes]
     return student_packages
 
-if __name__ == "__main__":
-
+def parse_arguments():
     parser = argparse.ArgumentParser(description='Produce Grade CSV based on JSON input.')
 
     # Required arguments
     parser.add_argument('json_file', type=str, help='Path to the JSON file')
     parser.add_argument('-o', '--output', type=str, required=True, help='Path to the output CSV file')
-    parser.add_argument('--ta-package', type=str, required=True, default="", help='The test packaged used for TA tests.')
+    parser.add_argument('--ta-package', type=str, required=True, help='The test package used for TA tests.')
 
     # Optional timed arguments group
     timed_group = parser.add_argument_group('timed options')
@@ -327,19 +331,27 @@ if __name__ == "__main__":
     if any(timed_args) and not all(timed_args):
         parser.error("All timed arguments (--timed-package, --timed-toolchain, --timed-exe-reference) must be provided together")
 
-    # initialize global parameters
-    JSON_FILE = args.json_file
-    OUTPUT_CSV = args.output 
-    TA_PACKAGE = args.ta_package 
-    if all(timed_args):
+    return args
+
+def main():
+    args = parse_arguments()
+
+    global data, OUTPUT_CSV, n_attackers, n_defenders
+    global TA_PACKAGE, TIMED_PACKAGE, TIMED_TOOLCHAIN, TIMED_EXE_REFERENCE
+
+    # Initialize global parameters
+    OUTPUT_CSV = args.output
+    TA_PACKAGE = args.ta_package
+
+    if all([args.timed_package, args.timed_toolchain, args.timed_exe_reference]):
         TIMED_PACKAGE = args.timed_package
         TIMED_TOOLCHAIN = args.timed_toolchain
         TIMED_EXE_REFERENCE = args.timed_exe_reference
 
-    # init globals
-    with open(JSON_FILE, "r") as file:
+    # Initialize data
+    with open(args.json_file, "r") as file:
         data = json.load(file)
-    
+
     n_attackers = len(get_attacking_packages())
     n_defenders = len(get_defending_executables())
 
@@ -347,3 +359,6 @@ if __name__ == "__main__":
         fill_csv()  
         df = pd.read_csv(OUTPUT_CSV)
         print(df.to_string())
+
+if __name__ == "__main__":
+    main()
