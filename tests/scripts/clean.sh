@@ -6,10 +6,8 @@ directories=($(find . -maxdepth 1 -type d -exec basename {} \; | tail -n +2))
 
 for dir in "${directories[@]}"; do
 
-    if [ -d "$dir" ]; then
-        
+    if [ -d "$dir" ]; then 
         cd $dir
-
         echo "Cleaning ${dir}"
 
         # remove build directory
