@@ -33,13 +33,11 @@ for dir in "${directories[@]}"; do
 
         # cp -r "${expected_test_dir}"
     else
-        echo "-- Bad test directory naming: ${team_name}"
+        echo "-- Test directory naming for ${team_name} doesn't follow convention"
 
+        # Commmon reasons for failure:
         # CASE 1: the team did not wrap all their test in a self-named directory 
-        # TODO:
-
         # CASE 2: the team tried to make a self-named directory, but failed.
-        # TODO:
     fi
     cd ..
 done

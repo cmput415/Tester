@@ -1,5 +1,5 @@
 {
-  "testDir": "./testfiles/MultiExe",
+  "testDir": "./testfiles/GradePackages",
   "testedExecutablePaths": {
     "team1": "/usr/bin/clang",
     "team2": "/usr/bin/clang",

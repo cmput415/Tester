@@ -242,7 +242,7 @@ def create_timing_table(timed_toolchain):
     for idx, defense_result in enumerate(timed_toolchain["toolchainResults"]):
         defense = Defense(defense_result)
         timing_df.at[0, idx+1] = defense.defender
-        timing_df.iloc[1:,idx+1] = defense.get_timings()
+        timing_df.iloc[1:,idx+1] = defense.get_timings() #fill column with timings for this exe
         timing_df.iloc[1:,1:] = timing_df.iloc[1:,1:].fillna(0).round(3)
 
     insert_label_row(f"Absolute Execution Timing Results")
@@ -257,13 +257,14 @@ def create_timing_table(timed_toolchain):
         rel_timing_df.iloc[i+1,1:] = (fastest_exe / timing_df.iloc[i+1,1:]) #fastest gets score 1
         rel_timing_df.iloc[i+1,1:] = rel_timing_df.iloc[i+1,1:].fillna(0).round(5)
 
-    rel_total = pd.DataFrame(None, index=range(1), columns=range(n_attackers))
-    rel_total.iloc[0,0] = "Timing Score (Average)"
-    rel_total.iloc[0,1:] = (
-        rel_timing_df.iloc[1:,1:].sum(axis=0) / len(timed_tests)).fillna(0).round(5)
-    
-    # append the total row to the relative timing row
-    rel_timing_df = pd.concat([rel_timing_df, rel_total], ignore_index=True) 
+    # append the row of average, normalized timings for each exe to the bottom of the relative
+    # timing table.
+    average_normalized_timings = rel_timing_df.iloc[1:len(timed_tests)+1, 1:].mean().fillna(0).round(5)
+    new_index = len(rel_timing_df)
+    rel_timing_df.loc[new_index] = pd.Series(dtype='object')
+    rel_timing_df.iloc[len(timed_tests)+1, 0] = "Average"
+    rel_timing_df.iloc[len(timed_tests)+1, 1:] = average_normalized_timings
+
     insert_label_row(f"Normalized Execution Timing Results")
     rel_timing_df.to_csv(OUTPUT_CSV, index=False, header=False, mode='a')
     print("============ RELATIVE TIMING TABLE ============\n", rel_timing_df)
@@ -289,27 +290,27 @@ def create_final_summary_table(toolchain_summary, timing_summary = None) -> pd.D
     """
     Create a final summary table and return a dataframe 
     """
-    fst = pd.DataFrame(None, index=range(6), columns=range(n_attackers))
+    fst = pd.DataFrame(None, index=range(6), columns=range(n_attackers+1))
     fst.iloc[:6, 0] = [ "TA Testing (50%)", "Competative Testing (20%)",
                         "Timing Testing (10%)", "Grammar (10%)",
                         "Code Style (10%)", "Final Grade (100%)" ]
 
     # The TA test scores are a specific column in the in the toolchain summary, indicated by
     # the label corresponding to the supplied TA_PACKAGE variable.
-    index = get_attacking_package_names().index(TA_PACKAGE) 
-    ta_pass_rate_col = toolchain_summary.iloc[1:n_attackers, index]    
-    fst.iloc[0,1:n_attackers] = (ta_pass_rate_col.T * TA_TEST_WEIGHT).fillna(0).round(5)
+    index = get_attacking_package_names().index(TA_PACKAGE) + 1 # offset from first column of labels by 1
+    ta_pass_rate_col = toolchain_summary.iloc[1:n_attackers+1, index]
+    fst.iloc[0, 1:] = (ta_pass_rate_col.T * TA_TEST_WEIGHT).fillna(0).round(5)
 
     # Get competiative testing scores
-    comp_row = toolchain_summary.iloc[n_defenders+4, 1:n_defenders]
+    comp_row = toolchain_summary.iloc[n_defenders+4, 1:]
     max_comp_score = comp_row.max() 
     normalized_comp_row = comp_row / max_comp_score 
-    fst.iloc[1,1:n_defenders] = (normalized_comp_row * COMPETATIVE_WEIGHT).fillna(0).round(5)
+    fst.iloc[1,1:] = (normalized_comp_row * COMPETATIVE_WEIGHT).fillna(0).round(5)
 
     # Get timing scores
     if timing_summary is not None:
         timing_scores = (timing_summary.iloc[-1,1:] * TIMING_WEIGHT).fillna(0).round(5)
-        fst.iloc[2,1:n_attackers] = timing_scores 
+        fst.iloc[2,1:] = timing_scores 
         print(timing_scores)
 
     # Write to CSV 
@@ -413,7 +414,7 @@ def main():
     with open(args.json_file, "r") as file:
         data = json.load(file)
 
-    n_attackers = len(get_attacking_packages())
+    n_attackers = len(get_competative_package_names())
     n_defenders = len(get_defending_executables())
 
     with open(OUTPUT_CSV, "w") as csv:

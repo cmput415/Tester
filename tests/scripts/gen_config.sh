@@ -21,8 +21,10 @@ shared_obj="libvcalcrt.so"
 echo "{" >> "$partial_config"
 echo "\"testedExecutablePaths\": {" >> "$partial_config"
 for dir in "${directories[@]}"; do
+    
     full_dir="$script_dir/$dir"
     team_name=${dir#*-}
+
     if [ -d "$full_dir" ]; then 
         if [ -d "$full_dir/bin" ]; then
             binary_path=$(find "$full_dir/bin" -name "$binary")
@@ -35,19 +37,20 @@ for dir in "${directories[@]}"; do
         fi
     fi
 done
+echo "}," >> "$partial_config"
 
 # remove trailing comma on last binary entry
 sed -i '$ s/,$//' "$partial_config"
 
 echo "-- Copied binary paths into partial config"
 
-echo "}," >> "$partial_config"
-
 # Echo the runtimes into the parital config
 echo "\"runtimes\": {" >> "$partial_config"
 for dir in "${directories[@]}"; do
+    
     full_dir="$script_dir/$dir"
     team_name=${dir#*-}
+    
     if [ -d "$full_dir" ]; then 
         if [ -d "$full_dir/bin" ]; then
 
@@ -69,4 +72,7 @@ sed -i '$ s/,$//' "$partial_config"
 echo "}" >> "$partial_config"
 echo "}" >> "$partial_config"
 
+# Exit messagej
 echo "-- Copied runtime paths into partial config"
+
+exit 0
