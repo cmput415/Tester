@@ -14,8 +14,8 @@ TEST_CONFIGS=(
 # Grading variables
 GRADE_SCRIPT="${CWD}/scripts/grader.py"
 GRADE_JSON="${CWD}/scripts/grades.json"
-GRADE_CSV="${CWD}/grades.csv"
-GRADE_TIMING_CSV="${CWD}/grades_timed.csv"
+GRADE_CSV="${CWD}/scripts/grades.csv"
+GRADE_TIMING_CSV="${CWD}/scripts/grades_timed.csv"
 
 # Timed grading variables
 TA_PACKAGE="TA"
@@ -37,7 +37,7 @@ if [[ ! -e "${GRADE_JSON}" ]]; then
 fi
 
 #====  RUN Grader script in regular mode ====#
-python "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_CSV}" "--ta-package" "${TA_PACKAGE}" >& /dev/null
+python "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_CSV}" "--ta-package" "${TA_PACKAGE}"
 
 # Assert GRADE_CSV exists here
 if [[ ! -e "${GRADE_CSV}" ]]; then
@@ -50,7 +50,8 @@ python "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_TIMING_CSV}" \
 "--ta-package" "${TA_PACKAGE}" \
 "--timed-toolchain" "${TIMED_TOOLCHAIN}" \
 "--timed-exe-reference" "${TIMED_EXE_REFERENCE}" \
-"--timed-package" "${TIMED_PACKAGE}" >& /dev/null
+"--timed-package" "${TIMED_PACKAGE}"
+# >& /dev/null
 
 # Assert GRADE_CSV exists here
 if [[ ! -e "${GRADE_TIMING_CSV}" ]]; then
