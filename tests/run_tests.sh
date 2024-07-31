@@ -24,6 +24,22 @@ TIMED_TOOLCHAIN="LLVM-opt"
 TIMED_EXE_REFERENCE="TA"
 TIMED_PACKAGE="timed_tests"
 
+#========= RUN Runtime Tests =========#
+SO_SCRIPT_DIR=$CWD/lib/
+cd $SO_SCRIPT_DIR
+./make_so.sh
+if [ $? -ne 0 ]; then
+  echo "Failed to make mock runtime library!"
+  exit 1
+fi
+cd -
+
+$PROJECT_BASE/bin/tester ${TEST_CONFIGS[3]} --timeout 10
+if [ $? -ne 0 ]; then
+  echo "Tester failed test for config: ${TEST_CONDIGS[3]}"
+  exit 1
+fi
+
 #========= RUN Grader Tests =========#
 
 # If grade JSON does not exist, creat it.
@@ -73,18 +89,3 @@ if [ $? -ne 1 ]; then
   exit 1
 fi
 
-#========= RUN Runtime Tests =========#
-SO_SCRIPT_DIR=$CWD/lib/
-cd $SO_SCRIPT_DIR
-./make_so.sh
-if [ $? -ne 0 ]; then
-  echo "Failed to make mock runtime library!"
-  exit 1
-fi
-cd -
-
-$PROJECT_BASE/bin/tester ${TEST_CONFIGS[3]} --timeout 10
-if [ $? -ne 0 ]; then
-  echo "Tester failed test for config: ${TEST_CONDIGS[3]}"
-  exit 1
-fi

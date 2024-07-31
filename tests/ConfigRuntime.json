@@ -4,7 +4,7 @@
     "clang": "/usr/bin/clang"
   },
   "runtimes": {
-    "clang": "/home/justin/CDOL/assets/Clones/Tester/tests/lib/libfoo.so"
+    "clang": "./lib/libfoo.so"
   },
   "toolchains": {
     "clang-runtime": [
