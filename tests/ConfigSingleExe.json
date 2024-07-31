@@ -8,14 +8,8 @@
       {
         "stepName": "compile",
         "executablePath": "$EXE",
-        "arguments": [
-          "$INPUT", 
-          "-Wno-everything",
-          "-fno-show-column",
-          "-fno-show-source-location", 
-          "-o", "$OUTPUT"
-        ],
-        "output": "test.o",
+        "arguments": ["$INPUT", "-o", "$OUTPUT"],
+        "output": "/tmp/test.o",
         "allowError": true 
       },
       {

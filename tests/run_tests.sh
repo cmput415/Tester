@@ -9,6 +9,7 @@ TEST_CONFIGS=(
   "$CWD/ConfigSingleExe.json"
   "$CWD/ConfigGrade.json"
   "$CWD/ConfigExpectedFail.json"
+  "$CWD/ConfigRuntime.json"
 )
 
 # Grading variables
@@ -22,6 +23,22 @@ TA_PACKAGE="TA"
 TIMED_TOOLCHAIN="LLVM-opt"
 TIMED_EXE_REFERENCE="TA"
 TIMED_PACKAGE="timed_tests"
+
+#========= RUN Runtime Tests =========#
+SO_SCRIPT_DIR=$CWD/lib/
+cd $SO_SCRIPT_DIR
+./make_so.sh
+if [ $? -ne 0 ]; then
+  echo "Failed to make mock runtime library!"
+  exit 1
+fi
+cd -
+
+$PROJECT_BASE/bin/tester ${TEST_CONFIGS[3]} --timeout 10
+if [ $? -ne 0 ]; then
+  echo "Tester failed test for config: ${TEST_CONDIGS[3]}"
+  exit 1
+fi
 
 #========= RUN Grader Tests =========#
 
@@ -51,7 +68,6 @@ python "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_TIMING_CSV}" \
 "--timed-toolchain" "${TIMED_TOOLCHAIN}" \
 "--timed-exe-reference" "${TIMED_EXE_REFERENCE}" \
 "--timed-package" "${TIMED_PACKAGE}"
-# >& /dev/null
 
 # Assert GRADE_CSV exists here
 if [[ ! -e "${GRADE_TIMING_CSV}" ]]; then
@@ -72,3 +88,4 @@ if [ $? -ne 1 ]; then
   echo "Tester failed test for config: ${TEST_CONDIGS[2]}"
   exit 1
 fi
+
