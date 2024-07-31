@@ -77,7 +77,7 @@ fi
 SO_SCRIPT_DIR=$CWD/lib/
 cd $SO_SCRIPT_DIR
 ./make_so.sh
-if [ !? -ne 0 ]; then
+if [ $? -ne 0 ]; then
   echo "Failed to make mock runtime library!"
   exit 1
 fi
