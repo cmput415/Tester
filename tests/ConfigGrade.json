@@ -33,14 +33,7 @@
       {
         "stepName": "compile",
         "executablePath": "$EXE",
-        "arguments": [
-          "$INPUT",
-          "-O3", 
-          "-Wno-everything",
-          "-fno-show-column",
-          "-fno-show-source-location", 
-          "-o", "$OUTPUT"
-        ],
+        "arguments": ["$INPUT", "-O3", "-o", "$OUTPUT"],
         "output": "test.o",
         "allowError": true 
       },
@@ -54,4 +47,3 @@
     ] 
   }
 }
-

@@ -64,6 +64,9 @@ private:
   fs::path errPath;
   fs::path outPath;
 
+  // The command can supply a output file to use instead of stdout/err 
+  std::optional<fs::path> outputFile;
+
   // Uses runtime and uses input stream.
   bool usesRuntime, usesInStr;
 
