@@ -12,6 +12,11 @@
 
 namespace {
 
+/**
+ * @brief Open up a file and print char by char to stdout. To increase the
+ * visibility of spaces (which can cause sneaky diffs on testcases) we print
+ * them as asterisks instead.
+ */
 void dumpFile(const fs::path& filePath, bool showSpace = false) {
   std::ifstream file(filePath);
   if (!file.is_open()) {
@@ -34,6 +39,13 @@ void dumpFile(const fs::path& filePath, bool showSpace = false) {
   file.close();
 }
 
+/**
+ * @brief Read a file character by character. Produce a vector of strings where
+ * each string corresponds to a single line in the file until the newline and
+ * each newline gets its own elmenet in the vector. This helps us differentiate
+ * between two files where one only one is newline terminated by comparing the sizes
+ * of the vectors.  
+ */
 std::vector<std::string> readFileWithNewlines(const fs::path& filepath) {
 
   std::ifstream file(filepath);
@@ -98,7 +110,7 @@ std::pair<bool, std::string> preciseDiff(const fs::path& file1, const fs::path& 
 }
 
 /**
- * Given a file path, return the substring of the first line that conforms to
+ * @brief: Given a file path, return the substring of the first line that conforms to
  * the error testcase specification.
  */
 std::optional<std::string >getErrorString(const fs::path outPath) {
@@ -171,6 +183,12 @@ std::pair<bool, std::string> errorDiff(const fs::path& genFile, const fs::path& 
 
 namespace tester {
 
+/**
+ * @brief: Invoke the toolchain for the current test. Commands that exit with non-zero
+ * throw inside the toolchain, causing an immediate fail unless the step is protected with an "allowError"
+ * property. If "allowError" is true, then non-zero exits break the toolchain immediately and we check
+ * the stderr of the command instead of stdout.
+ */
 TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg) {
 
   const fs::path testPath = test->getTestPath();

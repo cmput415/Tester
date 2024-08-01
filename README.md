@@ -71,6 +71,7 @@ The configuration file is in JSON format:
   * `output`: Use a named file to feed into the next commands input. Overrides using the stdout produced by the command. Useful for commands for which the output to be further transformed is a file like `Clang` or any of the 415 assignments.
   * `usesRuntime`: Will set environment variables `LD_LIBRARY_PATH` to equal `$RT_PATH` and `LD_PRELOAD` equal to `runtime`. Useful for `llc` and `lli` toolchains respectively. (OPTIONAL)
   * `usesInStr`: Boolean to replace stdin with the file stream from the `testfile`. (OPTIONAL)
+  * `allowError`: Boolean which if true will allow the toolchain to tolerate non-zero exit codes from commmands, causing the premature termination of the toolchain and diff on `stderr` rather than `stdout`. (OPTIONAL)
 
 #### Automatic Variables
 Automatic variables may be provided in the arguments of a toolchain step and are resolved by the tester.
