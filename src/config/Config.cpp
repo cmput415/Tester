@@ -30,7 +30,7 @@ Config::Config(int argc, char** argv) : timeout(2l) {
       app.add_option("--log-failures", failureLogPath, "Log the testcases the solution compiler fails.");
 
   app.add_option("--timeout", timeout, "Specify timeout length for EACH command in a toolchain.");
-  app.add_option("--debug-path", debugPath, "Provide a sub-path to run the tester on.");
+  app.add_option("--debug-package", debugPackage, "Provide a sub-path to run the tester on.");
   app.add_flag("-t,--time", time, "Include the timings (seconds) of each test in the output.");
   app.add_flag_function("-v", [&](size_t count) { verbosity = static_cast<int>(count); },
                         "Increase verbosity level");

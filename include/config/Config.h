@@ -25,7 +25,7 @@ public:
 
   // Config path getters and checkers.
   const std::optional<fs::path>& getGradePath() const { return gradeFilePath; }
-  const std::optional<fs::path>& getDebugPath() const { return debugPath; }
+  const std::optional<fs::path>& getDebugPath() const { return debugPackage; }
   const std::optional<fs::path>& getFailureLogPath() const { return failureLogPath; };
 
   // Non optional config variables 
@@ -62,7 +62,7 @@ private:
   // Option file paths.
   std::optional<fs::path> gradeFilePath;
   std::optional<fs::path> failureLogPath;
-  std::optional<fs::path> debugPath;
+  std::optional<fs::path> debugPackage;
 
   fs::path testDirPath;
 

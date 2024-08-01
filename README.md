@@ -5,30 +5,30 @@ a multitude of tests.
 
  1. [Usage](#usage)
     1. [Running](#running)
-    1. [The TestFile](#testfile)
     1. [Configuration](#configuration)
        1. [Preparing Tests](#preparing-tests)
        1. [Preparing a Configuration File](#preparing-a-configuration-file)
+       1. [Config Properties](#config-properties)
+       1. [Automatic Variables](#automatic-variables)
+    1. [The TestFile](#testfile)
     1. [Building](#building)
-       1. [Linux](#linux)
-       1. [MacOS](#macos)
 
 ## Usage
 ### Running
 ```
-tester [options] <json_config>
+tester <json_config> [options]
 ```
 
 Several useful options below you may find provide great assistance to your development.
 #### Flags
-  * `-v`, `--verbose`: Print diff plus extra info with increasing levels as specified by additional `v` characters.
-  * `-t`, `--trace-times`: Print the time in seconds elapsed while executing the final toolchain step.
+  * `-v`,: Print diff plus extra info with increasing levels as specified by additional `v` characters.
+  * `-t`, `--time`: Print the time in seconds elapsed while executing the final toolchain step.
   * `-h`, `--help`: List options and flags
 
 #### Options
-  * `--debug-path <path>`: Over-rides the test directory specified in the config file for quick
-  debugging on a subset of the test-suite.
-  * `--summary <file_path>`: Writes the test summary to the file supplied.
+  * `--package <path>`: Over-rides the test directory specified in the config file for quick debugging of a single test package.
+  * `--timeout`: Set the maximum time before a testcase is interrupted and killed.
+  * `--log-failures`: Only applicable for grading. Create a log of test cases that fail the solution compiler.
 
 ### Configuration
 The configuration file specifies the directory of test packages, main executables, and toolchains used to transform the initial test file into output for comparison.
@@ -49,37 +49,40 @@ The configuration file is in JSON format:
       {
         "stepName": "step 1",
         "executablePath": "<path_to_executable>",
-        "arguments": [
-          "arg1",
-          "arg2"
-        ],
-        "output": "<file_name_for_intermediate_output>",
-        "usesRuntime": true,
-        "usesInStr": true
+        "arguments": ["arg1", "arg2", ...],
+        "output": "<output_file_name>",  // Optional: Override use of stdout as input for next command to use a file.
+        "usesRuntime": true,             // Optional: Set the LD_PRELOAD and LD_LIBRARY_PATH in the env to runtime
+        "usesInStr": true                // Optional: Use the input stream of the testfile -- if it exists.
       }
     ]
   }
 }
 ```
-
-#### Properties
+#### Config Properties
 
 * `testDir`: Path to the module contains packages of testfiles.
-
 * `testedExecutablePaths`: A list of executable paths to be tested. Ensure ccid_or_groupid matches your test package name.
-* `runtimes`: A list of shared libraries to be loaded before a command is executed (optional).
-
+* `runtimes`: A list of shared libraries to be loaded before a command is executed. (OPTIONAL)
+* `solutionExecutable`: A string indicating which executable among the tested exectuables in the reference solution. (OPTIONAL).
 * `toolchains`: A list of toolchains defining steps to transform input files to expected output files.
   * `stepName`: Name of the step (e.g., `generator` or `arm-gcc`).
   * `executablePath`: Path to the executable for this step. Use `$EXE` for the tested executable or $INPUT for the output of the previous step.
   arguments: List of arguments for the executable. `$INPUT` and `$OUTPUT` resolve to input and output files.
-  * `output`: Name of the output produced by this step. Use `"output": "-"` to capture stdout and save it to a temporary file.
-  * `usesRuntime`: Boolean to preload the runtime library (optional).
-  * `usesInStr`: Boolean to replace stdin with the file stream from the `testfile`.
+  * `output`: Use a named file to feed into the next commands input. Overrides using the stdout produced by the command. Useful for commands for which the output to be further transformed is a file like `Clang` or any of the 415 assignments.
+  * `usesRuntime`: Will set environment variables `LD_LIBRARY_PATH` to equal `$RT_PATH` and `LD_PRELOAD` equal to `runtime`. Useful for `llc` and `lli` toolchains respectively. (OPTIONAL)
+  * `usesInStr`: Boolean to replace stdin with the file stream from the `testfile`. (OPTIONAL)
 
-  For the first step, $INPUT is the testfile. For the final step, $OUTPUT is compared to the expected output to determine success.
+#### Automatic Variables
+Automatic variables may be provided in the arguments of a toolchain step and are resolved by the tester.
+* `$INPUT`: For the first step, `$INPUT` is the testfile. For any following step `$INPUT` is the file alised by previous steps `$OUTPUT`.
+* `$OUTPUT`: Refers to the file a successor command will use as `$INPUT`. Defaults to an anonymous file in `/tmp` that is filled with the commands stdout.
+            If the `output` property is defined then `$OUTPUT` resolves to the provided file. 
+* `$RT_PATH`: Resolves the path of the current `runtime` shared object -- if one is provided. For example given the property: ```runtimes: { /path/lib/libfoo.so }```, `$RT_PATH` resolves to `/path/lib`. This
+is useful for providing the dynamic library path at link time to clang when using an `llc` based toolchain for `LLVM`. 
+* `$RT_LIB`: Similarly to `$RT_PATH` resolves to the library name of the provided runtime. Acoording to the previous example `$RT_LIB` resolves to `foo`. Also useful in the clang step of an `llc` toolchain. See the runtime tests for a clear example. 
 
-An example setup for running the SCalc mips toolchain with my solution:
+An example setup for running the `SCalc` toolchain with my solution:
+Note `mips` has since been depreciated for `riscv` as a backend.
 ```json
 {
   "inDir": "/home/braedy/scalc/tests/input/",
@@ -92,30 +95,18 @@ An example setup for running the SCalc mips toolchain with my solution:
       {
         "stepName": "scalc-MIPS",
         "executablePath": "$EXE",
-        "arguments": [
-          "mips",
-          "$INPUT",
-          "$OUTPUT"
-          ],
+        "arguments": ["mips", "$INPUT", "$OUTPUT"],
         "output": "mipsOut.s"
       },
       {
         "stepName": "spim",
         "executablePath": "/usr/bin/spim",
-        "arguments": [
-          "-file",
-          "$INPUT"
-        ],
-        "output": "-"
+        "arguments": ["-file", "$INPUT"]
       },
       {
         "stepName": "tail",
         "executablePath": "/usr/bin/tail",
-        "arguments": [
-          "-n +6",
-          "$INPUT"
-        ],
-        "output": "-"
+        "arguments": ["-n +6", "$INPUT"]
       }
     ]
   }
@@ -125,7 +116,7 @@ An example setup for running the SCalc mips toolchain with my solution:
 
 ### Testfile
 In a testfile, an input stream and expected output may be supplied within the file inside comments.
-There are three directives available. All directives are sensitive to whitespace and don't insert newlines between themselves by default. For example, `INPUT: a a a\n` contains three whitespace characters and a newline.  
+All directives are sensitive to whitespace and do not insert newlines between themselves by default. For example, `INPUT: a a a` is equivalent to a file with three whitespace characters, three `'a'` characters and no newline for a total of `6 bytes`.  
 
  * `INPUT:` Direct a single line of text to `stdin`. Not newline terminated.
  * `INPUT_FILE:` Supply a relative or absolute path to a `.ins` file. Useful if testing for escape characters or long, cumbersome inputs.
@@ -147,7 +138,7 @@ procedure main() returns integer {
 
 // CHECK:a
 ```
-
+If you find youreself confused about `INPUT` and `CHECK` semantics look into `/tests` where valid and invalid testfiles can be found. Otherwise, falling back onto `INPUT_FILE` and `CHECK_FILE` is perfectly fine.
 
 #### Preparing Tests
 ```
@@ -169,7 +160,7 @@ procedure main() returns integer {
           └── top_level.test
 ```
 
-All `.test` files are organized in a hierarchy of a single *Module* composed of
+All testfiles are organized in a hierarchy of a single *Module* composed of
 one or more *Packages*, which are further composed of *SubPackages*. In the example
 above, the `io` and `vectors` are subpackages of `package1` and `hard-tests` is a
 subpackage of `package2`. The file `top_level.test` which is not nested in a subpackage
@@ -190,48 +181,19 @@ Submissions typically require one *Package* per student or group, with the direc
 <br>
 
 ### Building
-The tool makes use of the
-[filesystem](https://en.cppreference.com/w/cpp/experimental/fs) library that
-was merged into C++17 but has been experimental since C++11. Since the tool is
-built using the C++11 standard it is necessary to have the experimental headers
-available. On Linux they are readily available but MacOS does not provide them
-by with the default library headers. While it is [possible to build
-libc++](https://libcxx.llvm.org/docs/BuildingLibcxx.html) and link it manually,
-building on MacOS can be achieved much more easily by installing GCC through
-brew and using that to compile.
+The tester reqiures `C++17` since it uses the `std::filesystem` library extensively. 
 
 #### Linux
 ```bash
 cd $HOME
 git clone https://github.com/cmput415/Tester.git
 cd Tester
-mkdir build
-cd build
+mkdir build && cd build
 cmake ..
 make
 ```
 Now, to have the tool available to your command line, add the following lines
 to the end of `~/.bashrc`.
-```bash
-# C415 Testing Utility
-export PATH="$HOME/Tester/bin/:$PATH"
-```
-
-#### MacOS
-At the time of writing this, GCC 8.1.0 was installed by `brew install gcc`, so
-`gcc-8` and `g++-8` were available.
-```bash
-brew install gcc
-cd $HOME
-git clone https://github.com/cmput415/Tester.git
-cd Tester
-mkdir build
-cd build
-cmake .. -DCMAKE_CXX_COMPILER="g++-8" -DCMAKE_C_COMPILER="gcc-8"
-make
-```
-Now, to have the tool available to your command line, add the following lines
-to the end of `~/.bash_profile`.
 ```bash
 # C415 Testing Utility
 export PATH="$HOME/Tester/bin/:$PATH"
