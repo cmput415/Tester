@@ -1,8 +1,10 @@
 #!/bin/bash
 
-directories=($(find . -maxdepth 1 -type d -exec basename {} \; | tail -n +2))
+# script: clean.sh
+# author: justin meimar
+# description: clean each of the cloned student repositories
 
-# echo ${directories[@]}
+directories=($(find . -maxdepth 1 -type d -exec basename {} \; | tail -n +2))
 
 for dir in "${directories[@]}"; do
 
