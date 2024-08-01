@@ -6,6 +6,7 @@
     "team3": "/usr/bin/clang",
     "TA": "/usr/bin/clang"
   },
+  "solutionExecutable": "TA",
   "toolchains": {
     "LLVM": [
       {

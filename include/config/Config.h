@@ -24,10 +24,12 @@ public:
   Config(int argc, char** argv);
 
   // Config path getters and checkers.
-  const fs::path& getGradePath() const { return gradeFilePath; }
-  bool hasGradePath() const { return !gradeFilePath.empty(); }
-  const fs::path& getTestDirPath() const { return testDirPath; }
-  const fs::path& getDebugPath() const { return debugPath; }
+  const std::optional<fs::path>& getGradePath() const { return gradeFilePath; }
+  const std::optional<fs::path>& getDebugPath() const { return debugPath; }
+  const std::optional<fs::path>& getFailureLogPath() const { return failureLogPath; };
+
+  // Non optional config variables 
+  const fs::path&getTestDirPath() const { return testDirPath; }
 
   // Config map getters and convenience individual getters.
   const PathMap getExecutables() const { return executables; }
@@ -41,6 +43,9 @@ public:
   const ToolChains& getToolChains() const { return toolchains; }
   const ToolChain& getToolChain(const std::string& name) const { return toolchains.at(name); }
 
+  // Get solution executable (Shoul only exist in grade mode.)
+  std::optional<std::string> getSolutionExecutable() const { return solutionExecutable; }
+  
   // Config bool getters.
   bool isTimed() const { return time; }
   bool isMemoryChecked() const { return memory; }
@@ -52,19 +57,24 @@ public:
   // Initialisation verification.
   bool isInitialised() const { return initialised; }
   int getErrorCode() const { return errorCode; }
-
+  
 private:
   // Option file paths.
-  fs::path gradeFilePath;
-  fs::path summaryFilePath;
+  std::optional<fs::path> gradeFilePath;
+  std::optional<fs::path> failureLogPath;
+  std::optional<fs::path> debugPath;
+
   fs::path testDirPath;
-  fs::path debugPath;
 
   // Option file maps.
   PathMap executables;
   PathMap runtimes;
   ToolChains toolchains;
-
+  
+  // In grader mode, we identify which executable is the solution so we can
+  // mark potentially invalid testcases.
+  std::optional<std::string> solutionExecutable;
+  
   // Option flags.
   bool debug, time, memory;
   int verbosity{0};

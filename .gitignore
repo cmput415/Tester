@@ -12,5 +12,7 @@ cmake-build*/
 #misc
 todo.md
 local_tests
-tests/timed_tests/
-tests/dev_tests/
+
+# objects produced during runtime tests
+tests/lib/foo.o
+tests/lib/libfoo.so

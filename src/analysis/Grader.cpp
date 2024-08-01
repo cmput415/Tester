@@ -2,27 +2,69 @@
 #include <algorithm>
 #include <iostream>
 
+namespace {
+
+/// @brief Print the output of a grade test in a way that gives a sense as to 
+/// the overall direction of the tournament results to the terminal viewer.
+/// Tests that pass on stdout are green dots, failures are red dots.
+/// Error tests that pass are a green 'X', failures are red 'X'
+void printGraderTestResult(bool testPass, bool testError) {
+  if (testPass && !testError) {
+    // a regular test that passes
+    std::cout << Colors::GREEN << "." << Colors::RESET;
+    // passCount++;
+  } else if (testPass && testError) {
+    // a test failed due to error but in the expected manner
+    std::cout << Colors::GREEN << "x" << Colors::RESET; 
+    // passCount++;
+  } else if (testPass && testError) {
+    // a test failed due to error unexpectedly
+    std::cout << Colors::RED << "x" << Colors::RESET;
+  } else {
+    // a test that produced a different output
+    std::cout << Colors::RED << "." << Colors::RESET;
+  }
+}
+
+} // end anonymous namespace
+
 namespace tester {
 
-void Grader::buildResults() {
+/// Check if the defender is the solution and a test has caused it to fail.
+/// In this case we should identify and flag the testcase. For Generator, SCalc and VCalc
+/// the solutions are closed, hence an failing test implies the test must be invalid.
+/// For Gazprea a test which causes the soluition compiler to fail is more complicated. 
+/// Either way we can collect all such test-cases for the TA to review.
+void Grader::trackSolutionFailure(const TestFile *test, 
+                                  const std::string& toolchainName,
+                                  const std::string& attackingPackage) {
+  // log the current toolchain 
+  failedTestLog << toolchainName << " ";
+  
+  // log the offending attacker package
+  failedTestLog << attackingPackage << " ";
 
-  outputJson["title"] = "415 Grades";
-  outputJson["results"] = JSON::array();
+  // log the path of the 
+  fs::path testPath = fs::absolute(test->getTestPath()).lexically_normal();
+  failedTestLog << testPath.string() << std::endl;
+}
+
+void Grader::fillTestSummaryJSON() {
   
   JSON testSummary = {
     {"packages", JSON::array()},   
     {"executables", JSON::array()}
   };
 
-  for (const auto& exe : cfg.getExecutables()) {
-    
+  // The results JSON records all the executables being run in the tournament
+  for (const auto& exe : cfg.getExecutables()) {   
     std::string exeName = exe.first;     
     defendingExes.push_back(exeName);   
     testSummary["executables"].push_back(exeName);
   }
- 
-  for (const auto& testPackage : testSet) {
 
+  // We also track all the test packages being run, along with their count
+  for (const auto& testPackage : testSet) {
     std::string packageName = testPackage.first;
     attackingTestPackages.push_back(packageName);
 
@@ -37,6 +79,9 @@ void Grader::buildResults() {
     testSummary["packages"].push_back(packageSummary);
   }
   outputJson["testSummary"] = testSummary;
+}
+
+void Grader::fillToolchainResultsJSON() {
 
   // Start running tests. Make a pass rate table for each toolchain.
   for (const auto& toolChain : cfg.getToolChains()) {
@@ -83,22 +128,21 @@ void Grader::buildResults() {
           for (const std::unique_ptr<TestFile>& test : subpackages.second) {
 
             TestResult result = runTest(test.get(), tc, cfg);
-
-            if (result.pass && !result.error) {
-              // a regular test that passes
-              std::cout << Colors::GREEN << "." << Colors::RESET;
-              passCount++;
-            } else if (result.pass && result.error) {
-              // a test failed due to error but in the expected manner
-              std::cout << Colors::GREEN << "x" << Colors::RESET; 
-              passCount++;
-            } else if (!result.pass && result.error) {
-              // a test failed due to error unexpectedly
-              std::cout << Colors::RED << "x" << Colors::RESET;
-            } else {
-              // a test that produced a different output
-              std::cout << Colors::RED << "." << Colors::RESET;
+            
+            if (!result.pass && defender == solutionExecutable) {
+              if ( attacker == solutionExecutable ) {
+                // A testcase just failed the solution executable
+                throw std::runtime_error("A solution test just made the solution compiler fail!");
+              }
+              trackSolutionFailure(test.get(), toolChain.first, attacker);
             }
+            //  
+            if (result.pass) {
+              testCount++;
+            }
+            // Print the test result in a nice to read format.
+            printGraderTestResult(result.pass, result.error);
+
             std::cout.flush();
             testCount++;
             JSON timingData = {
@@ -122,6 +166,16 @@ void Grader::buildResults() {
     // add the results for the entire toolchain
     outputJson["results"].push_back(toolChainJson);
   }
+
+}
+
+void Grader::buildResults() {
+
+  outputJson["title"] = "415 Grades";
+  outputJson["results"] = JSON::array();
+
+  fillTestSummaryJSON();
+  fillToolchainResultsJSON();
 }
 
 } // End namespace tester

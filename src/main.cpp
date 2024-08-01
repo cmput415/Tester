@@ -14,9 +14,10 @@ int main(int argc, char** argv) {
     return cfg.getErrorCode();
 
   // Grading means we don't run the tests like normal. Break early.
-  if (cfg.hasGradePath()) {
+  const std::optional<fs::path>& gradePath = cfg.getGradePath();
+  if (gradePath.has_value()) {
     tester::Grader grader(cfg);
-    std::ofstream jsonOutput(cfg.getGradePath());
+    std::ofstream jsonOutput(*gradePath);
     grader.dump(jsonOutput);
     return 0;
   }
