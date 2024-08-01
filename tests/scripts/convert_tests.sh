@@ -3,7 +3,6 @@
 # script: copy_tests.sh
 # author: justin meimar
 # description: convert old test formats from F23 into F24 tester format.
-# 
 
 # Get the absolute path of the script's directory
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
