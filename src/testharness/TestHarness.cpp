@@ -210,14 +210,15 @@ void TestHarness::setupDebugModule(TestSet& testSet, const fs::path& debugPath) 
 
 void TestHarness::findTests() {
 
-  const fs::path& debugPath = cfg.getDebugPath();
-  const fs::path& testDirPath = cfg.getTestDirPath();
-
-  if (!debugPath.empty()) {
-    setupDebugModule(testSet, debugPath);
+  // If a debug path is supplied, override the testDirPath
+  const std::optional<fs::path>& debugPath = cfg.getDebugPath();
+  if (debugPath.has_value()) {
+    setupDebugModule(testSet, *debugPath);
     return;
   }
 
+  // Recursively find tests in the path containing testifles
+  const fs::path& testDirPath = cfg.getTestDirPath();
   for (const auto& dir : fs::directory_iterator(testDirPath)) {
 
     if (dir.is_regular_file() && dir.path().filename().string()[0] == '.') {

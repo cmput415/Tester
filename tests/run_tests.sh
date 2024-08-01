@@ -17,6 +17,7 @@ GRADE_SCRIPT="${CWD}/scripts/grader.py"
 GRADE_JSON="${CWD}/scripts/grades.json"
 GRADE_CSV="${CWD}/scripts/grades.csv"
 GRADE_TIMING_CSV="${CWD}/scripts/grades_timed.csv"
+FAILURE_LOG="${CWD}/scripts/solutions_failures.txt"
 
 # Timed grading variables
 TA_PACKAGE="TA"
@@ -44,7 +45,10 @@ fi
 
 # If grade JSON does not exist, creat it.
 if [[ ! -e "${GRADE_JSON}" ]]; then
-    $PROJECT_BASE/bin/tester ${TEST_CONFIGS[1]} --grade ${GRADE_JSON} --timeout 1
+    $PROJECT_BASE/bin/tester ${TEST_CONFIGS[1]} \
+      --grade ${GRADE_JSON} \
+      --log-failures ${FAILURE_LOG} \
+      --timeout 1
 fi
 
 # Assert GRADE_JSON exists after running the tester in grade mode
@@ -62,7 +66,7 @@ if [[ ! -e "${GRADE_CSV}" ]]; then
     exit 1
 fi
 
-# #====  RUN Grader script in regular mode ====#
+# #====  RUN Grader script in timing mode ====#
 python "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_TIMING_CSV}" \
 "--ta-package" "${TA_PACKAGE}" \
 "--timed-toolchain" "${TIMED_TOOLCHAIN}" \
