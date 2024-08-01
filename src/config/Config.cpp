@@ -6,7 +6,6 @@
 
 #include "json.hpp"
 
-// DEBUG
 #include <iostream>
 
 // Convenience.
