@@ -25,13 +25,20 @@ Config::Config(int argc, char** argv) : timeout(2l) {
 
   CLI::Option* gradeOpt =
       app.add_option("--grade", gradeFilePath, "Perform grading analysis and output to this file");
+  
+  CLI::Option* solutionFailureLogOpt =
+      app.add_option("--log-failures", failureLogPath, "Log the testcases the solution compiler fails.");
 
   app.add_option("--timeout", timeout, "Specify timeout length for EACH command in a toolchain.");
   app.add_option("--debug-path", debugPath, "Provide a sub-path to run the tester on.");
   app.add_flag("-t,--time", time, "Include the timings (seconds) of each test in the output.");
-  app.add_flag_function(
-      "-v", [&](size_t count) { verbosity = static_cast<int>(count); }, "Increase verbosity level");
- 
+  app.add_flag_function("-v", [&](size_t count) { verbosity = static_cast<int>(count); },
+                        "Increase verbosity level");
+  
+  // Enforce that if a grade path is supplied, then a log file should be as well and vice versa
+  gradeOpt->needs(solutionFailureLogOpt);
+  solutionFailureLogOpt->needs(gradeOpt);
+
   // Parse our command line options. This has the potential to throw
   // CLI::ParseError, but we want it to continue up the tree.
   try {
@@ -68,6 +75,15 @@ Config::Config(int argc, char** argv) : timeout(2l) {
   for (auto it = tepJson.begin(); it != tepJson.end(); ++it) {
     std::string path = it.value();
     executables.emplace(std::make_pair(it.key(), path));
+  }
+
+  // Parse out "solutionExecutable": "<name of solution exe>"
+  if (doesContain(json, "solutionExecutable")) {
+    solutionExecutable = json["solutionExecutable"];
+  } else {
+    if (gradeOpt->count() == 1) {
+      throw std::runtime_error("Must provide a solutionExecutable value when running in grade mode.");
+    }
   }
   
   // Add runtimes to the config.

@@ -53,8 +53,6 @@ protected:
   void findTests();
 
 private:
-  // Our input config.
-
   // The results of the tests.
   ResultManager results;
 
