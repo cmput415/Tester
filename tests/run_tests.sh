@@ -58,7 +58,7 @@ if [[ ! -e "${GRADE_JSON}" ]]; then
 fi
 
 #====  RUN Grader script in regular mode ====#
-python "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_CSV}" "--ta-package" "${TA_PACKAGE}"
+python3 "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_CSV}" "--ta-package" "${TA_PACKAGE}"
 
 # Assert GRADE_CSV exists here
 if [[ ! -e "${GRADE_CSV}" ]]; then
@@ -67,7 +67,7 @@ if [[ ! -e "${GRADE_CSV}" ]]; then
 fi
 
 # #====  RUN Grader script in timing mode ====#
-python "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_TIMING_CSV}" \
+python3 "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_TIMING_CSV}" \
 "--ta-package" "${TA_PACKAGE}" \
 "--timed-toolchain" "${TIMED_TOOLCHAIN}" \
 "--timed-exe-reference" "${TIMED_EXE_REFERENCE}" \

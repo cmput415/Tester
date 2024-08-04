@@ -53,7 +53,7 @@ void becomeCommand(const std::string& exe,
 
   // Build the args list
   args[0] = exe.c_str();
-  for (size_t i = 0; i < trueArgs.size(); ++i)
+  for (std::size_t i = 0; i < trueArgs.size(); ++i)
     args[i + 1] = trueArgs[i].c_str();
   args[trueArgs.size() + 1] = NULL;
 
@@ -78,7 +78,7 @@ void becomeCommand(const std::string& exe,
   // Open the supplied files and redirect FD of the current child process to them.
   int outFileStatus = redirectOpen(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDOUT_FILENO);
   int errorFileStatus = redirectOpen(error.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDERR_FILENO);
-  int inFileStatus = !input.empty() ? redirectOpen(input.c_str(), O_RDONLY, NULL, STDIN_FILENO) : 0;
+  int inFileStatus = !input.empty() ? redirectOpen(input.c_str(), O_RDONLY, 0, STDIN_FILENO) : 0;
 
   // If opening any of the supplied output, input, or error files failed, raise here.
   if (outFileStatus == -1 || errorFileStatus == -1 || inFileStatus == -1) {
@@ -331,7 +331,7 @@ std::string Command::buildCommand(const ExecutionInput& ei, const ExecutionOutpu
 std::string fillArgPlaceholder(const std::string& original, const std::string& placeholder,
                                const std::string& to_replace) {
   std::string result = original;
-  size_t pos = result.find(placeholder);
+  std::size_t pos = result.find(placeholder);
   if (pos != std::string::npos) {
     result.replace(pos, placeholder.length(), to_replace);
   }
@@ -348,7 +348,7 @@ std::string stripLibraryName(const std::string& filename) {
   if (result.substr(0, 3) == "lib") {
     result = result.substr(3);
   }
-  size_t pos = result.find(".so");
+  std::size_t pos = result.find(".so");
   if (pos != std::string::npos) {
     result = result.substr(0, pos);
   }

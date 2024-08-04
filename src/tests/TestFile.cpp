@@ -4,7 +4,7 @@
 namespace {
 
 std::string stripFileExtension(const std::string& str) {
-  size_t lastIdx = str.find_last_of(".");
+  std::size_t lastIdx = str.find_last_of(".");
   return str.substr(0, lastIdx);
 }
 

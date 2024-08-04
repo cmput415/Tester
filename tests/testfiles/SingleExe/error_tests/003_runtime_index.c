@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #define OUT_OF_BOUNDS_ERROR 0
 
 // INPUT:9
