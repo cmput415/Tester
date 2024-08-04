@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+// An error test that does not provide a check for the expected output.
 
 int main() {
 

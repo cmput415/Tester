@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #define TYPE_ERROR 0
 
 typedef struct Apple{

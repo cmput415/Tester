@@ -4,6 +4,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define EXIT_DIVIDE_BY_ZERO 2
 
