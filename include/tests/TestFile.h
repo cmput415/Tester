@@ -15,8 +15,6 @@ namespace tester {
 enum ParseError {
   NoError,
   DirectiveConflict,
-  MaxInputBytesExceeded,
-  MaxOutputBytesExceeded,
   FileError,
   RuntimeError
 };

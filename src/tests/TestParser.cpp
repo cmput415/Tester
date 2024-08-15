@@ -230,12 +230,12 @@ void TestParser::parse() {
   testfile->usesOutStream = (foundCheck || foundCheckFile);
   testfile->usesOutFile = foundCheckFile;
 
-  // ck if input directives have exceeded maximum
-  if (fs::file_size(testfile->getInsPath()) > Directive::MAX_INPUT_BYTES) {
-    testfile->getParseError(ParseError::MaxInputBytesExceeded);
-  } else if (fs::file_size(testfile->getOutPath()) > Directive::MAX_OUTPUT_BYTES) {
-    testfile->getParseError(ParseError::MaxOutputBytesExceeded);
-  }
+  // // ck if input directives have exceeded maximum
+  // if (fs::file_size(testfile->getInsPath()) > Directive::MAX_INPUT_BYTES) {
+  //   testfile->getParseError(ParseError::MaxInputBytesExceeded);
+  // } else if (fs::file_size(testfile->getOutPath()) > Directive::MAX_OUTPUT_BYTES) {
+  //   testfile->getParseError(ParseError::MaxOutputBytesExceeded);
+  // }
 
   testFileStream.close();
 }

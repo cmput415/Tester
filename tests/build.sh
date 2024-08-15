@@ -1,4 +1,5 @@
 #!/bin/bash
+# Desc: Used by the CI script to build the Tester
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PROJECT_BASE="$SCRIPT_DIR/.."
