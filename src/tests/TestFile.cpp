@@ -49,12 +49,6 @@ std::string TestFile::getParseErrorMsg() const {
       return "Two or more testfile directives supplied that can not "
              "coexist in one file.";
       break;
-    case ParseError::MaxInputBytesExceeded:
-      return "Total bytes used for input stream exceeds maximum";
-      break;
-    case ParseError::MaxOutputBytesExceeded:
-      return "Total bytes used for output stream exceeds maximum";
-      break;
     case ParseError::FileError:
       return "A filepath provided in the testfile was unable to be "
              "located or opened.";
@@ -64,7 +58,7 @@ std::string TestFile::getParseErrorMsg() const {
              "testifle.";
       break;
     default:
-      return "No matching Parse State";
+      return "No matching Parse Error";
   }
 }
 

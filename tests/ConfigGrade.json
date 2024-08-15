@@ -12,13 +12,7 @@
       {
         "stepName": "compile",
         "executablePath": "$EXE",
-        "arguments": [
-          "$INPUT", 
-          "-Wno-everything",
-          "-fno-show-column",
-          "-fno-show-source-location", 
-          "-o", "$OUTPUT"
-        ],
+        "arguments": ["$INPUT", "-o", "$OUTPUT"],
         "output": "test.o",
         "allowError": true 
       },
