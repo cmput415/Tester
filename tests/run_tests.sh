@@ -55,15 +55,21 @@ fi
 if [[ ! -e "${GRADE_JSON}" ]]; then
     echo "Script Error: ${GRADE_JSON} does not exist."
     exit 1
+else
+    echo "-- Grader script successfully created CSV (regular)"
 fi
 
 #====  RUN Grader script in regular mode ====#
-python3 "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_CSV}" "--ta-package" "${TA_PACKAGE}"
+python3 "${GRADE_SCRIPT}" "${GRADE_JSON}" \
+        "-o" "${GRADE_CSV}" "--ta-package" "${TA_PACKAGE}" \
+        >& /dev/null
 
 # Assert GRADE_CSV exists here
 if [[ ! -e "${GRADE_CSV}" ]]; then
     echo "Script Error: ${GRADE_CSV} does not exist."
     exit 1
+else
+    echo "-- Grader script successfully created CSV (timing)"
 fi
 
 # #====  RUN Grader script in timing mode ====#
@@ -71,7 +77,7 @@ python3 "${GRADE_SCRIPT}" "${GRADE_JSON}" "-o" "${GRADE_TIMING_CSV}" \
 "--ta-package" "${TA_PACKAGE}" \
 "--timed-toolchain" "${TIMED_TOOLCHAIN}" \
 "--timed-exe-reference" "${TIMED_EXE_REFERENCE}" \
-"--timed-package" "${TIMED_PACKAGE}"
+"--timed-package" "${TIMED_PACKAGE}" >& /dev/null
 
 # Assert GRADE_CSV exists here
 if [[ ! -e "${GRADE_TIMING_CSV}" ]]; then
