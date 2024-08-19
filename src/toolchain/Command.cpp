@@ -21,7 +21,7 @@ namespace {
 
 /// @brief Open the file with provided flags and mode. Redirect the file descriptor
 /// supplied by dup_fd to the file underlying file_str. 
-int redirectOpen(const std::string& file_str, int flags, mode_t mode, int dup_fd) {
+int redirectStdStream(const std::string& file_str, int flags, mode_t mode, int dup_fd) {
 
   // Open the process
   int fd = open(file_str.c_str(), flags, mode);
@@ -59,14 +59,15 @@ void becomeCommand(const std::string& exe,
 
   // Build the new command's environment (PATH, LD_PRELOAD).
   std::string path = "PATH=" + std::string(std::getenv("PATH"));
+  std::string runtimePath = fs::path(runtime).parent_path().string();
 
   #if __linux__
     std::string preload = "LD_PRELOAD=" + runtime;
+    std::string ld_library_path = "LD_LIBRARY_PATH=" + runtimePath;
   #elif __APPLE__
     std::string preload = "DYLD_INSERT_LIBRARIES=" + runtime;
+    std::string ld_library_path = "DYLD_LIBRARY_PATH=" + runtimePath;
   #endif
-
-  std::string ld_library_path = "LD_LIBRARY_PATH=" + fs::path(runtime).parent_path().string();
 
   // Construct the environment variables array.
   const char* env[4];
@@ -76,9 +77,9 @@ void becomeCommand(const std::string& exe,
   env[3] = NULL;
 
   // Open the supplied files and redirect FD of the current child process to them.
-  int outFileStatus = redirectOpen(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDOUT_FILENO);
-  int errorFileStatus = redirectOpen(error.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDERR_FILENO);
-  int inFileStatus = !input.empty() ? redirectOpen(input.c_str(), O_RDONLY, 0, STDIN_FILENO) : 0;
+  int outFileStatus = redirectStdStream(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDOUT_FILENO);
+  int errorFileStatus = redirectStdStream(error.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDERR_FILENO);
+  int inFileStatus = !input.empty() ? redirectStdStream(input.c_str(), O_RDONLY, 0, STDIN_FILENO) : 0;
 
   // If opening any of the supplied output, input, or error files failed, raise here.
   if (outFileStatus == -1 || errorFileStatus == -1 || inFileStatus == -1) {
