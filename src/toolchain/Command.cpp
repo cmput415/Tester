@@ -353,6 +353,10 @@ std::string stripLibraryName(const std::string& filename) {
   if (pos != std::string::npos) {
     result = result.substr(0, pos);
   }
+  pos = result.find(".dylib");
+  if (pos != std::string::npos) {
+    result = result.substr(0, pos);
+  }
   return result;
 }
 
