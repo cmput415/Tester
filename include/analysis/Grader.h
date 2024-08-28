@@ -1,52 +1,63 @@
 #ifndef TESTER_GRADER_H
 #define TESTER_GRADER_H
 
-#include "analysis/spreadsheet/Sheet.h"
-#include "analysis/spreadsheet/Table.h"
 #include "config/Config.h"
-#include "tests/testUtil.h"
+#include "json.hpp"
+#include "testharness/TestHarness.h"
+#include "tests/TestRunning.h"
 
+#include <map>
 #include <ostream>
 #include <string>
 #include <utility>
 
+using JSON = nlohmann::json;
+
 namespace tester {
 
-class Grader {
+class Grader : public TestHarness {
 public:
   // No default constructor.
   Grader() = delete;
 
   // Construct with output file path.
-  explicit Grader(const Config &cfg);
+  Grader(const Config& cfg) : TestHarness(cfg), 
+                              failedTestLog(*cfg.getFailureLogPath()),
+                              solutionExecutable(*cfg.getSolutionExecutable()) {
+    findTests();
+    buildResults();
+  }
 
-  void dump(std::ostream &os) const { analysis.dumpSV(os); }
+  void dump(std::ostream& os) const {
+    std::string jsonString = outputJson.dump(2);
+    os << jsonString;
+  }
 
 private:
   // Build the results to produce our sheet.
   void buildResults();
-
-  // Analyse the results to produce our sheet.
-  void analyseResults();
+  
+  // Track if a testcase makes the solution compiler fail. Record in a file
+  void trackSolutionFailure(const TestFile *test, const std::string& toolchainName,
+                                                  const std::string& attackingPackage);
 
 private:
-  // Our config.
-  const Config &cfg;
+  std::ofstream failedTestLog;
+  std::string solutionExecutable;
 
-  // Our tests.
-  PackageSet tests;
+  // defenders and attackers (defending exes should be a strict subset of attacking packages) 
+  std::vector<std::string> defendingExes;
+  std::vector<std::string> attackingTestPackages;
 
-  // The sheet that our analysis goes into.
-  Sheet analysis;
+  // Tester tournament results
+  JSON outputJson;
 
-  // The filtered (must have exe and tests) names of all solutions that will be tested.
-  std::vector<std::string> names;
-
-  // The vector of pass rate tables.
-  typedef std::reference_wrapper<tester::ToolchainPassRateTable> ToolChainPassRateTableRef;
-  std::vector<ToolChainPassRateTableRef> passRates;
+private:
+  // Helpers to factor out responsibility of buildResults
+  void fillTestSummaryJSON();
+  void fillToolchainResultsJSON();
 };
 
 } // End namespace tester
 
-#endif //TESTER_GRADER_H
+#endif // TESTER_GRADER_H

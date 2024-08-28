@@ -7,3 +7,12 @@ bin/
 # Ignore CLion files
 cmake-build*/
 .idea/
+.vscode
+
+#misc
+todo.md
+local_tests
+
+# objects produced during runtime tests
+tests/lib/foo.o
+tests/lib/libfoo.so
