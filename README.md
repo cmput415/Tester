@@ -50,9 +50,9 @@ The configuration file is in JSON format:
         "stepName": "step 1",
         "executablePath": "<path_to_executable>",
         "arguments": ["arg1", "arg2", ...],
-        "output": "<output_file_name>",  // Optional: Override use of stdout as input for next command to use a file.
-        "usesRuntime": true,             // Optional: Set the LD_PRELOAD and LD_LIBRARY_PATH in the env to runtime
-        "usesInStr": true                // Optional: Use the input stream of the testfile -- if it exists.
+        "output": "<output_file_name>",
+        "usesRuntime": true,
+        "usesInStr": true
       }
     ]
   }
