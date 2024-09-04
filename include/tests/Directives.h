@@ -2,6 +2,7 @@
 #define DIRECTIVES_H
 
 #include <string>
+#include <cstdint>
 
 namespace Directive {
 
