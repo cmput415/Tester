@@ -3,15 +3,19 @@ This tool is meant to be a generic utility for testing solutions to CMPUT 415's
 assignments. It can test multiple solutions with multiple toolchains against
 a multitude of tests.
 
- 1. [Usage](#usage)
-    1. [Running](#running)
-    1. [Configuration](#configuration)
-       1. [Preparing Tests](#preparing-tests)
-       1. [Preparing a Configuration File](#preparing-a-configuration-file)
-       1. [Config Properties](#config-properties)
-       1. [Automatic Variables](#automatic-variables)
-    1. [The TestFile](#testfile)
-    1. [Building](#building)
+- [CMPUT 415 Testing Utility](#cmput-415-testing-utility)
+  - [Usage](#usage)
+    - [Running](#running)
+      - [Flags](#flags)
+      - [Options](#options)
+    - [Configuration](#configuration)
+      - [Preparing a Configuration File](#preparing-a-configuration-file)
+      - [Config Properties](#config-properties)
+      - [Automatic Variables](#automatic-variables)
+    - [Testfile](#testfile)
+      - [Preparing Tests](#preparing-tests)
+    - [Building](#building)
+      - [Linux](#linux)
 
 ## Usage
 ### Running
@@ -26,7 +30,7 @@ Several useful options below you may find provide great assistance to your devel
   * `-h`, `--help`: List options and flags
 
 #### Options
-  * `--package <path>`: Over-rides the test directory specified in the config file for quick debugging of a single test package.
+  * `--package <path>`: Overrides the test directory specified in the config file for quick debugging of a single test package.
   * `--timeout`: Set the maximum time before a testcase is interrupted and killed.
   * `--log-failures`: Only applicable for grading. Create a log of test cases that fail the solution compiler.
 
@@ -125,7 +129,7 @@ All directives are sensitive to whitespace and do not insert newlines between th
  * `CHECK:` Direct a single line of text to `stdout` that the program is expected to output. Not newline terminated.
  * `CHECK_FILE:` Supply a relative or absolute path to a `.out` file.  
 
-Finally, an arbitrary number of `INPUT` adn `CHECK` directives may be supplied in a file, and an `INPUT` and
+Finally, an arbitrary number of `INPUT` and `CHECK` directives may be supplied in a file, and an `INPUT` and
 `INPUT_FILE` directive may not co-exist. 
 ```
 // This is a commnent.
