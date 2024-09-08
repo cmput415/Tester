@@ -66,7 +66,7 @@ private:
   void spawnThreads();
 
   // test running
-  void threadRunTestsForToolChain(std::string tcId, std::string exeName);
+  void threadRunTestsForToolChain(std::string tcId, std::string exeName, std::reference_wrapper<SubPackage> subpackage);
 
   // helper for formatting tester output 
   void printTestResult(const TestFile *test, TestResult result);

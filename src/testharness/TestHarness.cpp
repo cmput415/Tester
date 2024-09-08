@@ -47,18 +47,24 @@ void TestHarness::spawnThreads() {
   for (auto exePair : cfg.getExecutables()) {
     // Iterate over toolchains.
     for (auto& tcPair : cfg.getToolChains()) {
-      // If we have already spawned the maximum number of threads,
-      //  wait for the first one to finish before spawning another.
-      if (numThreads >= cfg.getNumThreads()) {
-        threadPool.back().join();
-        threadPool.pop_back();
-        numThreads--;
-      }
+      // iterate over packages
+      for (auto& package : testSet) { // TestSet.second -> Package
+        // iterate over subpackages
+        for (auto& subpackage : package.second) { // Package.second -> SubPackage
+          // If we have already spawned the maximum number of threads,
+          //  wait for the first one to finish before spawning another.
+          if (numThreads >= cfg.getNumThreads()) {
+            threadPool.back().join();
+            threadPool.pop_back();
+            numThreads--;
+          }
 
-      // spawn a new thread executing its tests
-      std::thread t(&TestHarness::threadRunTestsForToolChain, this, tcPair.first, exePair.first);
-      threadPool.push_back(std::move(t));
-      numThreads++;
+          // spawn a new thread executing its tests
+          std::thread t(&TestHarness::threadRunTestsForToolChain, this, tcPair.first, exePair.first, std::ref(subpackage.second));
+          threadPool.push_back(std::move(t));
+          numThreads++;
+        }
+      }
     }
   }
 
@@ -181,7 +187,8 @@ bool TestHarness::aggregateTestResultsForToolChain(std::string tcName, std::stri
   return failed;
 }
 
-void TestHarness::threadRunTestsForToolChain(std::string tcName, std::string exeName) {
+void TestHarness::threadRunTestsForToolChain(std::string tcName, std::string exeName, std::reference_wrapper<SubPackage> subPackage) {
+  std::cout << "Thread " << std::this_thread::get_id() << ": executing subpackage" << std::endl;
   ToolChain toolChain = cfg.getToolChain(tcName); // Get the toolchain to use.
   const fs::path& exe = cfg.getExecutablePath(exeName); // Set the toolchain's exe to be tested.
   toolChain.setTestedExecutable(exe);
@@ -192,22 +199,14 @@ void TestHarness::threadRunTestsForToolChain(std::string tcName, std::string exe
   else
     toolChain.setTestedRuntime("");
 
+  for (size_t i = 0; i < subPackage.get().size(); ++i) {
+    std::unique_ptr<TestFile>& test = subPackage.get().at(i).first;
+    if (test->getParseError() == ParseError::NoError) {
 
-  // Iterate over each package.
-  for (auto& [packageName, package] : testSet) {
-    // Iterate over each subpackage
-    for (auto& [subPackageName, subPackage] : package) {
-      // Iterate over each test in the package
-      for (size_t i = 0; i < subPackage.size(); ++i) {
-        std::unique_ptr<TestFile>& test = subPackage[i].first;
-        if (test->getParseError() == ParseError::NoError) {
-
-          TestResult result = runTest(test.get(), toolChain, cfg);
-          // keep the result with the test for pretty printing
-          std::optional<TestResult> res_clone = std::make_optional(result.clone());
-          subPackage[i].second.swap(res_clone);
-        }
-      }
+      TestResult result = runTest(test.get(), toolChain, cfg);
+      // keep the result with the test for pretty printing
+      std::optional<TestResult> res_clone = std::make_optional(result.clone());
+      subPackage.get().at(i).second.swap(res_clone);
     }
   }
 }
