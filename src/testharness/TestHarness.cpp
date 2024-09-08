@@ -20,16 +20,28 @@ void swap(TestResult& first, TestResult& second) {
 
 // Builds TestSet during object creation.
 bool TestHarness::runTests() {
-  bool failed = false;
+  std::vector<std::thread> threadPool;
+
+  // Initialize the threads
   // Iterate over executables.
   for (auto exePair : cfg.getExecutables()) {
     // Iterate over toolchains.
     for (auto& tcPair : cfg.getToolChains()) {
       std::thread t(&TestHarness::threadRunTestsForToolChain, this, tcPair.first, exePair.first);
+      threadPool.push_back(std::move(t));
+    }
+  }
+
+  bool failed = false;
+  // Iterate over executables.
+  for (auto exePair : cfg.getExecutables()) {
+    // Iterate over toolchains.
+    for (auto& tcPair : cfg.getToolChains()) {
       if (aggregateTestResultsForToolChain(tcPair.first, exePair.first) == 1)
         failed = true;
 
-      t.join();
+      threadPool.back().join();
+      threadPool.pop_back();
     }
   }
   return failed;
