@@ -63,7 +63,6 @@ private:
 
 private:
   // test running
-  bool runTestsForToolChain(std::string tcId, std::string exeName);
   void threadRunTestsForToolChain(std::string tcId, std::string exeName);
 
   // helper for formatting tester output 
