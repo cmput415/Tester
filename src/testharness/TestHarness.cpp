@@ -105,11 +105,6 @@ bool TestHarness::aggregateTestResultsForToolChain(std::string tcName, std::stri
   const fs::path& exe = cfg.getExecutablePath(exeName); // Set the toolchain's exe to be tested.
   toolChain.setTestedExecutable(exe);
 
-  if (cfg.hasRuntime(exeName)) // If we have a runtime, set that as well.
-    toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
-  else
-    toolChain.setTestedRuntime("");
-
   std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
   std::cout << "With toolchain: " << tcName << " -> " << toolChain.getBriefDescription() << '\n';
 
@@ -190,6 +185,13 @@ void TestHarness::threadRunTestsForToolChain(std::string tcName, std::string exe
   ToolChain toolChain = cfg.getToolChain(tcName); // Get the toolchain to use.
   const fs::path& exe = cfg.getExecutablePath(exeName); // Set the toolchain's exe to be tested.
   toolChain.setTestedExecutable(exe);
+
+  // set the runtime
+  if (cfg.hasRuntime(exeName)) // If we have a runtime, set that as well.
+    toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
+  else
+    toolChain.setTestedRuntime("");
+
 
   // Iterate over each package.
   for (auto& [packageName, package] : testSet) {
