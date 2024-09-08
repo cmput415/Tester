@@ -62,6 +62,9 @@ private:
   ResultManager results;
 
 private:
+  // thread control
+  void spawnThreads();
+
   // test running
   void threadRunTestsForToolChain(std::string tcId, std::string exeName);
 

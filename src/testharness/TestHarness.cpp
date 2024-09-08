@@ -20,17 +20,8 @@ void swap(TestResult& first, TestResult& second) {
 
 // Builds TestSet during object creation.
 bool TestHarness::runTests() {
-  std::vector<std::thread> threadPool;
-
-  // Initialize the threads
-  // Iterate over executables.
-  for (auto exePair : cfg.getExecutables()) {
-    // Iterate over toolchains.
-    for (auto& tcPair : cfg.getToolChains()) {
-      std::thread t(&TestHarness::threadRunTestsForToolChain, this, tcPair.first, exePair.first);
-      threadPool.push_back(std::move(t));
-    }
-  }
+  // initialize the threads
+  std::thread t(&TestHarness::spawnThreads, this);
 
   bool failed = false;
   // Iterate over executables.
@@ -39,12 +30,43 @@ bool TestHarness::runTests() {
     for (auto& tcPair : cfg.getToolChains()) {
       if (aggregateTestResultsForToolChain(tcPair.first, exePair.first) == 1)
         failed = true;
-
-      threadPool.back().join();
-      threadPool.pop_back();
     }
   }
+
+  // join the control thread
+  t.join();
   return failed;
+}
+
+void TestHarness::spawnThreads() {
+  int16_t numThreads = 0;
+  std::vector<std::thread> threadPool;
+
+  // Initialize the threads
+  // Iterate over executables.
+  for (auto exePair : cfg.getExecutables()) {
+    // Iterate over toolchains.
+    for (auto& tcPair : cfg.getToolChains()) {
+      // If we have already spawned the maximum number of threads,
+      //  wait for the first one to finish before spawning another.
+      if (numThreads >= cfg.getNumThreads()) {
+        threadPool.back().join();
+        threadPool.pop_back();
+        numThreads--;
+      }
+
+      // spawn a new thread executing its tests
+      std::thread t(&TestHarness::threadRunTestsForToolChain, this, tcPair.first, exePair.first);
+      threadPool.push_back(std::move(t));
+      numThreads++;
+    }
+  }
+
+  // Join any stragglers
+  assert(threadPool.size() <= cfg.getNumThreads());
+  for (size_t i = 0; i < threadPool.size(); i++) {
+    threadPool[i].join();
+  }
 }
 
 std::string TestHarness::getTestInfo() const {
@@ -157,6 +179,9 @@ bool TestHarness::aggregateTestResultsForToolChain(std::string tcName, std::stri
               << "  Error: " << Colors::YELLOW << test.first->getParseErrorMsg() << Colors::RESET << "\n";
   }
   std::cout << "\n";
+
+  std::cout << Colors::GREEN << "Completed Tests" << Colors::RESET << std::endl;
+  std::cout << "Hold on while we clean up any remaining threads, this might take a moment" << std::endl;
 
   return failed;
 }
