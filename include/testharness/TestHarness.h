@@ -5,6 +5,7 @@
 #include "config/Config.h"
 #include "testharness/ResultManager.h"
 #include "tests/TestParser.h"
+#include "tests/TestResult.h"
 #include "toolchain/ToolChain.h"
 
 #include <filesystem>
@@ -17,7 +18,8 @@ namespace fs = std::filesystem;
 namespace tester {
 
 // Test hierarchy types
-typedef std::vector<std::unique_ptr<TestFile>> SubPackage;
+typedef std::pair<std::unique_ptr<TestFile>, std::reference_wrapper<std::optional<TestResult>>> TestPair;
+typedef std::vector<TestPair> SubPackage;
 typedef std::map<std::string, SubPackage> Package;
 typedef std::map<std::string, Package> TestSet;
 
@@ -54,6 +56,9 @@ protected:
 
 private:
   // The results of the tests.
+  //  NOTE we keep both a result manager and
+  //  the result in the TestSet to ensure in-ordre
+  //  printing
   ResultManager results;
 
 private:

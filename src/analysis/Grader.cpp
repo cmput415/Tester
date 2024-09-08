@@ -125,7 +125,8 @@ void Grader::fillToolchainResultsJSON() {
         // attacker, tracking pass count.
         size_t passCount = 0, testCount = 0;
         for (const auto& subpackages : testSet[attacker]) {
-          for (const std::unique_ptr<TestFile>& test : subpackages.second) {
+          for (const TestPair& testpair : subpackages.second) {
+            const std::unique_ptr<TestFile>& test = testpair.first;
 
             TestResult result = runTest(test.get(), tc, cfg);
             

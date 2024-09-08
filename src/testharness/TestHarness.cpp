@@ -6,6 +6,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <utility>
 
@@ -83,7 +84,7 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
 
       // Iterate over each test in the package
       for (size_t i = 0; i < subPackage.size(); ++i) {
-        std::unique_ptr<TestFile>& test = subPackage[i];
+        std::unique_ptr<TestFile>& test = subPackage[i].first;
         if (test->getParseError() == ParseError::NoError) {
         
           TestResult result = runTest(test.get(), toolChain, cfg);
@@ -119,8 +120,8 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
             << "\n";
 
   for (auto& test : invalidTests) {
-    std::cout << "  Skipped: " << test->getTestPath().filename().stem() << std::endl
-              << "  Error: " << Colors::YELLOW << test->getParseErrorMsg() << Colors::RESET << "\n";
+    std::cout << "  Skipped: " << test.first->getTestPath().filename().stem() << std::endl
+              << "  Error: " << Colors::YELLOW << test.first->getParseErrorMsg() << Colors::RESET << "\n";
   }
   std::cout << "\n";
 
@@ -150,10 +151,11 @@ void TestHarness::addTestFileToSubPackage(SubPackage& subPackage, const fs::path
 
   TestParser parser(testfile.get());
 
+  std::optional<TestResult> no_result = std::nullopt;
   if (testfile->didError()) {
-    invalidTests.push_back(std::move(testfile));
-  } else {
-    subPackage.push_back(std::move(testfile));
+    invalidTests.push_back({std::move(testfile), no_result});
+  }else {
+    subPackage.push_back({std::move(testfile), no_result});
   }
 }
 
