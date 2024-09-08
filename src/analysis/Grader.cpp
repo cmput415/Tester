@@ -128,9 +128,14 @@ void Grader::fillToolchainResultsJSON() {
         for (const auto& subpackages : testSet[attacker]) {
           for (const TestPair& testpair : subpackages.second) {
             const std::unique_ptr<TestFile>& test = testpair.first;
+            // Poll while we wait for the result
+            // TODO this could probably be replaced with some sort of interrupt,
+            //  (and probably should be), but better this than no threads
+            while (!testpair.second.has_value())
+              std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-            TestResult result = runTest(test.get(), tc, cfg);
-            
+            TestResult result = testpair.second.value();
+
             if (!result.pass && defender == solutionExecutable) {
               if ( attacker == solutionExecutable ) {
                 // A testcase just failed the solution executable
