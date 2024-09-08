@@ -4,10 +4,12 @@
 #include "tests/TestRunning.h"
 #include "util.h"
 
+#include <chrono>
 #include <filesystem>
 #include <iostream>
 #include <optional>
 #include <sstream>
+#include <thread>
 #include <utility>
 
 namespace tester {
@@ -23,8 +25,11 @@ bool TestHarness::runTests() {
   for (auto exePair : cfg.getExecutables()) {
     // Iterate over toolchains.
     for (auto& tcPair : cfg.getToolChains()) {
-      if (runTestsForToolChain(exePair.first, tcPair.first) == 1)
+      std::thread t(&TestHarness::threadRunTestsForToolChain, this, tcPair.first, exePair.first);
+      if (aggregateTestResultsForToolChain(tcPair.first, exePair.first) == 1)
         failed = true;
+
+      t.join();
     }
   }
   return failed;
@@ -57,6 +62,115 @@ void TestHarness::printTestResult(const TestFile *test, TestResult result) {
     }
   }
   std::cout << "\n";
+}
+
+bool TestHarness::aggregateTestResultsForToolChain(std::string tcName, std::string exeName) {
+  bool failed = false;
+
+  ToolChain toolChain = cfg.getToolChain(tcName); // Get the toolchain to use.
+  const fs::path& exe = cfg.getExecutablePath(exeName); // Set the toolchain's exe to be tested.
+  toolChain.setTestedExecutable(exe);
+
+  if (cfg.hasRuntime(exeName)) // If we have a runtime, set that as well.
+    toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
+  else
+    toolChain.setTestedRuntime("");
+
+  std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
+  std::cout << "With toolchain: " << tcName << " -> " << toolChain.getBriefDescription() << '\n';
+
+  unsigned int toolChainCount = 0, toolChainPasses = 0; // Stat tracking for toolchain tests.
+
+  // Iterate over each package.
+  for (auto& [packageName, package] : testSet) {
+    std::cout << "Entering package: " << packageName << '\n';
+    unsigned int packageCount = 0, packagePasses = 0;
+
+    // Iterate over each subpackage
+    for (auto& [subPackageName, subPackage] : package) {
+      std::cout << "  Entering subpackage: " << subPackageName << '\n';
+      unsigned int subPackagePasses = 0, subPackageSize = subPackage.size();
+
+      // Iterate over each test in the package
+      for (size_t i = 0; i < subPackage.size(); ++i) {
+        TestPair& pair = subPackage[i];
+        std::unique_ptr<TestFile>& test = pair.first;
+        if (test->getParseError() == ParseError::NoError) {
+
+          // Poll while we wait for the result
+          // TODO this could probably be replaced with some sort of interrupt,
+          //  (and probably should be), but better this than no threads
+          while (!pair.second.has_value())
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+          TestResult result = pair.second.value();
+
+          // keep the result with the test for pretty printing
+          std::optional<TestResult> res_clone = std::make_optional(result.clone());
+          subPackage[i].second.swap(res_clone);
+
+          results.addResult(exeName, tcName, subPackageName, result);
+          printTestResult(test.get(), result);
+
+          if (result.pass) {
+            ++packagePasses;
+            ++subPackagePasses;
+          } else {
+            failed = true;
+          }
+        } else {
+          std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET) << " "
+                    << test->getTestPath().stem().string() << '\n';
+          --subPackageSize;
+        }
+      }
+      std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackageSize << '\n';
+      // Track how many tests we run.
+      packageCount += subPackageSize;
+    }
+
+    // Update the toolchain stats from the package stats.
+    toolChainPasses += packagePasses;
+    toolChainCount += packageCount;
+
+    std::cout << " Package passed " << packagePasses << " / " << packageCount << '\n';
+  }
+
+  std::cout << "Toolchain passed " << toolChainPasses << " / " << toolChainCount << "\n\n";
+  std::cout << "Invalid " << invalidTests.size() << " / " << toolChainCount + invalidTests.size()
+            << "\n";
+
+  for (auto& test : invalidTests) {
+    std::cout << "  Skipped: " << test.first->getTestPath().filename().stem() << std::endl
+              << "  Error: " << Colors::YELLOW << test.first->getParseErrorMsg() << Colors::RESET << "\n";
+  }
+  std::cout << "\n";
+
+  return failed;
+}
+
+void TestHarness::threadRunTestsForToolChain(std::string tcName, std::string exeName) {
+  ToolChain toolChain = cfg.getToolChain(tcName); // Get the toolchain to use.
+  const fs::path& exe = cfg.getExecutablePath(exeName); // Set the toolchain's exe to be tested.
+  toolChain.setTestedExecutable(exe);
+
+  // Iterate over each package.
+  for (auto& [packageName, package] : testSet) {
+    // Iterate over each subpackage
+    for (auto& [subPackageName, subPackage] : package) {
+      // Iterate over each test in the package
+      for (size_t i = 0; i < subPackage.size(); ++i) {
+        std::unique_ptr<TestFile>& test = subPackage[i].first;
+        if (test->getParseError() == ParseError::NoError) {
+
+          TestResult result = runTest(test.get(), toolChain, cfg);
+          // keep the result with the test for pretty printing
+          std::optional<TestResult> res_clone = std::make_optional(result.clone());
+          subPackage[i].second.swap(res_clone);
+        }
+      }
+    }
+  }
 }
 
 bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
