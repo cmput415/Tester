@@ -12,6 +12,10 @@
 
 namespace tester {
 
+void swap(TestResult& first, TestResult& second) {
+  std::swap(first, second);
+}
+
 // Builds TestSet during object creation.
 bool TestHarness::runTests() {
   bool failed = false;
@@ -88,6 +92,10 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
         if (test->getParseError() == ParseError::NoError) {
         
           TestResult result = runTest(test.get(), toolChain, cfg);
+          // keep the result with the test for pretty printing
+          std::optional<TestResult> res_clone = std::make_optional(result.clone());
+          subPackage[i].second.swap(res_clone);
+
           results.addResult(exeName, tcName, subPackageName, result);
           printTestResult(test.get(), result); 
 

@@ -18,7 +18,7 @@ namespace fs = std::filesystem;
 namespace tester {
 
 // Test hierarchy types
-typedef std::pair<std::unique_ptr<TestFile>, std::reference_wrapper<std::optional<TestResult>>> TestPair;
+typedef std::pair<std::unique_ptr<TestFile>, std::optional<TestResult>> TestPair;
 typedef std::vector<TestPair> SubPackage;
 typedef std::map<std::string, SubPackage> Package;
 typedef std::map<std::string, Package> TestSet;
