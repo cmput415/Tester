@@ -1,6 +1,7 @@
 #include "config/Config.h"
 
 #include "util.h"
+#include "Colors.h"
 
 #include "CLI11.hpp"
 
@@ -8,12 +9,15 @@
 
 #include <iostream>
 
+#define WARN(msg) \
+  std::cout << Colors::YELLOW << "WARNING: " << Colors::RESET << msg << std::endl;
+
 // Convenience.
 using JSON = nlohmann::json;
 
 namespace tester {
 
-Config::Config(int argc, char** argv) : timeout(2l) {
+Config::Config(int argc, char** argv) : strict(false), timeout(2l), numThreads(1), batchSize(5) {
 
   CLI::App app{"CMPUT 415 testing utility"};
 
@@ -33,6 +37,11 @@ Config::Config(int argc, char** argv) : timeout(2l) {
   app.add_flag("-t,--time", time, "Include the timings (seconds) of each test in the output.");
   app.add_flag_function("-v", [&](size_t count) { verbosity = static_cast<int>(count); },
                         "Increase verbosity level");
+
+  // multithreading options
+  app.add_option("-j", numThreads, "The number of threads on which to execute tests.");
+  app.add_flag("--strict", strict, "Set to strict timing mode.");
+  app.add_option("--batch-size", batchSize, "(ADVANCED) the number of tests for each thread to grab on each round of selection.");
   
   // Enforce that if a grade path is supplied, then a log file should be as well and vice versa
   gradeOpt->needs(solutionFailureLogOpt);
@@ -106,6 +115,12 @@ Config::Config(int argc, char** argv) : timeout(2l) {
   for (auto it = tcJson.begin(); it != tcJson.end(); ++it) {
     toolchains.emplace(std::make_pair(it.key(), ToolChain(it.value(), timeout)));
   }
+
+  if (numThreads < 1)
+    throw std::runtime_error("Cannot execute on less than one thread.");
+
+  if (numThreads > std::thread::hardware_concurrency())
+    WARN("More threads than hardware supported concurrent threads, performance may suffer");
 }
 
 } // namespace tester
