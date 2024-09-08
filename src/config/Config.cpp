@@ -17,7 +17,7 @@ using JSON = nlohmann::json;
 
 namespace tester {
 
-Config::Config(int argc, char** argv) : strict(false), timeout(2l), numThreads(1), batchSize(5) {
+Config::Config(int argc, char** argv) : timeout(2l), numThreads(1) {
 
   CLI::App app{"CMPUT 415 testing utility"};
 
@@ -40,9 +40,7 @@ Config::Config(int argc, char** argv) : strict(false), timeout(2l), numThreads(1
 
   // multithreading options
   app.add_option("-j", numThreads, "The number of threads on which to execute tests.");
-  app.add_flag("--strict", strict, "Set to strict timing mode.");
-  app.add_option("--batch-size", batchSize, "(ADVANCED) the number of tests for each thread to grab on each round of selection.");
-  
+
   // Enforce that if a grade path is supplied, then a log file should be as well and vice versa
   gradeOpt->needs(solutionFailureLogOpt);
   solutionFailureLogOpt->needs(gradeOpt);
