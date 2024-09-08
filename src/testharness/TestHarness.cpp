@@ -63,7 +63,7 @@ void TestHarness::spawnThreads() {
   }
 
   // Join any stragglers
-  assert(threadPool.size() <= cfg.getNumThreads());
+  assert(threadPool.size() <= (size_t) cfg.getNumThreads());
   for (size_t i = 0; i < threadPool.size(); i++) {
     threadPool[i].join();
   }
