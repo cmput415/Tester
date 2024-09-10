@@ -120,7 +120,7 @@ Note `mips` has since been depreciated for `riscv` as a backend.
 
 
 ### Testfile
-In a testfile, an input stream and expected output may be supplied within the file inside comments.
+In a testfile an input stream and expected output may be supplied within the file inside comments.
 All directives are sensitive to whitespace and do not insert newlines between themselves by default. For example, `INPUT: a a a` is equivalent to a file with three whitespace characters, three `'a'` characters and no newline for a total of `6 bytes`.  
 
  * `INPUT:` Direct a single line of text to `stdin`. Not newline terminated.
