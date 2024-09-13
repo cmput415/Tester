@@ -7,6 +7,7 @@
 #include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <thread>
@@ -39,8 +40,13 @@ bool TestHarness::runTests() {
 }
 
 void TestHarness::spawnThreads() {
-  int16_t numThreads = 0;
   std::vector<std::thread> threadPool;
+  std::vector<std::reference_wrapper<TestPair>> flattenedList;
+  std::vector<std::string> exeList;
+  std::vector<std::string> tcList;
+
+  static size_t currentIndex = 0;
+  std::mutex currentIndexLock;
 
   // Initialize the threads
   // Iterate over executables.
@@ -51,27 +57,89 @@ void TestHarness::spawnThreads() {
       for (auto& package : testSet) { // TestSet.second -> Package
         // iterate over subpackages
         for (auto& subpackage : package.second) { // Package.second -> SubPackage
-          // If we have already spawned the maximum number of threads,
-          //  wait for the first one to finish before spawning another.
-          if (numThreads >= cfg.getNumThreads()) {
-            threadPool.back().join();
-            threadPool.pop_back();
-            numThreads--;
+          // populate the flattened test vector
+          for (auto& test : subpackage.second) {
+            flattenedList.push_back(std::ref(test));
+            exeList.push_back(exePair.first);
+            tcList.push_back(tcPair.first);
           }
-
-          // spawn a new thread executing its tests
-          std::thread t(&TestHarness::threadRunTestsForToolChain, this, tcPair.first, exePair.first, std::ref(subpackage.second));
-          threadPool.push_back(std::move(t));
-          numThreads++;
         }
       }
     }
   }
 
-  // Join any stragglers
-  assert(threadPool.size() <= (size_t) cfg.getNumThreads());
-  for (size_t i = 0; i < threadPool.size(); i++) {
-    threadPool[i].join();
+  // Let the load balancing be the responsability of the threads, instead of the supervisor
+  for (int64_t i = 0; i < cfg.getNumThreads(); i++) {
+    std::thread t(&TestHarness::threadRunTestBatch, this,
+                  std::ref(tcList),
+                  std::ref(exeList),
+                  std::ref(flattenedList),
+                  std::ref(currentIndex),
+                  std::ref(currentIndexLock));
+    threadPool.push_back(std::move(t));
+  }
+
+  // KILL ALL THE CHILDREN
+  for (auto& thread : threadPool) thread.join();
+}
+
+void TestHarness::threadRunTestBatch(std::reference_wrapper<std::vector<std::string>> toolchains,
+                        std::reference_wrapper<std::vector<std::string>> executables,
+                        std::reference_wrapper<std::vector<std::reference_wrapper<TestPair>>> tests,
+                        std::reference_wrapper<size_t> currentIndex,
+                        std::reference_wrapper<std::mutex> currentIndexLock)
+{
+  // Loop while we have not exhausted the available tests
+  while (currentIndex < tests.get().size()) {
+    std::cout << "Entering loop" << std::endl;
+    size_t tmpIndex;
+
+    {
+      // Lock the index
+      std::lock_guard<std::mutex> lock(currentIndexLock);
+      std::cout << "Mutex Locked" << std::endl;
+
+      // store the current index
+      tmpIndex = currentIndex;
+      // increment for the next lad
+      currentIndex += cfg.getBatchSize();
+    }
+    std::cout << "Mutex Unlocked" << std::endl;
+    std::cout << "Current index: " << currentIndex << " || Tests size: " << tests.get().size() << std::endl;
+
+    size_t endIndex = ((tmpIndex + cfg.getBatchSize()) >= tests.get().size()) ?  tests.get().size() : tmpIndex + cfg.getBatchSize();
+
+    std::cout << "Thread " << std::this_thread::get_id() << ": Executing tests [" << tmpIndex << ", " << endIndex << "]" << std::endl;
+
+    threadRunTestsForToolChain(std::ref(toolchains), std::ref(executables), std::ref(tests), tmpIndex, endIndex);
+  }
+}
+
+void TestHarness::threadRunTestsForToolChain(std::reference_wrapper<std::vector<std::string>> tcNames,
+                                             std::reference_wrapper<std::vector<std::string>> exeNames,
+                                             std::reference_wrapper<std::vector<std::reference_wrapper<TestPair>>> tests,
+                                             size_t begin, size_t end)
+{
+  for (size_t i = begin; i < end; i++) {
+    std::cout << "Executing test #" << i << ": " << tests.get().at(i).get().first->getInsPath() << std::endl;
+    ToolChain toolChain = cfg.getToolChain(tcNames.get().at(i)); // Get the toolchain to use.
+    const fs::path& exe = cfg.getExecutablePath(exeNames.get().at(i)); // Set the toolchain's exe to be tested.
+    toolChain.setTestedExecutable(exe);
+
+    // set the runtime
+    if (cfg.hasRuntime(exeNames.get().at(i))) // If we have a runtime, set that as well.
+      toolChain.setTestedRuntime(cfg.getRuntimePath(exeNames.get().at(i)));
+    else
+      toolChain.setTestedRuntime("");
+
+    std::unique_ptr<TestFile>& test = tests.get().at(i).get().first;
+    if (test->getParseError() == ParseError::NoError) {
+
+      TestResult result = runTest(test.get(), toolChain, cfg);
+      // keep the result with the test for pretty printing
+      std::optional<TestResult> res_clone = std::make_optional(result.clone());
+      tests.get().at(i).get().second.swap(res_clone);
+    }
   }
 }
 
@@ -185,30 +253,6 @@ bool TestHarness::aggregateTestResultsForToolChain(std::string tcName, std::stri
   std::cout << "Hold on while we clean up any remaining threads, this might take a moment" << std::endl;
 
   return failed;
-}
-
-void TestHarness::threadRunTestsForToolChain(std::string tcName, std::string exeName, std::reference_wrapper<SubPackage> subPackage) {
-  std::cout << "Thread " << std::this_thread::get_id() << ": executing subpackage" << std::endl;
-  ToolChain toolChain = cfg.getToolChain(tcName); // Get the toolchain to use.
-  const fs::path& exe = cfg.getExecutablePath(exeName); // Set the toolchain's exe to be tested.
-  toolChain.setTestedExecutable(exe);
-
-  // set the runtime
-  if (cfg.hasRuntime(exeName)) // If we have a runtime, set that as well.
-    toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
-  else
-    toolChain.setTestedRuntime("");
-
-  for (size_t i = 0; i < subPackage.get().size(); ++i) {
-    std::unique_ptr<TestFile>& test = subPackage.get().at(i).first;
-    if (test->getParseError() == ParseError::NoError) {
-
-      TestResult result = runTest(test.get(), toolChain, cfg);
-      // keep the result with the test for pretty printing
-      std::optional<TestResult> res_clone = std::make_optional(result.clone());
-      subPackage.get().at(i).second.swap(res_clone);
-    }
-  }
 }
 
 bool isTestFile(const fs::path& path) {

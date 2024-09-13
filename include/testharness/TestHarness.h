@@ -51,6 +51,7 @@ protected:
   // A separate subpackage, just for invalid tests.
   SubPackage invalidTests;
 
+protected:
   // let derived classes find tests.
   void findTests();
 
@@ -66,7 +67,13 @@ private:
   void spawnThreads();
 
   // test running
-  void threadRunTestsForToolChain(std::string tcId, std::string exeName, std::reference_wrapper<SubPackage> subpackage);
+  void threadRunTestBatch(std::reference_wrapper<std::vector<std::string>> toolchains,
+                          std::reference_wrapper<std::vector<std::string>> executables,
+                          std::reference_wrapper<std::vector<std::reference_wrapper<TestPair>>> tests,
+                          std::reference_wrapper<size_t> currentIndex, std::reference_wrapper<std::mutex> lock);
+  void threadRunTestsForToolChain(std::reference_wrapper<std::vector<std::string>> tcIds,
+                                  std::reference_wrapper<std::vector<std::string>> exeNames,
+                                  std::reference_wrapper<std::vector<std::reference_wrapper<TestPair>>> tests, size_t begin, size_t end);
 
   // helper for formatting tester output 
   void printTestResult(const TestFile *test, TestResult result);
