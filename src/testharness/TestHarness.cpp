@@ -91,25 +91,18 @@ void TestHarness::threadRunTestBatch(std::reference_wrapper<std::vector<std::str
 {
   // Loop while we have not exhausted the available tests
   while (currentIndex < tests.get().size()) {
-    std::cout << "Entering loop" << std::endl;
     size_t tmpIndex;
 
     {
       // Lock the index
       std::lock_guard<std::mutex> lock(currentIndexLock);
-      std::cout << "Mutex Locked" << std::endl;
 
       // store the current index
       tmpIndex = currentIndex;
       // increment for the next lad
       currentIndex += cfg.getBatchSize();
     }
-    std::cout << "Mutex Unlocked" << std::endl;
-    std::cout << "Current index: " << currentIndex << " || Tests size: " << tests.get().size() << std::endl;
-
     size_t endIndex = ((tmpIndex + cfg.getBatchSize()) >= tests.get().size()) ?  tests.get().size() : tmpIndex + cfg.getBatchSize();
-
-    std::cout << "Thread " << std::this_thread::get_id() << ": Executing tests [" << tmpIndex << ", " << endIndex << "]" << std::endl;
 
     threadRunTestsForToolChain(std::ref(toolchains), std::ref(executables), std::ref(tests), tmpIndex, endIndex);
   }
@@ -121,7 +114,6 @@ void TestHarness::threadRunTestsForToolChain(std::reference_wrapper<std::vector<
                                              size_t begin, size_t end)
 {
   for (size_t i = begin; i < end; i++) {
-    std::cout << "Executing test #" << i << ": " << tests.get().at(i).get().first->getInsPath() << std::endl;
     ToolChain toolChain = cfg.getToolChain(tcNames.get().at(i)); // Get the toolchain to use.
     const fs::path& exe = cfg.getExecutablePath(exeNames.get().at(i)); // Set the toolchain's exe to be tested.
     toolChain.setTestedExecutable(exe);
