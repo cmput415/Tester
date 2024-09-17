@@ -17,22 +17,48 @@ uint64_t TestFile::nextId = 0;
 TestFile::TestFile(const fs::path& path, const fs::path& tmpPath)
   : testPath(path) {
 
-  setInsPath(tmpPath / std::to_string(nextId) / "test.ins");
-  setOutPath(tmpPath / std::to_string(nextId) / "test.ins");
-  
-  std::cout << "Use tmp path: " << tmpPath << std::endl; 
-  std::cout << "Out path: " << outPath << std::endl; 
-  std::cout << "In path: " << insPath << std::endl; 
+  fs::path testDir = tmpPath / std::to_string(nextId);
+  setInsPath(testDir / "test.ins");
+  setOutPath(testDir / "test.out");
 
+  try {
+    // Create tmp directory if it doesn't exist
+    std::cout << "Attempting to create directory: " << testDir << std::endl;
+    if (!fs::exists(testDir)) {
+      if (!fs::create_directories(testDir)) {
+        throw std::runtime_error("Failed to create directory: " + testDir.string());
+      }
+    }
+    // Create the temporary input and ouput files
+    std::ofstream createInsFile(insPath);
+    std::ofstream createOutFile(outPath);
+    if (!createInsFile) {
+      throw std::runtime_error("Failed to create input file: " + insPath.string());
+    }
+    if (!createOutFile) {
+      throw std::runtime_error("Failed to create output file: " + outPath.string());
+    }
+    createInsFile.close();
+    createOutFile.close();
+
+  } catch (const fs::filesystem_error& e) {
+    throw std::runtime_error("Filesystem error: " + std::string(e.what()));
+  } catch (const std::exception& e) {
+    throw std::runtime_error("Error in TestFile constructor: " + std::string(e.what()));
+  }
   nextId++;
 }
 
 TestFile::~TestFile() {
   if (fs::exists(insPath)) {
+    // Remove temporary input stream file 
     fs::remove(insPath);
   }
   if (fs::exists(outPath)) {
+    // Remove the tenmporary testfile directory and the expected out
+    fs::path testfileDir = outPath.parent_path(); 
     fs::remove(outPath);
+    fs::remove(testfileDir);
   }
 }
 
