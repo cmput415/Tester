@@ -146,7 +146,7 @@ bool hasTestFiles(const fs::path& path) {
 }
 
 void TestHarness::addTestFileToSubPackage(SubPackage& subPackage, const fs::path& file) {
-  auto testfile = std::make_unique<TestFile>(file);
+  auto testfile = std::make_unique<TestFile>(file, tmpPath);
 
   TestParser parser(testfile.get());
 

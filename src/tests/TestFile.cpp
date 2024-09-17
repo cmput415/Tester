@@ -14,27 +14,24 @@ namespace tester {
 
 uint64_t TestFile::nextId = 0;
 
-TestFile::TestFile(const fs::path& path) : id(++nextId), testPath(path) {
+TestFile::TestFile(const fs::path& path, const fs::path& tmpPath)
+  : testPath(path) {
 
-  // create a unique temporary file to use as the inputs stream path
-  std::string fileInsPath = stripFileExtension(testPath.filename());
-  insPath = fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".ins");
-  outPath = fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".out");
+  setInsPath(tmpPath / std::to_string(nextId) / "test.ins");
+  setOutPath(tmpPath / std::to_string(nextId) / "test.ins");
+  
+  std::cout << "Use tmp path: " << tmpPath << std::endl; 
+  std::cout << "Out path: " << outPath << std::endl; 
+  std::cout << "In path: " << insPath << std::endl; 
 
-  std::ofstream makeInsFile(insPath);
-  std::ofstream makeOutFile(outPath);
-
-  // closing creates the files
-  makeInsFile.close();
-  makeOutFile.close();
+  nextId++;
 }
 
 TestFile::~TestFile() {
-  // clean up allocated resources on Testfile de-allocation
-  if (usesInputStream && !usesInputFile) {
+  if (fs::exists(insPath)) {
     fs::remove(insPath);
   }
-  if (usesOutStream && !usesOutFile) {
+  if (fs::exists(outPath)) {
     fs::remove(outPath);
   }
 }

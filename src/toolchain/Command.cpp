@@ -80,7 +80,7 @@ void becomeCommand(const std::string& exe,
   int outFileStatus = redirectStdStream(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDOUT_FILENO);
   int errorFileStatus = redirectStdStream(error.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDERR_FILENO);
   int inFileStatus = !input.empty() ? redirectStdStream(input.c_str(), O_RDONLY, 0, STDIN_FILENO) : 0;
-
+  
   // If opening any of the supplied output, input, or error files failed, raise here.
   if (outFileStatus == -1 || errorFileStatus == -1 || inFileStatus == -1) {
       perror("dup2");
@@ -106,6 +106,10 @@ void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
                 const std::string& error,
                 const std::string& runtime) {
 
+
+  std::cerr << "Made out file: " << input << std::endl;
+  std::cerr << "Made error file: " << output << std::endl;
+  
   pid_t childId = fork();
 
   // We're the child process, we want to replace our process image with the

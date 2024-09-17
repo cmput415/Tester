@@ -61,14 +61,10 @@ ParseError TestParser::matchInputDirective(std::string& line) {
 
   size_t findIdx = line.find(Directive::INPUT);
   std::string inputLine = line.substr(findIdx + Directive::INPUT.length());
-
-  try {
-    insLineToFile(testfile->getInsPath(), inputLine, !foundInput);
-  } catch (...) {
-    return ParseError::FileError;
-  }
-
+  
+  insLineToFile(testfile->getInsPath(), inputLine, foundInput);
   foundInput = true;
+  
   return ParseError::NoError;
 }
 
@@ -85,14 +81,10 @@ ParseError TestParser::matchCheckDirective(std::string& line) {
 
   size_t findIdx = line.find(Directive::CHECK);
   std::string checkLine = line.substr(findIdx + Directive::CHECK.length());
-
-  try {
-    insLineToFile(testfile->getOutPath(), checkLine, !foundCheck);
-  } catch (...) {
-    return ParseError::FileError;
-  }
-
+  
+  insLineToFile(testfile->getOutPath(), checkLine, foundCheck);
   foundCheck = true;
+  
   return ParseError::NoError;
 }
 
@@ -107,13 +99,31 @@ ParseError TestParser::matchInputFileDirective(std::string& line) {
   if (foundInput)
     return ParseError::DirectiveConflict;
 
-  PathOrError pathOrError = parsePathFromLine(line, Directive::INPUT_FILE);
-  if (std::holds_alternative<fs::path>(pathOrError)) {
-    testfile->setInsPath(std::get<fs::path>(pathOrError));
+  PathOrError inputFilePath = parsePathFromLine(line, Directive::INPUT_FILE);
+  if (std::holds_alternative<fs::path>(inputFilePath)) {
+
+    // Extract the path from the variant
+    std::filesystem::path path = std::get<fs::path>(inputFilePath);
+
+    // Open the supplied check file and read into 
+    std::ifstream sourceFile(path, std::ios::binary); 
+    std::ofstream destFile(testfile->getInsPath(), std::ios::binary);
+    if (!destFile) {
+      return ParseError::FileError;
+    } else if (!sourceFile) {
+      return ParseError::FileError;
+    }
+
+    destFile << sourceFile.rdbuf();
+
+    if (sourceFile.fail() || destFile.fail()) {
+      return ParseError::FileError;
+    }
+
     foundInputFile = true;
     return ParseError::NoError;
   }
-  return std::get<ParseError>(pathOrError);
+  return std::get<ParseError>(inputFilePath);
 }
 
 /**
@@ -163,7 +173,7 @@ ParseError TestParser::matchDirectives(std::string& line) {
  * contained with in a comment. Use comment state in class instance to track.
  */
 void TestParser::trackCommentState(std::string& line) {
-std::string result;
+  std::string result;
   inLineComment = false; // reset line comment
 
   for (unsigned int i = 0; i < line.length(); i++) {
@@ -217,18 +227,12 @@ void TestParser::parse() {
     if (!line.empty()) {
       ParseError error = matchDirectives(line);
       if (error != ParseError::NoError) {
-        testfile->getParseError(error);
+        testfile->setParseError(error);
         testfile->setParseErrorMsg("Generic Error");
         break;
       }
     }
   }
-
-  // Set final flags to update test state
-  testfile->usesInputStream = (foundInput || foundInputFile);
-  testfile->usesInputFile = (foundInputFile);
-  testfile->usesOutStream = (foundCheck || foundCheckFile);
-  testfile->usesOutFile = foundCheckFile;
 
   testFileStream.close();
 }

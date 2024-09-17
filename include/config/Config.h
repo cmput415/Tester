@@ -28,6 +28,9 @@ public:
   const std::optional<fs::path>& getDebugPath() const { return debugPackage; }
   const std::optional<fs::path>& getFailureLogPath() const { return failureLogPath; };
 
+  // Return the path which the JSON config lives in
+  const fs::path&getConfigDirPath() const { return configDirPath; }
+
   // Non optional config variables 
   const fs::path&getTestDirPath() const { return testDirPath; }
 
@@ -64,7 +67,7 @@ private:
   std::optional<fs::path> failureLogPath;
   std::optional<fs::path> debugPackage;
 
-  fs::path testDirPath;
+  fs::path testDirPath, configDirPath;
 
   // Option file maps.
   PathMap executables;
