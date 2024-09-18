@@ -1,6 +1,8 @@
 #include "tests/TestFile.h"
 #include "tests/TestParser.h"
 
+static uint64_t nextId = 0;
+
 namespace {
 
 std::string stripFileExtension(const std::string& str) {
@@ -12,53 +14,42 @@ std::string stripFileExtension(const std::string& str) {
 
 namespace tester {
 
-uint64_t TestFile::nextId = 0;
+// Initialize the static id to zero
+std::atomic<uint64_t> TestFile::nextId(0);
 
-TestFile::TestFile(const fs::path& path, const fs::path& tmpPath)
-  : testPath(path) {
+uint64_t TestFile::generateId() {
+    return nextId.fetch_add(1, std::memory_order_relaxed);
+}
 
-  fs::path testDir = tmpPath / std::to_string(nextId);
-  setInsPath(testDir / "test.ins");
-  setOutPath(testDir / "test.out");
+TestFile::TestFile(const fs::path& path, const fs::path& artifactDir)
+    : id(generateId()), testPath(path) {
+
+  std::string testName = path.stem();
+  setInsPath(artifactDir / fs::path(testName + std::to_string(id) + ".ins"));
+  setOutPath(artifactDir / fs::path(testName + std::to_string(id) + ".out"));
 
   try {
     // Create tmp directory if it doesn't exist
-    std::cout << "Attempting to create directory: " << testDir << std::endl;
-    if (!fs::exists(testDir)) {
-      if (!fs::create_directories(testDir)) {
-        throw std::runtime_error("Failed to create directory: " + testDir.string());
+    if (!fs::exists(artifactDir)) {
+      if (!fs::create_directories(artifactDir)) {
+        throw std::runtime_error("Failed to create directory: " + artifactDir.string());
       }
     }
-    // Create the temporary input and ouput files
-    std::ofstream createInsFile(insPath);
-    std::ofstream createOutFile(outPath);
-    if (!createInsFile) {
-      throw std::runtime_error("Failed to create input file: " + insPath.string());
-    }
-    if (!createOutFile) {
-      throw std::runtime_error("Failed to create output file: " + outPath.string());
-    }
-    createInsFile.close();
-    createOutFile.close();
-
   } catch (const fs::filesystem_error& e) {
     throw std::runtime_error("Filesystem error: " + std::string(e.what()));
-  } catch (const std::exception& e) {
-    throw std::runtime_error("Error in TestFile constructor: " + std::string(e.what()));
-  }
-  nextId++;
+  } 
 }
 
 TestFile::~TestFile() {
+
+  std::cout << "Calling Destructor...\n";
   if (fs::exists(insPath)) {
     // Remove temporary input stream file 
     fs::remove(insPath);
   }
   if (fs::exists(outPath)) {
     // Remove the tenmporary testfile directory and the expected out
-    fs::path testfileDir = outPath.parent_path(); 
     fs::remove(outPath);
-    fs::remove(testfileDir);
   }
 }
 

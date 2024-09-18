@@ -193,7 +193,6 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
 
   const fs::path testPath = test->getTestPath();
   const fs::path expOutPath = test->getOutPath();
-  const fs::path insPath = test->getInsPath(); 
   fs::path genOutPath;
   std::string genErrorString, expErrorString, diffString;
   

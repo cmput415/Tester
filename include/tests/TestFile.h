@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <atomic>
 
 namespace fs = std::filesystem;
 
@@ -27,10 +28,10 @@ class TestFile {
 public:
   TestFile() = delete;
   // construct Testfile from path to .test file.
-  TestFile(const fs::path& path, const fs::path& tmpPath);
+  TestFile(const fs::path& path, const fs::path& artifactDir);
   ~TestFile();
 
-  uint64_t id;
+  uint64_t getId() const { return id; }
 
   // Test path getters
   const fs::path& getTestPath() const { return testPath; }
@@ -54,10 +55,14 @@ public:
 
   friend class TestParser;
 
+private:
+ static uint64_t generateId(); 
+
 protected:
-  static uint64_t nextId;
+  static std::atomic<uint64_t> nextId;
 
 private:
+  uint64_t id;
   // Path for the test, ins and out files 
   fs::path testPath;
   fs::path outPath;

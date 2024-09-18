@@ -14,6 +14,26 @@ bool fullyContains(const std::string& str, const std::string& substr) {
   return str.substr(pos, substr.length()) == substr;
 }
 
+ParseError copyFile(const fs::path& from, const fs::path& to) {
+
+  // Open the files to operate upon 
+  std::ifstream sourceFile(from, std::ios::binary); 
+  std::ofstream destFile(to, std::ios::binary);
+
+  // Check for errors opening 
+  if (!destFile || !sourceFile) {
+    return ParseError::FileError;
+  }
+
+  // Write the contents and check for errors
+  destFile << sourceFile.rdbuf();
+  if (sourceFile.fail() || destFile.fail()) {
+    return ParseError::FileError;
+  }
+
+  return ParseError::NoError;
+} 
+
 void TestParser::insLineToFile(fs::path filePath, std::string line, bool firstInsert) {
   // open in append mode since otherwise multi-line checks and inputs would
   // over-write themselves.
@@ -99,31 +119,15 @@ ParseError TestParser::matchInputFileDirective(std::string& line) {
   if (foundInput)
     return ParseError::DirectiveConflict;
 
-  PathOrError inputFilePath = parsePathFromLine(line, Directive::INPUT_FILE);
-  if (std::holds_alternative<fs::path>(inputFilePath)) {
-
-    // Extract the path from the variant
-    std::filesystem::path path = std::get<fs::path>(inputFilePath);
-
-    // Open the supplied check file and read into 
-    std::ifstream sourceFile(path, std::ios::binary); 
-    std::ofstream destFile(testfile->getInsPath(), std::ios::binary);
-    if (!destFile) {
-      return ParseError::FileError;
-    } else if (!sourceFile) {
-      return ParseError::FileError;
-    }
-
-    destFile << sourceFile.rdbuf();
-
-    if (sourceFile.fail() || destFile.fail()) {
-      return ParseError::FileError;
-    }
-
+  PathOrError path = parsePathFromLine(line, Directive::INPUT_FILE);
+  if (std::holds_alternative<fs::path>(path)) {
+    // Copy the input file referenced into the testfiles ephemeral ins file 
+    auto inputPath = std::get<fs::path>(path);
+    copyFile(inputPath, testfile->getInsPath());
     foundInputFile = true;
-    return ParseError::NoError;
   }
-  return std::get<ParseError>(inputFilePath);
+
+  return std::get<ParseError>(path);
 }
 
 /**
@@ -137,14 +141,16 @@ ParseError TestParser::matchCheckFileDirective(std::string& line) {
   if (foundCheck)
     return ParseError::DirectiveConflict;
 
-  PathOrError pathOrError = parsePathFromLine(line, Directive::CHECK_FILE);
-  if (std::holds_alternative<fs::path>(pathOrError)) {
-    testfile->setOutPath(std::get<fs::path>(pathOrError));
-    foundCheckFile = true;
+  PathOrError path = parsePathFromLine(line, Directive::CHECK_FILE);
+  if (std::holds_alternative<fs::path>(path)) {
+    // Copy the input file referenced into the testfiles ephemeral ins file 
+    auto outputPath = std::get<fs::path>(path);
+    copyFile(outputPath, testfile->getOutPath());
+    foundCheckFile= true;
     return ParseError::NoError;
   }
 
-  return std::get<ParseError>(pathOrError);
+  return std::get<ParseError>(path);
 }
 
 /**

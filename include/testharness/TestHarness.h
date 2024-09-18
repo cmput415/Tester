@@ -33,8 +33,8 @@ public:
       results()
   {
     // Create temporary dir for test and toolchain files
-    tmpPath = fs::path(cfg.getConfigDirPath() / "tmp");
-    fs::create_directory(tmpPath);
+    testArtifactsPath = fs::path(cfg.getConfigDirPath() / ".test-artifacts");
+    fs::create_directory(testArtifactsPath);
 
     // Find tests
     findTests();
@@ -62,8 +62,8 @@ protected:
   // let derived classes find tests.
   void findTests();
 
-  // Create a local tmp path for every test run 
-  fs::path tmpPath;
+  // Create a local tmp path for ephemeral test input, output and toolchain files 
+  fs::path testArtifactsPath;
 
 private:
   // The results of the tests.

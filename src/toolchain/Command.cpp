@@ -105,8 +105,8 @@ void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
                 const std::string& output,
                 const std::string& error,
                 const std::string& runtime) {
-
-
+ 
+  std::cerr << "Running Command: " << exe << std::endl; 
   std::cerr << "Made out file: " << input << std::endl;
   std::cerr << "Made error file: " << output << std::endl;
   
@@ -178,6 +178,9 @@ namespace tester {
 
 Command::Command(const JSON& step, int64_t timeout)
     : usesRuntime(false), usesInStr(false), timeout(timeout) {
+
+  fs::path tmpPath = "./tmp";
+
   // Make sure the step has all of the values needed for construction.
   ensureContains(step, "stepName");
   ensureContains(step, "executablePath");
@@ -188,20 +191,23 @@ Command::Command(const JSON& step, int64_t timeout)
   for (std::string arg : step["arguments"])
     args.push_back(arg);
 
-  // If no output path is supplied by default, temporaries are created to capture stdout and stderr.
-  std::string output_name = std::string(step["stepName"]) + ".stdout";
-  std::string error_name = std::string(step["stepName"]) + ".stderr";
-  outPath = fs::temp_directory_path() / output_name;
-  errPath = fs::temp_directory_path() / error_name;
-
   // Set the executable path
   std::string path = step["executablePath"];
   exePath = fs::path(path);
 
-  // Allow override of stdout path
-  if (doesContain(step, "output"))
-    outputFile = fs::path(step["output"]);
+  // Allow override of stdout path with output property
+  if (doesContain(step, "output")) {
+    outPath = tmpPath / fs::path(step["output"]);
+  } else {
+    std::string output_name = std::string(step["stepName"]) + ".stdout";
+    outPath = tmpPath / output_name;
+  }
 
+  std::cout  << "Created commadn with outpath: " << outPath << std::endl; 
+  // Always create a stderr path
+  std::string error_name = std::string(step["stepName"]) + ".stderr";
+  errPath = tmpPath / error_name;
+  
   // Do we use an input stream file?
   if (doesContain(step, "usesInStr"))
     usesInStr = step["usesInStr"];
@@ -212,13 +218,12 @@ Command::Command(const JSON& step, int64_t timeout)
 
   // Do we allow errors?
   if (doesContain(step, "allowError"))
-    allowError = step["allowError"];
+    allowError = step["allowError"]; 
 }
 
 ExecutionOutput Command::execute(const ExecutionInput& ei) const {
   // Create our output context.
-  fs::path out = outputFile.has_value() ? *outputFile : outPath;
-  ExecutionOutput eo(out, errPath);
+  ExecutionOutput eo(outPath, errPath);
 
   // Always remove old output files so we know if a new one was created
   std::error_code ec;
@@ -230,6 +235,7 @@ ExecutionOutput Command::execute(const ExecutionInput& ei) const {
   for (const std::string& arg : args)
     trueArgs.emplace_back(resolveArg(ei, eo, arg).string());
 
+  std::cout << "OUT PATH: " << outPath << std::endl;
   // Get the runtime path and standard out file, the things used in setting up
   // the execution of the command.
   std::string runtimeStr = usesRuntime ? ei.getTestedRuntime().string() : "";

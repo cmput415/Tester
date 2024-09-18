@@ -34,7 +34,9 @@ ExecutionOutput ToolChain::build(TestFile* test) const {
       eo.setIsErrorTest(true);
       return eo;
     }
-     
+
+    // The input for the next command is the output of the previous command, along with
+    // the same input stream, tested executable and runtime, which is shared for all commands. 
     ei = ExecutionInput(eo.getOutputFile(), ei.getInputStreamFile(), ei.getTestedExecutable(),
                         ei.getTestedRuntime());
   }

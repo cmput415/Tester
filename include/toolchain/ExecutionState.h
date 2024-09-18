@@ -16,8 +16,10 @@ public:
   // Creates input to a subprocess execution.
   ExecutionInput(fs::path inputPath, fs::path inputStreamPath, fs::path testedExecutable,
                  fs::path testedRuntime)
-      : inputPath(std::move(inputPath)), inputStreamPath(std::move(inputStreamPath)),
-        testedExecutable(std::move(testedExecutable)), testedRuntime(std::move(testedRuntime)) {}
+      : inputPath(std::move(inputPath)),
+        inputStreamPath(std::move(inputStreamPath)),
+        testedExecutable(std::move(testedExecutable)),
+        testedRuntime(std::move(testedRuntime)) {}
 
   // Gets input file.
   const fs::path& getInputFile() const { return inputPath; }
