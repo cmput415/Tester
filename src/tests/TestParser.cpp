@@ -35,13 +35,22 @@ ParseError copyFile(const fs::path& from, const fs::path& to) {
 } 
 
 void TestParser::insLineToFile(fs::path filePath, std::string line, bool firstInsert) {
-  // open in append mode since otherwise multi-line checks and inputs would
-  // over-write themselves.
-  std::ofstream out(filePath, std::ios::app);
-  if (!firstInsert) {
-    out << "\n";
+
+  // Set the mode to open the file determined by first insert
+  std::ios_base::openmode mode;
+  if (firstInsert) {
+    mode = std::ios::out | std::ios::trunc;
+  } else {
+    mode = std::ios::app;
   }
+
+  // Open the file, write the contents.
+  std::ofstream out(filePath, mode);
   out << line;
+  if (!firstInsert) {
+      out << "\n";
+  }
+  out.close();
 }
 
 /**
@@ -82,7 +91,7 @@ ParseError TestParser::matchInputDirective(std::string& line) {
   size_t findIdx = line.find(Directive::INPUT);
   std::string inputLine = line.substr(findIdx + Directive::INPUT.length());
   
-  insLineToFile(testfile->getInsPath(), inputLine, foundInput);
+  insLineToFile(testfile->getInsPath(), inputLine, !foundInput);
   foundInput = true;
   
   return ParseError::NoError;
@@ -98,11 +107,11 @@ ParseError TestParser::matchCheckDirective(std::string& line) {
     return ParseError::NoError;
   if (foundCheckFile)
     return ParseError::DirectiveConflict;
-
+  
   size_t findIdx = line.find(Directive::CHECK);
   std::string checkLine = line.substr(findIdx + Directive::CHECK.length());
   
-  insLineToFile(testfile->getOutPath(), checkLine, foundCheck);
+  insLineToFile(testfile->getOutPath(), checkLine, !foundCheck);
   foundCheck = true;
   
   return ParseError::NoError;
