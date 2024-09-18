@@ -149,10 +149,21 @@ void formatFileDump(const fs::path& testPath, const fs::path& expOutPath,
                     const fs::path& genOutPath) {
   std::cout << "----- TestFile: "<< testPath.filename() << std::endl;
   dumpFile(testPath);
-  std::cout << "----- Expected Output (" << fs::file_size(expOutPath) << " bytes)" << std::endl;
-  dumpFile(expOutPath, true);
-  std::cout << "----- Generated Output (" << fs::file_size(genOutPath) << " bytes)" << std::endl;
-  dumpFile(genOutPath, true);
+
+  if (fs::exists(expOutPath)) {
+    std::cout << "----- Expected Output (" << fs::file_size(expOutPath) << " bytes)" << std::endl;
+    dumpFile(expOutPath, true);
+  } else {
+    std::cout << "----- Expected Output: (0 bytes)" << std::endl;
+    dumpFile("/dev/null", true);
+  } 
+  if (fs::exists(genOutPath)) {
+    std::cout << "----- Generated Output (" << fs::file_size(genOutPath) << " bytes)" << std::endl;
+    dumpFile(genOutPath, true);
+  } else {
+    std::cout << "----- Generated Output: (0 bytes)" << std::endl;
+    dumpFile("/dev/null", true);
+  } 
   std::cout << "-----------------------" << std::endl;
 }
 
@@ -193,7 +204,6 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
 
   const fs::path testPath = test->getTestPath();
   const fs::path expOutPath = test->getOutPath();
-  const fs::path insPath = test->getInsPath(); 
   fs::path genOutPath;
   std::string genErrorString, expErrorString, diffString;
   

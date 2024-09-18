@@ -32,7 +32,7 @@ public:
   Command(const Command& command) = default;
 
   // Destructor for removing temporary files
-  ~Command() {}
+  ~Command();
 
   // Execute the command.
   ExecutionOutput execute(const ExecutionInput& ei) const;
@@ -58,14 +58,12 @@ private:
   std::string name;
   fs::path exePath;
   fs::path runtimePath;
+  fs::path tmpPath;
   std::vector<std::string> args;
-
+  
   // Every command produces a file descriptor for each of these paths
   fs::path errPath;
   fs::path outPath;
-
-  // The command can supply a output file to use instead of stdout/err 
-  std::optional<fs::path> outputFile;
 
   // Uses runtime and uses input stream.
   bool usesRuntime, usesInStr;

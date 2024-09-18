@@ -1,6 +1,7 @@
 #ifndef TESTER_EXECUTION_STATE_H
 #define TESTER_EXECUTION_STATE_H
 
+#include <iostream>
 #include <filesystem>
 #include <optional>
 namespace fs = std::filesystem;
@@ -16,8 +17,14 @@ public:
   // Creates input to a subprocess execution.
   ExecutionInput(fs::path inputPath, fs::path inputStreamPath, fs::path testedExecutable,
                  fs::path testedRuntime)
-      : inputPath(std::move(inputPath)), inputStreamPath(std::move(inputStreamPath)),
-        testedExecutable(std::move(testedExecutable)), testedRuntime(std::move(testedRuntime)) {}
+      : inputPath(std::move(inputPath)),
+        inputStreamPath(std::move(inputStreamPath)),
+        testedExecutable(std::move(testedExecutable)),
+        testedRuntime(std::move(testedRuntime)) {}
+
+  ~ExecutionInput() {
+    // std::cout << "Destory execution input: " << inputPath << std::endl;
+  }
 
   // Gets input file.
   const fs::path& getInputFile() const { return inputPath; }
@@ -50,6 +57,10 @@ public:
         errPath(std::move(errPath)), 
         rv(0), elapsedTime(0), hasElapsed(false), isErrorTest(false) {}
 
+  ~ExecutionOutput() {
+    // std::cout << "Destory execution output: " << outPath << std::endl;
+  }
+  
   // Gets output file.
   fs::path getOutputFile() const { return outPath; }
   fs::path getErrorFile() const { return errPath; }

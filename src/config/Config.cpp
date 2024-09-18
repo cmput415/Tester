@@ -55,6 +55,11 @@ Config::Config(int argc, char** argv) : timeout(2l) {
   JSON json;
   jsonFile >> json;
 
+  // Set the config path from the full path of the config file  
+  configDirPath = fs::path(configFilePath).parent_path();
+  if (!fs::exists(configDirPath))
+    throw std::runtime_error("Can not find the directory of the config: " + configDirPath.string());
+
   // Make sure an in and out dir were provided.
   ensureContains(json, "testDir");
   std::string testDirStr = json["testDir"];

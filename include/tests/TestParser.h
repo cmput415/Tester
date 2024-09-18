@@ -5,6 +5,7 @@
 #include "TestFile.h"
 #include <filesystem>
 #include <variant>
+#include <sstream>
 
 namespace fs = std::filesystem;
 
@@ -42,8 +43,7 @@ private:
   // helper method to insert a newline prefixed line to a file
   void insLineToFile(fs::path filePath, std::string line, bool firstInsert);
 
-  // methods below look for INPUT, CHECK, INPUT_FILE, CHECK_FILE directive in
-  // a lines
+  // identifiy for INPUT, CHECK, INPUT_FILE or CHECK_FILE directive in a line
   ParseError matchInputDirective(std::string& line);
   ParseError matchCheckDirective(std::string& line);
   ParseError matchInputFileDirective(std::string& line);

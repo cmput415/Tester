@@ -28,7 +28,17 @@ public:
   TestHarness() = delete;
 
   // Construct the Tester with a parsed JSON file.
-  TestHarness(const Config& cfg) : cfg(cfg), results() { findTests(); }
+  TestHarness(const Config& cfg) 
+    : cfg(cfg), 
+      results()
+  {
+    // Create temporary dir for test and toolchain files
+    testArtifactsPath = fs::path(cfg.getConfigDirPath() / ".test-artifacts");
+    fs::create_directory(testArtifactsPath);
+
+    // Find tests
+    findTests();
+  } 
 
   // Returns true if any tests failed, false otherwise.
   bool runTests();
@@ -51,6 +61,9 @@ protected:
 
   // let derived classes find tests.
   void findTests();
+
+  // Create a local tmp path for ephemeral test input, output and toolchain files 
+  fs::path testArtifactsPath;
 
 private:
   // The results of the tests.

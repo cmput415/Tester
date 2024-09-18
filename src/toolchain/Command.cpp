@@ -22,7 +22,7 @@ namespace {
 /// @brief Open the file with provided flags and mode. Redirect the file descriptor
 /// supplied by dup_fd to the file underlying file_str. 
 int redirectStdStream(const std::string& file_str, int flags, mode_t mode, int dup_fd) {
-
+   
   // Open the process
   int fd = open(file_str.c_str(), flags, mode);
   if (fd == -1) {
@@ -78,13 +78,19 @@ void becomeCommand(const std::string& exe,
 
   // Open the supplied files and redirect FD of the current child process to them.
   int outFileStatus = redirectStdStream(output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDOUT_FILENO);
-  int errorFileStatus = redirectStdStream(error.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDERR_FILENO);
-  int inFileStatus = !input.empty() ? redirectStdStream(input.c_str(), O_RDONLY, 0, STDIN_FILENO) : 0;
-
+  int errFileStatus = redirectStdStream(error.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR, STDERR_FILENO);
+  int insFileStatus = !input.empty() ? redirectStdStream(input.c_str(), O_RDONLY, 0, STDIN_FILENO) : 0;
+  
   // If opening any of the supplied output, input, or error files failed, raise here.
-  if (outFileStatus == -1 || errorFileStatus == -1 || inFileStatus == -1) {
-      perror("dup2");
-      exit(EXIT_FAILURE);
+  if (outFileStatus == -1) {
+    perror("dup2 failed to open output file");
+    exit(EXIT_FAILURE);
+  } else if (errFileStatus == -1) {
+    perror("dup2 failed to open error file");
+    exit(EXIT_FAILURE);
+  } else if (insFileStatus == -1) {
+    perror("dup2 failed to open input stream file");
+    exit(EXIT_FAILURE);
   }
 
   // Replace ourselves with the command.
@@ -106,6 +112,12 @@ void runCommand(std::promise<unsigned int>& promise, std::atomic_bool& killVar,
                 const std::string& error,
                 const std::string& runtime) {
 
+#if defined(DEBUG) 
+  std::cerr << "Running Command: " << exe << std::endl; 
+  std::cerr << "Made out file: " << output << std::endl;
+  std::cerr << "Made error file: " << error << std::endl;
+  std::cerr << "Made input file: " << input << std::endl;
+#endif 
   pid_t childId = fork();
 
   // We're the child process, we want to replace our process image with the
@@ -174,6 +186,9 @@ namespace tester {
 
 Command::Command(const JSON& step, int64_t timeout)
     : usesRuntime(false), usesInStr(false), timeout(timeout) {
+
+  fs::path testArtifactsPath = "./.test-artifacts";
+
   // Make sure the step has all of the values needed for construction.
   ensureContains(step, "stepName");
   ensureContains(step, "executablePath");
@@ -184,20 +199,22 @@ Command::Command(const JSON& step, int64_t timeout)
   for (std::string arg : step["arguments"])
     args.push_back(arg);
 
-  // If no output path is supplied by default, temporaries are created to capture stdout and stderr.
-  std::string output_name = std::string(step["stepName"]) + ".stdout";
-  std::string error_name = std::string(step["stepName"]) + ".stderr";
-  outPath = fs::temp_directory_path() / output_name;
-  errPath = fs::temp_directory_path() / error_name;
-
   // Set the executable path
   std::string path = step["executablePath"];
   exePath = fs::path(path);
 
-  // Allow override of stdout path
-  if (doesContain(step, "output"))
-    outputFile = fs::path(step["output"]);
+  // Allow override of stdout path with output property
+  if (doesContain(step, "output")) {
+    outPath = testArtifactsPath / fs::path(step["output"]);
+  } else {
+    std::string outFileName = std::string(step["stepName"]) + ".stdout";
+    outPath = testArtifactsPath / outFileName;
+  }
 
+  // Always create a stderr path
+  std::string errFileName = std::string(step["stepName"]) + ".stderr";
+  errPath = testArtifactsPath / fs::path(errFileName);
+   
   // Do we use an input stream file?
   if (doesContain(step, "usesInStr"))
     usesInStr = step["usesInStr"];
@@ -209,12 +226,19 @@ Command::Command(const JSON& step, int64_t timeout)
   // Do we allow errors?
   if (doesContain(step, "allowError"))
     allowError = step["allowError"];
+
+  // std::cout  << "Created command with outpath: " << outPath << std::endl; 
+  // std::cout  << "Created command with errPath: " << errPath << std::endl;  
+}
+
+Command::~Command() {
+  // std::cout << "Destroying command\n";
 }
 
 ExecutionOutput Command::execute(const ExecutionInput& ei) const {
+  
   // Create our output context.
-  fs::path out = outputFile.has_value() ? *outputFile : outPath;
-  ExecutionOutput eo(out, errPath);
+  ExecutionOutput eo(outPath, errPath);
 
   // Always remove old output files so we know if a new one was created
   std::error_code ec;
@@ -226,10 +250,17 @@ ExecutionOutput Command::execute(const ExecutionInput& ei) const {
   for (const std::string& arg : args)
     trueArgs.emplace_back(resolveArg(ei, eo, arg).string());
 
+#if defined(DEBUG)
+  std::cout << "OUT PATH: " << outPath << std::endl;
+  std::cout << "ERR PATH: " << errPath << std::endl;
+  std::cout << "INS PATH: " << ei.getInputStreamFile() << std::endl;
+#endif 
   // Get the runtime path and standard out file, the things used in setting up
   // the execution of the command.
   std::string runtimeStr = usesRuntime ? ei.getTestedRuntime().string() : "";
-  std::string inPathStr = usesInStr ? ei.getInputStreamFile().string() : "";
+  std::string inPathStr = fs::exists(ei.getInputStreamFile()) && usesInStr 
+                                    ? ei.getInputStreamFile().string()
+                                    : "";
   std::string outPathStr = outPath.string();
   std::string errPathStr = errPath.string();
 

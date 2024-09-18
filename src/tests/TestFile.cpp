@@ -1,6 +1,8 @@
 #include "tests/TestFile.h"
 #include "tests/TestParser.h"
 
+static uint64_t nextId = 0;
+
 namespace {
 
 std::string stripFileExtension(const std::string& str) {
@@ -12,30 +14,58 @@ std::string stripFileExtension(const std::string& str) {
 
 namespace tester {
 
-uint64_t TestFile::nextId = 0;
+// Initialize the static id to zero
+std::atomic<uint64_t> TestFile::nextId(0);
 
-TestFile::TestFile(const fs::path& path) : id(++nextId), testPath(path) {
+// An atoimc 
+uint64_t TestFile::generateId() {
+    return nextId.fetch_add(1, std::memory_order_relaxed);
+}
 
-  // create a unique temporary file to use as the inputs stream path
-  std::string fileInsPath = stripFileExtension(testPath.filename());
-  insPath = fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".ins");
-  outPath = fs::temp_directory_path() / (fileInsPath + std::to_string(id) + ".out");
+TestFile::TestFile(const fs::path& path, const fs::path& artifactDir)
+    : id(generateId()), testPath(path) {
 
-  std::ofstream makeInsFile(insPath);
-  std::ofstream makeOutFile(outPath);
+  try {
+    // Create .test-artifacts if it doesn't exist    
+    if (!fs::exists(artifactDir)) {
+      fs::create_directories(artifactDir);
+    }
 
-  // closing creates the files
-  makeInsFile.close();
-  makeOutFile.close();
+    // create .test-artifacts/testfiles if it doesn't exist
+    fs::path testArtifactsDir = artifactDir / "testfiles"; 
+    if (!fs::exists(testArtifactsDir)) {
+      fs::create_directories(testArtifactsDir);
+    }
+
+    std::string testName = path.stem();
+    fs::path basePath = testArtifactsDir / fs::path(testName + '-' + std::to_string(id));
+
+    setInsPath(fs::path(basePath.string() + ".ins"));
+    setOutPath(fs::path(basePath.string() + ".out"));
+
+    // std::cout << "Creating file: " << testName << std::endl;
+    // std::cout << "INS: " << getInsPath() << std::endl;  
+    // std::cout << "OUT: " << getOutPath() << std::endl;  
+
+  } catch (const fs::filesystem_error& e) {
+    throw std::runtime_error("Filesystem error: " + std::string(e.what()));
+  } 
 }
 
 TestFile::~TestFile() {
-  // clean up allocated resources on Testfile de-allocation
-  if (usesInputStream && !usesInputFile) {
-    fs::remove(insPath);
-  }
-  if (usesOutStream && !usesOutFile) {
-    fs::remove(outPath);
+
+  // std::cout << "Calling Destructor...\n";
+  try {
+    if (fs::exists(insPath)) {
+      // Remove temporary input stream file 
+      fs::remove(insPath);
+    }
+    if (fs::exists(outPath)) {
+      // Remove the tenmporary testfile directory and the expected out
+      fs::remove(outPath);
+    }
+  } catch (const std::exception& e) {
+    std::cerr << "Caught exception in destructor: "<< e.what() << std::endl;
   }
 }
 
