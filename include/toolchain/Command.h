@@ -32,7 +32,7 @@ public:
   Command(const Command& command) = default;
 
   // Destructor for removing temporary files
-  ~Command() {}
+  ~Command();
 
   // Execute the command.
   ExecutionOutput execute(const ExecutionInput& ei) const;

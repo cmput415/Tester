@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 
     // Free resources
   } catch (const std::runtime_error& e) {
-    std::cout << "Test harness error: " << e.what() << '\n';
+    std::cout << e.what() << '\n';
     return 1;
   }
 

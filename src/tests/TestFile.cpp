@@ -25,21 +25,28 @@ uint64_t TestFile::generateId() {
 TestFile::TestFile(const fs::path& path, const fs::path& artifactDir)
     : id(generateId()), testPath(path) {
 
-  std::string testName = path.stem();
-  setInsPath(artifactDir / fs::path(testName + '-' + std::to_string(id) + ".ins"));
-  setOutPath(artifactDir / fs::path(testName + '-' + std::to_string(id) + ".out"));
-
-  std::cout << "Creating file: " << testName << std::endl;
-  std::cout << "INS: " << getInsPath() << std::endl;  
-  std::cout << "OUT: " << getInsPath() << std::endl;  
-
   try {
-    // Create tmp directory if it doesn't exist
+    // Create .test-artifacts if it doesn't exist    
     if (!fs::exists(artifactDir)) {
-      if (!fs::create_directories(artifactDir)) {
-        throw std::runtime_error("Failed to create directory: " + artifactDir.string());
-      }
+      fs::create_directories(artifactDir);
     }
+
+    // create .test-artifacts/testfiles if it doesn't exist
+    fs::path testArtifactsDir = artifactDir / "testfiles"; 
+    if (!fs::exists(testArtifactsDir)) {
+      fs::create_directories(testArtifactsDir);
+    }
+
+    std::string testName = path.stem();
+    fs::path basePath = testArtifactsDir / fs::path(testName + '-' + std::to_string(id));
+
+    setInsPath(fs::path(basePath.string() + ".ins"));
+    setOutPath(fs::path(basePath.string() + ".out"));
+
+    // std::cout << "Creating file: " << testName << std::endl;
+    // std::cout << "INS: " << getInsPath() << std::endl;  
+    // std::cout << "OUT: " << getOutPath() << std::endl;  
+
   } catch (const fs::filesystem_error& e) {
     throw std::runtime_error("Filesystem error: " + std::string(e.what()));
   } 
@@ -47,15 +54,19 @@ TestFile::TestFile(const fs::path& path, const fs::path& artifactDir)
 
 TestFile::~TestFile() {
 
-  std::cout << "Calling Destructor...\n";
-  // if (fs::exists(insPath)) {
-  //   // Remove temporary input stream file 
-  //   fs::remove(insPath);
-  // }
-  // if (fs::exists(outPath)) {
-  //   // Remove the tenmporary testfile directory and the expected out
-  //   fs::remove(outPath);
-  // }
+  // std::cout << "Calling Destructor...\n";
+  try {
+    if (fs::exists(insPath)) {
+      // Remove temporary input stream file 
+      fs::remove(insPath);
+    }
+    if (fs::exists(outPath)) {
+      // Remove the tenmporary testfile directory and the expected out
+      fs::remove(outPath);
+    }
+  } catch (const std::exception& e) {
+    std::cerr << "Caught exception in destructor: "<< e.what() << std::endl;
+  }
 }
 
 std::string TestFile::getParseErrorMsg() const {

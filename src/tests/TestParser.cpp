@@ -35,22 +35,14 @@ ParseError copyFile(const fs::path& from, const fs::path& to) {
 } 
 
 void TestParser::insLineToFile(fs::path filePath, std::string line, bool firstInsert) {
-
-  // Set the mode to open the file determined by first insert
-  std::ios_base::openmode mode;
+ 
   if (firstInsert) {
-    mode = std::ios::out | std::ios::trunc;
+    std::ofstream out(filePath);
+    out << line;
   } else {
-    mode = std::ios::app;
-  }
-
-  // Open the file, write the contents.
-  std::ofstream out(filePath, mode);
-  out << line;
-  if (!firstInsert) {
-      out << "\n";
-  }
-  out.close();
+    std::ofstream out(filePath, std::ios::app);
+    out << "\n" << line;
+  }   
 }
 
 /**
@@ -90,7 +82,7 @@ ParseError TestParser::matchInputDirective(std::string& line) {
 
   size_t findIdx = line.find(Directive::INPUT);
   std::string inputLine = line.substr(findIdx + Directive::INPUT.length());
-  
+
   insLineToFile(testfile->getInsPath(), inputLine, !foundInput);
   foundInput = true;
   
@@ -110,7 +102,7 @@ ParseError TestParser::matchCheckDirective(std::string& line) {
   
   size_t findIdx = line.find(Directive::CHECK);
   std::string checkLine = line.substr(findIdx + Directive::CHECK.length());
-  
+
   insLineToFile(testfile->getOutPath(), checkLine, !foundCheck);
   foundCheck = true;
   
@@ -134,6 +126,7 @@ ParseError TestParser::matchInputFileDirective(std::string& line) {
     auto inputPath = std::get<fs::path>(path);
     copyFile(inputPath, testfile->getInsPath());
     foundInputFile = true;
+    return ParseError::NoError;
   }
 
   return std::get<ParseError>(path);
