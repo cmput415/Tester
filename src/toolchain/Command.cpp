@@ -185,10 +185,9 @@ Command::Command(const JSON& step, int64_t timeout)
     args.push_back(arg);
 
   // If no output path is supplied by default, temporaries are created to capture stdout and stderr.
-  std::string output_name = std::string(step["stepName"]) + ".stdout";
-  std::string error_name = std::string(step["stepName"]) + ".stderr";
-  outPath = fs::temp_directory_path() / output_name;
-  errPath = fs::temp_directory_path() / error_name;
+  const auto& stepName = step["stepName"];
+  outPath = fs::path(stepName).replace_extension(".stdout");
+  errPath = fs::path(stepName).replace_extension(".stderr");  
 
   // Set the executable path
   std::string path = step["executablePath"];

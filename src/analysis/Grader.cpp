@@ -136,9 +136,8 @@ void Grader::fillToolchainResultsJSON() {
               }
               trackSolutionFailure(test.get(), toolChain.first, attacker);
             }
-            //  
             if (result.pass) {
-              testCount++;
+              passCount++;
             }
             // Print the test result in a nice to read format.
             printGraderTestResult(result.pass, result.error);
