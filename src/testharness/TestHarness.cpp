@@ -4,25 +4,135 @@
 #include "tests/TestRunning.h"
 #include "util.h"
 
+#include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <mutex>
+#include <optional>
 #include <sstream>
+#include <thread>
 #include <utility>
 
 namespace tester {
 
+void swap(TestResult& first, TestResult& second) {
+  std::swap(first, second);
+}
+
 // Builds TestSet during object creation.
 bool TestHarness::runTests() {
+  // initialize the threads
+  std::thread t(&TestHarness::spawnThreads, this);
+
   bool failed = false;
   // Iterate over executables.
   for (auto exePair : cfg.getExecutables()) {
     // Iterate over toolchains.
     for (auto& tcPair : cfg.getToolChains()) {
-      if (runTestsForToolChain(exePair.first, tcPair.first) == 1)
+      if (aggregateTestResultsForToolChain(tcPair.first, exePair.first) == 1)
         failed = true;
     }
   }
+
+  // join the control thread
+  t.join();
   return failed;
+}
+
+void TestHarness::spawnThreads() {
+  std::vector<std::thread> threadPool;
+  std::vector<std::reference_wrapper<TestPair>> flattenedList;
+  std::vector<std::string> exeList;
+  std::vector<std::string> tcList;
+
+  static size_t currentIndex = 0;
+  std::mutex currentIndexLock;
+
+  // Initialize the threads
+  // Iterate over executables.
+  for (auto exePair : cfg.getExecutables()) {
+    // Iterate over toolchains.
+    for (auto& tcPair : cfg.getToolChains()) {
+      // iterate over packages
+      for (auto& package : testSet) { // TestSet.second -> Package
+        // iterate over subpackages
+        for (auto& subpackage : package.second) { // Package.second -> SubPackage
+          // populate the flattened test vector
+          for (auto& test : subpackage.second) {
+            flattenedList.push_back(std::ref(test));
+            exeList.push_back(exePair.first);
+            tcList.push_back(tcPair.first);
+          }
+        }
+      }
+    }
+  }
+
+  // Let the load balancing be the responsability of the threads, instead of the supervisor
+  for (int64_t i = 0; i < cfg.getNumThreads(); i++) {
+    std::thread t(&TestHarness::threadRunTestBatch, this,
+                  std::ref(tcList),
+                  std::ref(exeList),
+                  std::ref(flattenedList),
+                  std::ref(currentIndex),
+                  std::ref(currentIndexLock));
+    threadPool.push_back(std::move(t));
+  }
+
+  // KILL ALL THE CHILDREN
+  for (auto& thread : threadPool) thread.join();
+}
+
+void TestHarness::threadRunTestBatch(std::reference_wrapper<std::vector<std::string>> toolchains,
+                        std::reference_wrapper<std::vector<std::string>> executables,
+                        std::reference_wrapper<std::vector<std::reference_wrapper<TestPair>>> tests,
+                        std::reference_wrapper<size_t> currentIndex,
+                        std::reference_wrapper<std::mutex> currentIndexLock)
+{
+  // Loop while we have not exhausted the available tests
+  while (currentIndex < tests.get().size()) {
+    size_t tmpIndex;
+
+    {
+      // Lock the index
+      std::lock_guard<std::mutex> lock(currentIndexLock);
+
+      // store the current index
+      tmpIndex = currentIndex;
+      // increment for the next lad
+      currentIndex += cfg.getBatchSize();
+    }
+    size_t endIndex = ((tmpIndex + cfg.getBatchSize()) >= tests.get().size()) ?  tests.get().size() : tmpIndex + cfg.getBatchSize();
+
+    threadRunTestsForToolChain(std::ref(toolchains), std::ref(executables), std::ref(tests), tmpIndex, endIndex);
+  }
+}
+
+void TestHarness::threadRunTestsForToolChain(std::reference_wrapper<std::vector<std::string>> tcNames,
+                                             std::reference_wrapper<std::vector<std::string>> exeNames,
+                                             std::reference_wrapper<std::vector<std::reference_wrapper<TestPair>>> tests,
+                                             size_t begin, size_t end)
+{
+  for (size_t i = begin; i < end; i++) {
+    ToolChain toolChain = cfg.getToolChain(tcNames.get().at(i)); // Get the toolchain to use.
+    const fs::path& exe = cfg.getExecutablePath(exeNames.get().at(i)); // Set the toolchain's exe to be tested.
+    toolChain.setTestedExecutable(exe);
+
+    // set the runtime
+    if (cfg.hasRuntime(exeNames.get().at(i))) // If we have a runtime, set that as well.
+      toolChain.setTestedRuntime(cfg.getRuntimePath(exeNames.get().at(i)));
+    else
+      toolChain.setTestedRuntime("");
+
+    std::unique_ptr<TestFile>& test = tests.get().at(i).get().first;
+    if (test->getParseError() == ParseError::NoError) {
+
+      TestResult result = runTest(test.get(), toolChain, cfg);
+      // keep the result with the test for pretty printing
+      std::optional<TestResult> res_clone = std::make_optional(result.clone());
+      tests.get().at(i).get().second.swap(res_clone);
+    }
+  }
 }
 
 std::string TestHarness::getTestInfo() const {
@@ -54,17 +164,12 @@ void TestHarness::printTestResult(const TestFile *test, TestResult result) {
   std::cout << "\n";
 }
 
-bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) {
+bool TestHarness::aggregateTestResultsForToolChain(std::string tcName, std::string exeName) {
   bool failed = false;
 
   ToolChain toolChain = cfg.getToolChain(tcName); // Get the toolchain to use.
   const fs::path& exe = cfg.getExecutablePath(exeName); // Set the toolchain's exe to be tested.
   toolChain.setTestedExecutable(exe);
-
-  if (cfg.hasRuntime(exeName)) // If we have a runtime, set that as well.
-    toolChain.setTestedRuntime(cfg.getRuntimePath(exeName));
-  else
-    toolChain.setTestedRuntime("");
 
   std::cout << "\nTesting executable: " << exeName << " -> " << exe << '\n';
   std::cout << "With toolchain: " << tcName << " -> " << toolChain.getBriefDescription() << '\n';
@@ -83,12 +188,24 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
 
       // Iterate over each test in the package
       for (size_t i = 0; i < subPackage.size(); ++i) {
-        std::unique_ptr<TestFile>& test = subPackage[i];
+        TestPair& pair = subPackage[i];
+        std::unique_ptr<TestFile>& test = pair.first;
         if (test->getParseError() == ParseError::NoError) {
-        
-          TestResult result = runTest(test.get(), toolChain, cfg);
+
+          // Poll while we wait for the result
+          // TODO this could probably be replaced with some sort of interrupt,
+          //  (and probably should be), but better this than no threads
+          while (!pair.second.has_value())
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+          TestResult result = pair.second.value();
+
+          // keep the result with the test for pretty printing
+          std::optional<TestResult> res_clone = std::make_optional(result.clone());
+          subPackage[i].second.swap(res_clone);
+
           results.addResult(exeName, tcName, subPackageName, result);
-          printTestResult(test.get(), result); 
+          printTestResult(test.get(), result);
 
           if (result.pass) {
             ++packagePasses;
@@ -100,7 +217,7 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
           std::cout << "    " << (Colors::YELLOW + "[INVALID]" + Colors::RESET) << " "
                     << test->getTestPath().stem().string() << '\n';
           --subPackageSize;
-        }        
+        }
       }
       std::cout << "  Subpackage passed " << subPackagePasses << " / " << subPackageSize << '\n';
       // Track how many tests we run.
@@ -119,10 +236,13 @@ bool TestHarness::runTestsForToolChain(std::string exeName, std::string tcName) 
             << "\n";
 
   for (auto& test : invalidTests) {
-    std::cout << "  Skipped: " << test->getTestPath().filename().stem() << std::endl
-              << "  Error: " << Colors::YELLOW << test->getParseErrorMsg() << Colors::RESET << "\n";
+    std::cout << "  Skipped: " << test.first->getTestPath().filename().stem() << std::endl
+              << "  Error: " << Colors::YELLOW << test.first->getParseErrorMsg() << Colors::RESET << "\n";
   }
   std::cout << "\n";
+
+  std::cout << Colors::GREEN << "Completed Tests" << Colors::RESET << std::endl;
+  std::cout << "Hold on while we clean up any remaining threads, this might take a moment" << std::endl;
 
   return failed;
 }
@@ -150,10 +270,11 @@ void TestHarness::addTestFileToSubPackage(SubPackage& subPackage, const fs::path
 
   TestParser parser(testfile.get());
 
+  std::optional<TestResult> no_result = std::nullopt;
   if (testfile->didError()) {
-    invalidTests.push_back(std::move(testfile));
-  } else {
-    subPackage.push_back(std::move(testfile));
+    invalidTests.push_back({std::move(testfile), no_result});
+  }else {
+    subPackage.push_back({std::move(testfile), no_result});
   }
 }
 

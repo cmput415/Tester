@@ -3,6 +3,7 @@
 
 #include "toolchain/ToolChain.h"
 
+#include <cstdint>
 #include <filesystem>
 #include <map>
 #include <string>
@@ -53,10 +54,13 @@ public:
 
   // Config int getters.
   int64_t getTimeout() const { return timeout; }
+  int64_t getNumThreads() const { return numThreads; }
+  int8_t getBatchSize() const { return batchSize; }
 
   // Initialisation verification.
   bool isInitialised() const { return initialised; }
   int getErrorCode() const { return errorCode; }
+
   
 private:
   // Option file paths.
@@ -81,6 +85,11 @@ private:
 
   // The command timeout.
   int64_t timeout;
+
+  // Number of threads on which to run tests
+  int64_t numThreads;
+  // Number of tests for each thread to grab on each run
+  int8_t batchSize;
 
   // Is the config initialised or not and an appropriate error code. This
   // could be due to asking for help or a missing config file.
