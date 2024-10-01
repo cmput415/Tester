@@ -212,6 +212,12 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
       genOutPath = eo.getOutputFile();
     }
 
+    // Check if we were able to create the output file
+    std::ifstream file(genErrorString);
+    if (!file.is_open()) {
+      return TestResult(testPath, false, true, "Failed to create output file");
+    }
+
   } catch (const CommandException& ce) {
     // toolchain throws errors only when allowError is false in the config
     if (cfg.getVerbosity() > 0) {
