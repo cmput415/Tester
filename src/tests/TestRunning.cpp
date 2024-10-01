@@ -3,6 +3,7 @@
 #include "Colors.h"
 #include "config/Config.h"
 #include "dtl/dtl.hpp"
+#include "tests/TestResult.h"
 #include "toolchain/CommandException.h"
 #include "toolchain/ExecutionState.h"
 #include <optional>
@@ -210,6 +211,12 @@ TestResult runTest(TestFile* test, const ToolChain& toolChain, const Config& cfg
       genOutPath = eo.getErrorFile();
     } else {
       genOutPath = eo.getOutputFile();
+    }
+
+    // Check if we were able to create the output file
+    std::ifstream file(genOutPath);
+    if (!file.is_open()) {
+      return TestResult(testPath, false, true, "Failed to create output file");
     }
 
   } catch (const CommandException& ce) {
