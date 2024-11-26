@@ -17,12 +17,21 @@ struct TestResult {
       : name(in.stem()), pass(pass), error(error), diff(diff) {}
 
   // Info about result.
-  const fs::path name;
-  const bool pass;
-  const bool error;
-  const std::string diff;
-};
+  fs::path name;
+  bool pass;
+  bool error;
+  std::string diff;
 
+  TestResult clone() { return TestResult(this->name, this->pass, this->error, this->diff); }
+
+  void swap(TestResult &other) {
+    std::swap(name, other.name);
+    std::swap(pass, other.pass);
+    std::swap(error, other.error);
+    std::swap(diff, other.diff);
+  }
+
+};
 } // End namespace tester
 
 #endif // TESTER_TEST_RESULT_H

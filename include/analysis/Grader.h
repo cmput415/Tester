@@ -24,7 +24,6 @@ public:
   Grader(const Config& cfg) : TestHarness(cfg), 
                               failedTestLog(*cfg.getFailureLogPath()),
                               solutionExecutable(*cfg.getSolutionExecutable()) {
-    findTests();
     buildResults();
   }
 

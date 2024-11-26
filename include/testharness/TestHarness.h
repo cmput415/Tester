@@ -5,6 +5,7 @@
 #include "config/Config.h"
 #include "testharness/ResultManager.h"
 #include "tests/TestParser.h"
+#include "tests/TestResult.h"
 #include "toolchain/ToolChain.h"
 
 #include <filesystem>
@@ -17,7 +18,8 @@ namespace fs = std::filesystem;
 namespace tester {
 
 // Test hierarchy types
-typedef std::vector<std::unique_ptr<TestFile>> SubPackage;
+typedef std::pair<std::unique_ptr<TestFile>, std::optional<TestResult>> TestPair;
+typedef std::vector<TestPair> SubPackage;
 typedef std::map<std::string, SubPackage> Package;
 typedef std::map<std::string, Package> TestSet;
 
@@ -49,19 +51,33 @@ protected:
   // A separate subpackage, just for invalid tests.
   SubPackage invalidTests;
 
+protected:
   // let derived classes find tests.
   void findTests();
 
 private:
   // The results of the tests.
+  //  NOTE we keep both a result manager and
+  //  the result in the TestSet to ensure in-ordre
+  //  printing
   ResultManager results;
 
 private:
+  // thread control
+  void spawnThreads();
+
   // test running
-  bool runTestsForToolChain(std::string tcId, std::string exeName);
+  void threadRunTestBatch(std::reference_wrapper<std::vector<std::string>> toolchains,
+                          std::reference_wrapper<std::vector<std::string>> executables,
+                          std::reference_wrapper<std::vector<std::reference_wrapper<TestPair>>> tests,
+                          std::reference_wrapper<size_t> currentIndex, std::reference_wrapper<std::mutex> lock);
+  void threadRunTestsForToolChain(std::reference_wrapper<std::vector<std::string>> tcIds,
+                                  std::reference_wrapper<std::vector<std::string>> exeNames,
+                                  std::reference_wrapper<std::vector<std::reference_wrapper<TestPair>>> tests, size_t begin, size_t end);
 
   // helper for formatting tester output 
   void printTestResult(const TestFile *test, TestResult result);
+  bool aggregateTestResultsForToolChain(std::string tcName, std::string exeName);
 
   // test finding and filling methods
   void addTestFileToSubPackage(SubPackage& subPackage, const fs::path& file);
